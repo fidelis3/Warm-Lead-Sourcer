@@ -3,6 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { UserModule } from './users/user.module';
 
 @Module({
   imports: [
@@ -17,7 +18,7 @@ import { AppService } from './app.service';
         const uri = configService.get<string>('MONGODB_URI');
         return {
           uri,
-          // Connection event handlers for monitoring
+          // event handlers for monitoring
           onConnectionCreate: (connection) => {
             connection.on('connected', () => {
               console.log('✅ Database connected successfully');
@@ -31,6 +32,7 @@ import { AppService } from './app.service';
       },
       inject: [ConfigService],
     }),
+    UserModule,
   ],
   controllers: [AppController],
   providers: [AppService],
