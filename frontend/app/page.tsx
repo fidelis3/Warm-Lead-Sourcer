@@ -19,8 +19,6 @@ export default function Home() {
           <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
             Extract and enrich engagement data from public social posts to generate warm leads.{" "}
             <br /><br />
-            CI/CD Pipeline Status: Testing 🚀{" "}
-            <br /><br />
             Looking for more instructions? Head over to{" "}
             <a
               href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"

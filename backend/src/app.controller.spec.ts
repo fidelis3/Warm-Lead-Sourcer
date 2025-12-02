@@ -16,7 +16,7 @@ describe('AppController', () => {
 
   describe('root', () => {
     it('should return API message', () => {
-      expect(appController.getHello()).toBe('Warm Lead Sourcer API - CI/CD Pipeline Active! 🚀');
+      expect(appController.getHello()).toBe('Warm Lead Sourcer API');
     });
 
     it('should return health status', () => {
