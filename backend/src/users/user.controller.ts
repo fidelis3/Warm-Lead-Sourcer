@@ -13,10 +13,9 @@ export class UserController {
   @HttpCode(HttpStatus.CREATED)
   async register(@Body() registerUserDto: RegisterUserDto) {
     const user = await this.userService.register(registerUserDto);
-    
-    
+
     const { password, ...result } = user.toObject();
-    
+
     return {
       message: 'User registered successfully',
       user: result,
@@ -27,7 +26,7 @@ export class UserController {
   @HttpCode(HttpStatus.OK)
   async login(@Body() loginUserDto: LoginUserDto) {
     const result = await this.userService.login(loginUserDto);
-    
+
     return {
       message: 'Login successful',
       ...result,
@@ -36,7 +35,9 @@ export class UserController {
 
   @Post('request-password-reset')
   @HttpCode(HttpStatus.OK)
-  async requestPasswordReset(@Body() requestPasswordResetDto: RequestPasswordResetDto) {
+  async requestPasswordReset(
+    @Body() requestPasswordResetDto: RequestPasswordResetDto,
+  ) {
     return await this.userService.requestPasswordReset(requestPasswordResetDto);
   }
 

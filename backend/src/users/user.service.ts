@@ -1,4 +1,10 @@
-import { Injectable, BadRequestException, ConflictException, UnauthorizedException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  ConflictException,
+  UnauthorizedException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { JwtService } from '@nestjs/jwt';
 import { Model } from 'mongoose';
@@ -20,7 +26,8 @@ export class UserService {
   ) {}
 
   async register(registerUserDto: RegisterUserDto): Promise<User> {
-    const { firstName, lastName, email, password, confirmPassword } = registerUserDto;
+    const { firstName, lastName, email, password, confirmPassword } =
+      registerUserDto;
 
     // if passwords match
     if (password !== confirmPassword) {
@@ -28,7 +35,9 @@ export class UserService {
     }
 
     // if user already exists
-    const existingUser = await this.userModel.findOne({ email: email.toLowerCase() });
+    const existingUser = await this.userModel.findOne({
+      email: email.toLowerCase(),
+    });
     if (existingUser) {
       throw new ConflictException('User with this email already exists');
     }
@@ -56,7 +65,9 @@ export class UserService {
     return await this.userModel.findById(id);
   }
 
-  async login(loginUserDto: LoginUserDto): Promise<{ access_token: string; user: any }> {
+  async login(
+    loginUserDto: LoginUserDto,
+  ): Promise<{ access_token: string; user: any }> {
     const { email, password } = loginUserDto;
 
     // Find user by email
@@ -127,25 +138,35 @@ export class UserService {
     };
   }
 
-  async requestPasswordReset(requestPasswordResetDto: RequestPasswordResetDto): Promise<{ message: string }> {
+  async requestPasswordReset(
+    requestPasswordResetDto: RequestPasswordResetDto,
+  ): Promise<{ message: string }> {
     const { email } = requestPasswordResetDto;
 
     // Find user by email
     const user = await this.userModel.findOne({ email: email.toLowerCase() });
-    
+
     if (!user) {
       // Don't reveal if user exists or not (security best practice)
-      return { message: 'If a user with that email exists, a password reset link has been sent.' };
+      return {
+        message:
+          'If a user with that email exists, a password reset link has been sent.',
+      };
     }
 
     // Check if user signed up with OAuth (no password)
     if (user.provider !== 'local') {
-      throw new BadRequestException(`This account was created using ${user.provider}. Please use ${user.provider} to sign in.`);
+      throw new BadRequestException(
+        `This account was created using ${user.provider}. Please use ${user.provider} to sign in.`,
+      );
     }
 
     // Generate reset token
     const resetToken = crypto.randomBytes(32).toString('hex');
-    const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+    const hashedToken = crypto
+      .createHash('sha256')
+      .update(resetToken)
+      .digest('hex');
 
     // Set token and expiry (1 hour)
     user.resetPasswordToken = hashedToken;
@@ -155,10 +176,15 @@ export class UserService {
     // Send email
     await this.emailService.sendPasswordResetEmail(user.email, resetToken);
 
-    return { message: 'If a user with that email exists, a password reset link has been sent.' };
+    return {
+      message:
+        'If a user with that email exists, a password reset link has been sent.',
+    };
   }
 
-  async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<{ message: string }> {
+  async resetPassword(
+    resetPasswordDto: ResetPasswordDto,
+  ): Promise<{ message: string }> {
     const { token, newPassword, confirmPassword } = resetPasswordDto;
 
     // Check if passwords match
@@ -189,6 +215,9 @@ export class UserService {
     user.resetPasswordExpires = undefined;
     await user.save();
 
-    return { message: 'Password has been reset successfully. You can now log in with your new password.' };
+    return {
+      message:
+        'Password has been reset successfully. You can now log in with your new password.',
+    };
   }
 }
