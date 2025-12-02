@@ -85,7 +85,7 @@ jobs:
       run: npm ci
     
     - name: Run linting (non-blocking)
-      run: npm run lint || echo "Linting issues found - continuing build"
+      run: npm run lint || echo "⚠️ ESLint issues found - please fix when possible"
     
     - name: Run type checking
       run: npx tsc --noEmit

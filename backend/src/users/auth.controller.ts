@@ -1,7 +1,17 @@
 import { Controller, Get, Req, UseGuards, Res, Logger } from '@nestjs/common';
-import type { Response } from 'express';
+import type { Response, Request } from 'express';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { UserService } from './user.service';
+
+// Define proper types for authenticated request
+interface AuthenticatedRequest extends Request {
+  user: {
+    email: string;
+    firstName: string;
+    lastName: string;
+    picture?: string;
+  };
+}
 
 @Controller('auth')
 export class AuthController {
@@ -11,14 +21,17 @@ export class AuthController {
 
   @Get('google')
   @UseGuards(GoogleAuthGuard)
-  async googleAuth() {
+  googleAuth(): void {
     // Initiates the Google OAuth2 login flow
     this.logger.log('Google OAuth flow initiated');
   }
 
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
-  async googleAuthRedirect(@Req() req, @Res() res: Response) {
+  async googleAuthRedirect(
+    @Req() req: AuthenticatedRequest,
+    @Res() res: Response,
+  ) {
     try {
       this.logger.log('Google callback received');
 
@@ -37,7 +50,7 @@ export class AuthController {
       this.logger.error('Google OAuth error:', error);
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
       const errorMessage = encodeURIComponent(
-        error.message || 'Authentication failed',
+        (error as Error).message || 'Authentication failed',
       );
       res.redirect(`${frontendUrl}/auth/error?message=${errorMessage}`);
     }

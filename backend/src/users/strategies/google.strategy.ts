@@ -3,6 +3,24 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, VerifyCallback } from 'passport-google-oauth20';
 import { ConfigService } from '@nestjs/config';
 
+// Define proper types for Google profile
+interface GoogleProfile {
+  name: {
+    givenName: string;
+    familyName: string;
+  };
+  emails: Array<{ value: string }>;
+  photos: Array<{ value: string }>;
+}
+
+interface GoogleUser {
+  email: string;
+  firstName: string;
+  lastName: string;
+  picture?: string;
+  accessToken: string;
+}
+
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   constructor(private configService: ConfigService) {
@@ -16,18 +34,18 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     });
   }
 
-  async validate(
+  validate(
     accessToken: string,
     refreshToken: string,
-    profile: any,
+    profile: GoogleProfile,
     done: VerifyCallback,
-  ): Promise<any> {
+  ): void {
     const { name, emails, photos } = profile;
 
-    const user = {
-      email: emails[0].value,
-      firstName: name.givenName,
-      lastName: name.familyName,
+    const user: GoogleUser = {
+      email: emails[0]?.value || '',
+      firstName: name?.givenName || '',
+      lastName: name?.familyName || '',
       picture: photos[0]?.value,
       accessToken,
     };

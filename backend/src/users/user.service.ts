@@ -3,7 +3,6 @@ import {
   BadRequestException,
   ConflictException,
   UnauthorizedException,
-  NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { JwtService } from '@nestjs/jwt';
@@ -16,6 +15,23 @@ import { LoginUserDto } from './dto/login-user.dto';
 import { RequestPasswordResetDto } from './dto/request-password-dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { EmailService } from './email.service';
+
+// Define proper types for authentication
+interface AuthenticatedUser {
+  email: string;
+  firstName: string;
+  lastName: string;
+  picture?: string;
+}
+
+interface AuthRequest {
+  user: AuthenticatedUser;
+}
+
+interface LoginResponse {
+  access_token: string;
+  user: Partial<User>;
+}
 
 @Injectable()
 export class UserService {
@@ -65,9 +81,7 @@ export class UserService {
     return await this.userModel.findById(id);
   }
 
-  async login(
-    loginUserDto: LoginUserDto,
-  ): Promise<{ access_token: string; user: any }> {
+  async login(loginUserDto: LoginUserDto): Promise<LoginResponse> {
     const { email, password } = loginUserDto;
 
     // Find user by email
@@ -87,8 +101,9 @@ export class UserService {
     const access_token = await this.jwtService.signAsync(payload);
 
     // Return token and user info (without password)
-    const userObject = user.toObject();
-    const { password: _, ...userWithoutPassword } = userObject;
+    const userObject = user.toObject() as User & { password?: string };
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: loginPassword, ...userWithoutPassword } = userObject;
 
     return {
       access_token,
@@ -96,7 +111,7 @@ export class UserService {
     };
   }
 
-  async googleLogin(req: any): Promise<{ access_token: string; user: any }> {
+  async googleLogin(req: AuthRequest): Promise<LoginResponse> {
     if (!req.user) {
       throw new BadRequestException('No user from Google');
     }
@@ -104,14 +119,16 @@ export class UserService {
     const { email, firstName, lastName, picture } = req.user;
 
     // Check if user exists
-    let user = await this.userModel.findOne({ email: email.toLowerCase() });
+    let user = await this.userModel.findOne({
+      email: email?.toLowerCase() || '',
+    });
 
     if (!user) {
       // Create new user from Google profile
       user = new this.userModel({
-        email: email.toLowerCase(),
-        firstName,
-        lastName,
+        email: email?.toLowerCase() || '',
+        firstName: firstName || '',
+        lastName: lastName || '',
         provider: 'google',
         picture,
       });
@@ -129,8 +146,9 @@ export class UserService {
     const access_token = await this.jwtService.signAsync(payload);
 
     // Return token and user info (without password)
-    const userObject = user.toObject();
-    const { password: _, ...userWithoutPassword } = userObject;
+    const userObject = user.toObject() as User & { password?: string };
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: googlePassword, ...userWithoutPassword } = userObject;
 
     return {
       access_token,
