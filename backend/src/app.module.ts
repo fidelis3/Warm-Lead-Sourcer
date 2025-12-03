@@ -1,24 +1,34 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler'; 
+import { APP_GUARD } from '@nestjs/core'; 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './users/user.module';
 
 @Module({
   imports: [
-    // Global configuration module for environment variables
+   
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    // MongoDB connection with async configuration
+
+  
+    ThrottlerModule.forRoot([
+      {
+        ttl: Number(process.env.THROTTLE_TTL) || 60000,   
+        limit: Number(process.env.THROTTLE_LIMIT) || 20,    
+      },
+    ]),
+
+  
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => {
         const uri = configService.get<string>('MONGODB_URI');
         return {
           uri,
-          // event handlers for monitoring
           onConnectionCreate: (connection) => {
             connection.on('connected', () => {
               console.log('✅ Database connected successfully');
@@ -32,9 +42,17 @@ import { UserModule } from './users/user.module';
       },
       inject: [ConfigService],
     }),
+
     UserModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+ 
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}
