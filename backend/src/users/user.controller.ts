@@ -4,6 +4,7 @@ import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { RequestPasswordResetDto } from './dto/request-password-dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { User } from './user.schema';
 
 @Controller('users')
 export class UserController {
@@ -13,10 +14,11 @@ export class UserController {
   @HttpCode(HttpStatus.CREATED)
   async register(@Body() registerUserDto: RegisterUserDto) {
     const user = await this.userService.register(registerUserDto);
-    
-    
-    const { password, ...result } = user.toObject();
-    
+
+    const userObject = user.toObject() as User & { password?: string };
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: userPassword, ...result } = userObject;
+
     return {
       message: 'User registered successfully',
       user: result,
@@ -27,7 +29,7 @@ export class UserController {
   @HttpCode(HttpStatus.OK)
   async login(@Body() loginUserDto: LoginUserDto) {
     const result = await this.userService.login(loginUserDto);
-    
+
     return {
       message: 'Login successful',
       ...result,
@@ -36,7 +38,9 @@ export class UserController {
 
   @Post('request-password-reset')
   @HttpCode(HttpStatus.OK)
-  async requestPasswordReset(@Body() requestPasswordResetDto: RequestPasswordResetDto) {
+  async requestPasswordReset(
+    @Body() requestPasswordResetDto: RequestPasswordResetDto,
+  ) {
     return await this.userService.requestPasswordReset(requestPasswordResetDto);
   }
 

@@ -1,4 +1,9 @@
-import { Injectable, BadRequestException, ConflictException, UnauthorizedException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  ConflictException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { JwtService } from '@nestjs/jwt';
 import { Model } from 'mongoose';
@@ -11,6 +16,23 @@ import { RequestPasswordResetDto } from './dto/request-password-dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { EmailService } from './email.service';
 
+// Define proper types for authentication
+interface AuthenticatedUser {
+  email: string;
+  firstName: string;
+  lastName: string;
+  picture?: string;
+}
+
+interface AuthRequest {
+  user: AuthenticatedUser;
+}
+
+interface LoginResponse {
+  access_token: string;
+  user: Partial<User>;
+}
+
 @Injectable()
 export class UserService {
   constructor(
@@ -20,7 +42,8 @@ export class UserService {
   ) {}
 
   async register(registerUserDto: RegisterUserDto): Promise<User> {
-    const { firstName, lastName, email, password, confirmPassword } = registerUserDto;
+    const { firstName, lastName, email, password, confirmPassword } =
+      registerUserDto;
 
     // if passwords match
     if (password !== confirmPassword) {
@@ -28,7 +51,9 @@ export class UserService {
     }
 
     // if user already exists
-    const existingUser = await this.userModel.findOne({ email: email.toLowerCase() });
+    const existingUser = await this.userModel.findOne({
+      email: email.toLowerCase(),
+    });
     if (existingUser) {
       throw new ConflictException('User with this email already exists');
     }
@@ -56,7 +81,7 @@ export class UserService {
     return await this.userModel.findById(id);
   }
 
-  async login(loginUserDto: LoginUserDto): Promise<{ access_token: string; user: any }> {
+  async login(loginUserDto: LoginUserDto): Promise<LoginResponse> {
     const { email, password } = loginUserDto;
 
     // Find user by email
@@ -76,8 +101,9 @@ export class UserService {
     const access_token = await this.jwtService.signAsync(payload);
 
     // Return token and user info (without password)
-    const userObject = user.toObject();
-    const { password: _, ...userWithoutPassword } = userObject;
+    const userObject = user.toObject() as User & { password?: string };
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: loginPassword, ...userWithoutPassword } = userObject;
 
     return {
       access_token,
@@ -85,7 +111,7 @@ export class UserService {
     };
   }
 
-  async googleLogin(req: any): Promise<{ access_token: string; user: any }> {
+  async googleLogin(req: AuthRequest): Promise<LoginResponse> {
     if (!req.user) {
       throw new BadRequestException('No user from Google');
     }
@@ -93,14 +119,16 @@ export class UserService {
     const { email, firstName, lastName, picture } = req.user;
 
     // Check if user exists
-    let user = await this.userModel.findOne({ email: email.toLowerCase() });
+    let user = await this.userModel.findOne({
+      email: email?.toLowerCase() || '',
+    });
 
     if (!user) {
       // Create new user from Google profile
       user = new this.userModel({
-        email: email.toLowerCase(),
-        firstName,
-        lastName,
+        email: email?.toLowerCase() || '',
+        firstName: firstName || '',
+        lastName: lastName || '',
         provider: 'google',
         picture,
       });
@@ -118,8 +146,9 @@ export class UserService {
     const access_token = await this.jwtService.signAsync(payload);
 
     // Return token and user info (without password)
-    const userObject = user.toObject();
-    const { password: _, ...userWithoutPassword } = userObject;
+    const userObject = user.toObject() as User & { password?: string };
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: googlePassword, ...userWithoutPassword } = userObject;
 
     return {
       access_token,
@@ -127,25 +156,35 @@ export class UserService {
     };
   }
 
-  async requestPasswordReset(requestPasswordResetDto: RequestPasswordResetDto): Promise<{ message: string }> {
+  async requestPasswordReset(
+    requestPasswordResetDto: RequestPasswordResetDto,
+  ): Promise<{ message: string }> {
     const { email } = requestPasswordResetDto;
 
     // Find user by email
     const user = await this.userModel.findOne({ email: email.toLowerCase() });
-    
+
     if (!user) {
       // Don't reveal if user exists or not (security best practice)
-      return { message: 'If a user with that email exists, a password reset link has been sent.' };
+      return {
+        message:
+          'If a user with that email exists, a password reset link has been sent.',
+      };
     }
 
     // Check if user signed up with OAuth (no password)
     if (user.provider !== 'local') {
-      throw new BadRequestException(`This account was created using ${user.provider}. Please use ${user.provider} to sign in.`);
+      throw new BadRequestException(
+        `This account was created using ${user.provider}. Please use ${user.provider} to sign in.`,
+      );
     }
 
     // Generate reset token
     const resetToken = crypto.randomBytes(32).toString('hex');
-    const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+    const hashedToken = crypto
+      .createHash('sha256')
+      .update(resetToken)
+      .digest('hex');
 
     // Set token and expiry (1 hour)
     user.resetPasswordToken = hashedToken;
@@ -155,10 +194,15 @@ export class UserService {
     // Send email
     await this.emailService.sendPasswordResetEmail(user.email, resetToken);
 
-    return { message: 'If a user with that email exists, a password reset link has been sent.' };
+    return {
+      message:
+        'If a user with that email exists, a password reset link has been sent.',
+    };
   }
 
-  async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<{ message: string }> {
+  async resetPassword(
+    resetPasswordDto: ResetPasswordDto,
+  ): Promise<{ message: string }> {
     const { token, newPassword, confirmPassword } = resetPasswordDto;
 
     // Check if passwords match
@@ -189,6 +233,9 @@ export class UserService {
     user.resetPasswordExpires = undefined;
     await user.save();
 
-    return { message: 'Password has been reset successfully. You can now log in with your new password.' };
+    return {
+      message:
+        'Password has been reset successfully. You can now log in with your new password.',
+    };
   }
 }
