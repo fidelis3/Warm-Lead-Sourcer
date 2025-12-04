@@ -1,5 +1,7 @@
 from apify_client import ApifyClient
 from dotenv import load_dotenv
+from logs import logger
+
 import os
 
 load_dotenv()
