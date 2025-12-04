@@ -1,10 +1,17 @@
 from apify_client import ApifyClient
 from dotenv import load_dotenv
-from logs import logger
-
 import os
 
 load_dotenv()
+logger = logging.getLogger(__name__)
+
+import logging
+
+if __name__ == "__main__":
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    )
 
 try:
     client = ApifyClient(os.getenv("APIFY_TOKEN"))
