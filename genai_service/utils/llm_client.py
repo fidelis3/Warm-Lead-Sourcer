@@ -18,12 +18,14 @@ if __name__ == "__main__":
 # llama-3.1 - general
 # openai 120b - scoring logic/ complex tasks
 
+
+# Implement extensive error handling for model initialization
 try:
     logger.info("Setting up main Groq LLM model.")
     general_model = ChatGroq(model=os.getenv("GENERAL_MODEL"), api_key=os.getenv("GROQ_API_KEY"))
     logger.info("Successfully set up general model.")
 except Exception as e:
-    logger.exception("Failed to set up general model. Switching to Fallback model", e)
+    logger.exception("Failed to set up general model. Switching to Fallback model")
     general_model = ChatGroq(model=os.getenv("FALLBACK_MODEL"), api_key=os.getenv("GROQ_API_KEY"))
 
 try:
@@ -40,7 +42,7 @@ async def platform_detection(link) -> str:
         platform_chain = platform_prompt | core_model | StrOutputParser()
         platform = await platform_chain.ainvoke({"link": link})
         logger.info("Detected platform: %s", platform)
-        return platform.lower()
+        logger.exception("Error detecting platform")
     except Exception as e:
         logger.exception("Error detecting platform: %s", e)
         return "unknown"
