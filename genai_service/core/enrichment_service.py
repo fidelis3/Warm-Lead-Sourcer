@@ -46,7 +46,7 @@ async def export(profile_list):
             writer.writerow(column_names)
             # Write profile data to csv
             for profile in profile_list:
-                writer.writerow([
+                await writer.writerow([
                     profile.get("name", ""),
                     profile.get("linkedin_url", ""),
                     profile.get("current_role", ""),
