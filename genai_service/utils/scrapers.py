@@ -57,11 +57,29 @@ def instagram_input(link):
 
 
 class ScraperUtils:
-    def __init__(self, link):
-        self.link = link
+    enriched_output: dict = {
+        "name": "",
+        "username": "",
+        "current_role": "",
+        "education": "",
+        "country":"",
+        "email": "",
+    }
+    # def __init__(self, link):
+    #     self.link = link
     
+    def email_generator(self, profile_data):
+        try:
+            logger.info("Generating email for profile: %s", profile_data)
+            first_name, last_name = profile_data["name"][0].split(" ").lower()
+            university = profile_data["education"][0].lower()
+            logger.info("Email generated successfully.")
+            return f"{first_name}.{last_name}@{university}.edu"
+        except Exception as e:
+            logger.exception("Error generating email: %s", e)
+            return ""
 
-    def get_instagram_results(self, link):
+    def instagram_scraper(self, link):
         try:
             logger.info("Starting Instagram scraper actor.")
             raw_results = instagram_actor.call(run_input=instagram_input(link=link))

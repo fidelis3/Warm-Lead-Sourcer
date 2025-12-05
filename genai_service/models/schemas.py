@@ -1,5 +1,5 @@
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 class Interactions(BaseModel):
     username: str
@@ -11,7 +11,7 @@ class PostData(BaseModel):
     comment_count: int
     post_url: str
     comments: list[Interactions]
-    
+
 class GeneralProfile(BaseModel):
     name: Optional[str]
     username: Optional[str]
@@ -24,7 +24,7 @@ class GeneralProfile(BaseModel):
     verified: Optional[bool]
     post_data : PostData
 
-
-
-    
+class LeadScoreOutput(BaseModel):
+    score: int = Field(description="The calculated Fit Score from 0 to 10.")
+    reason: str = Field(description="A brief, one-sentence justification for the assigned score.")
 
