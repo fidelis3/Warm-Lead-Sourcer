@@ -64,29 +64,27 @@ class ScraperUtils:
         "country":"",
         "email": "",
     }
-    # def __init__(self, link):
-    #     self.link = link
     
 
     def instagram_scraper(self, link):
-        try:
-            logger.info("Starting Instagram scraper actor.")
-            raw_results = instagram_actor.call(run_input=instagram_input(link=link))
-            # Instagram URL will be modified as needed
-            logger.info("Instagram scraper actor finished successfully.")
-            for item in client.dataset(raw_results["defaultDatasetId"]).iterate_items():
-                print(item)
-        except Exception as e:
-            logger.exception("Error while running Instagram scraper actor: %s", e)
+        # try:
+        #     logger.info("Starting Instagram scraper actor.")
+        #     raw_results = instagram_actor.call(run_input=instagram_input(link=link))
+        #     # Instagram URL will be modified as needed
+        #     logger.info("Instagram scraper actor finished successfully.")
+        #     for item in client.dataset(raw_results["defaultDatasetId"]).iterate_items():
+        #         print(item)
+        # except Exception as e:
+        #     logger.exception("Error while running Instagram scraper actor: %s", e)
+        return {"message": "Instagram scraper not yet implemented."}
 
     def x_scraper(self, link):
-        pass
+        return {"message": "X scraper not yet implemented."}
 
     def facebook_scraper(self,link):
-        pass
-
+        return {"message": "Facebook scraper not yet implemented."}
     def linkedin_scraper(self,link):
-        pass
+        return {"message": "LinkedIn scraper not yet implemented."}
 
 
     
