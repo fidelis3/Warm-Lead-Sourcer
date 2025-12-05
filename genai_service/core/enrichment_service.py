@@ -38,8 +38,28 @@ def calculate_score(profile, criteria) -> int:
         return 0
     
 async def export(profile_list):
-    column_names = ["Name", "LinkedIn URL", "Current Role", "University", "Country", "Email", "Score"]
-    return column_names
+    file_name = "leads.csv"
+    try:
+         column_names = ["Name", "LinkedIn URL", "Current Role", "University", "Country", "Email", "Score"]
+         with open(file=file_name, mode="w", newline="", encoding="utf-8") as file:
+            writer = csv.writer(file, delimiter=",", quotechar='"', quoting=csv.QUOTE_MINIMAL)
+            writer.writerow(column_names)
+            # Write profile data to csv
+            for profile in profile_list:
+                writer.writerow([
+                    profile.get("name", ""),
+                    profile.get("linkedin_url", ""),
+                    profile.get("current_role", ""),
+                    profile.get("education", ""),
+                    profile.get("country", ""),
+                    profile.get("email", ""),
+                    profile.get("score", "")
+                ])
+         logger.info("CSV file created successfully: %s", file_name)
+         return file_name
+    except Exception as e:
+        logger.exception("Error creating CSV file: %s", e)
+        return
     
 
 
