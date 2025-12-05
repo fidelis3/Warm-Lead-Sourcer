@@ -1,11 +1,10 @@
 from apify_client import ApifyClient
 from dotenv import load_dotenv
+import logging
 import os
 
 load_dotenv()
 logger = logging.getLogger(__name__)
-
-import logging
 
 if __name__ == "__main__":
     logging.basicConfig(

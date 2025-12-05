@@ -25,6 +25,6 @@ class GeneralProfile(BaseModel):
     post_data : PostData
 
 class LeadScoreOutput(BaseModel):
-    score: int = Field(description="The calculated Fit Score from 0 to 10.")
+    score: int = Field(ge=0, le=10, description="The calculated Fit Score from 0 to 10.")
     reason: str = Field(description="A brief, one-sentence justification for the assigned score.")
 
