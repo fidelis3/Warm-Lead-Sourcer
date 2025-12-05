@@ -1,3 +1,5 @@
+from ..config.prompts import platform_prompt
+from langchain_core.output_parsers import StrOutputParser
 from langchain_groq import ChatGroq
 from dotenv import load_dotenv
 import logging
@@ -14,7 +16,8 @@ if __name__ == "__main__":
 
 # We shall have multiple LLM models for different purposes
 # llama-3.1 - general
-# openai 120b - scoring logic
+# openai 120b - scoring logic/ complex tasks
+
 try:
     logger.info("Setting up main Groq LLM model.")
     general_model = ChatGroq(model=os.getenv("GENERAL_MODEL"), api_key=os.getenv("GROQ_API_KEY"))
@@ -30,3 +33,14 @@ try:
 except Exception as e:
     logger.exception("Failed to set up core logic model. Switching to general model", e)
     core_model = ChatGroq(model=os.getenv("FALLBACK_MODEL"), api_key=os.getenv("GROQ_API_KEY"))
+
+
+async def platform_detection(link) -> str:
+    try:
+        platform_chain = platform_prompt | core_model | StrOutputParser()
+        platform = await platform_chain.ainvoke({"link": link})
+        logger.info("Detected platform: %s", platform)
+        return platform.lower()
+    except Exception as e:
+        logger.exception("Error detecting platform: %s", e)
+        return "unknown"

@@ -67,16 +67,6 @@ class ScraperUtils:
     # def __init__(self, link):
     #     self.link = link
     
-    def email_generator(self, profile_data):
-        try:
-            logger.info("Generating email for profile: %s", profile_data)
-            first_name, last_name = profile_data["name"][0].split(" ").lower()
-            university = profile_data["education"][0].lower()
-            logger.info("Email generated successfully.")
-            return f"{first_name}.{last_name}@{university}.edu"
-        except Exception as e:
-            logger.exception("Error generating email: %s", e)
-            return ""
 
     def instagram_scraper(self, link):
         try:

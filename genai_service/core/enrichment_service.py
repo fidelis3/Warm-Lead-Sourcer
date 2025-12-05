@@ -1,6 +1,6 @@
 from langchain_core.output_parsers import StrOutputParser
-from ..config.prompts import score_prompt, platform_prompt
-from ..utils.llm_client import score_model, core_model
+from ..config.prompts import score_prompt
+from ..utils.llm_client import core_model
 import logging
 
 logger = logging.getLogger(__name__)
@@ -11,6 +11,17 @@ if __name__ == "__main__":
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
 
+def email_generator(profile_data):
+        try:
+            logger.info("Generating email for profile: %s", profile_data)
+            first_name, last_name = profile_data["name"][0].split(" ").lower()
+            university = profile_data["education"][0].lower()
+            logger.info("Email generated successfully.")
+            return f"{first_name}.{last_name}@{university}.edu"
+        except Exception as e:
+            logger.exception("Error generating email: %s", e)
+            return ""
+        
 
 async def calculate_score(profile, criteria) -> int: 
     try:
@@ -25,15 +36,7 @@ async def calculate_score(profile, criteria) -> int:
         logger.exception("Error calculating lead score: %s", e)
         return 0
     
-async def platform_detection(link) -> str:
-    try:
-        platform_chain = platform_prompt | core_model | StrOutputParser()
-        platform = await platform_chain.ainvoke({"link": link})
-        logger.info("Detected platform: %s", platform)
-        return platform.lower()
-    except Exception as e:
-        logger.exception("Error detecting platform: %s", e)
-        return "unknown"
+
     
 
 
