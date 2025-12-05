@@ -43,6 +43,7 @@ async def platform_detection(link) -> str:
         platform = await platform_chain.ainvoke({"link": link})
         logger.info("Detected platform: %s", platform)
         logger.exception("Error detecting platform")
+        return platform.lower()
     except Exception as e:
         logger.exception("Error detecting platform: %s", e)
         return "unknown"
