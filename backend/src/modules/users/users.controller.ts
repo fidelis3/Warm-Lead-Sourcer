@@ -1,11 +1,20 @@
-import { Controller, Post, Body, Res, Req, HttpCode, UnauthorizedException } from '@nestjs/common';
-import type { Response, Request } from 'express';
+import { Controller, Post, Get, Body, Res, Req, HttpCode, UnauthorizedException, UseGuards, Request } from '@nestjs/common';
+import type { Response, Request as ExpressRequest } from 'express';
 import { Throttle } from '@nestjs/throttler';
-import { UsersService, LoginResponse } from './users.service';
+import { UsersService } from './users.service';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+
+
+interface AuthenticatedRequest extends ExpressRequest {
+  user: {
+    userId: string;
+    email: string;
+  };
+}
 
 @Controller('users')
 export class UsersController {
@@ -54,7 +63,7 @@ export class UsersController {
   @HttpCode(200)
   @Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 requests per minute
   async refresh(
-    @Req() req: Request,
+    @Req() req: ExpressRequest & { cookies?: { refresh_token?: string } },
     @Res({ passthrough: true }) res: Response,
   ) {
     const refreshToken = req.cookies?.refresh_token;
@@ -93,5 +102,17 @@ export class UsersController {
     res.clearCookie('access_token');
     res.clearCookie('refresh_token');
     return { message: 'Logged out successfully' };
+  }
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  async getCurrentUser(@Request() req: AuthenticatedRequest) {
+    const user = await this.usersService.findById(req.user.userId);
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+    const userObj = user.toObject();
+    const { password: _, refreshToken: __, ...userWithoutPassword } = userObj;
+    return { user: userWithoutPassword };
   }
 }

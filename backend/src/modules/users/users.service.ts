@@ -99,12 +99,58 @@ export class UsersService {
     };
   }
 
-  async findById(id: string): Promise<User | null> {
+  async findById(id: string): Promise<UserDocument | null> {
     return await this.userModel.findById(id);
   }
 
   async findByEmail(email: string): Promise<User | null> {
     return await this.userModel.findOne({ email: email.toLowerCase() });
+  }
+
+  async loginOrRegisterWithGoogle(
+    email: string,
+    firstName: string,
+    lastName: string,
+  ): Promise<LoginResponse> {
+    const normalizedEmail = email.toLowerCase();
+    
+    // Check if user exists
+    let user = await this.userModel.findOne({ email: normalizedEmail });
+    
+    if (!user) {
+      // Create new user for Google OAuth (no password required)
+      user = new this.userModel({
+        firstName,
+        lastName,
+        email: normalizedEmail,
+        password: '', // Google OAuth users don't need a password
+        provider: 'google',
+      });
+      await user.save();
+    } else {
+      // Update user info in case it changed in Google
+      user.firstName = firstName;
+      user.lastName = lastName;
+      user.provider = 'google';
+      await user.save();
+    }
+
+    // Generate JWT tokens
+    const payload = { sub: user._id.toString(), email: user.email };
+    const access_token = await this.jwtService.signAsync(payload, { expiresIn: '15m' });
+    const refresh_token = await this.jwtService.signAsync(payload, { expiresIn: '7d' });
+
+    // Store refresh token
+    await this.userModel.findByIdAndUpdate(user._id, { refreshToken: refresh_token });
+
+    const userObj = user.toObject();
+    const { password: _, refreshToken: __, ...userWithoutPassword } = userObj;
+
+    return {
+      access_token,
+      refresh_token,
+      user: userWithoutPassword,
+    };
   }
 
   async refreshAccessToken(refreshToken: string): Promise<{ access_token: string }> {

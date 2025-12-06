@@ -1,6 +1,7 @@
-import { Controller, Get, Req, UseGuards, Res, Logger } from '@nestjs/common';
+import { Controller, Get, Req, UseGuards, Res, Logger, Inject, forwardRef } from '@nestjs/common';
 import type { Response, Request } from 'express';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
+import { UsersService } from '../users/users.service';
 
 // Define proper types for authenticated request
 interface AuthenticatedRequest extends Request {
@@ -16,6 +17,11 @@ interface AuthenticatedRequest extends Request {
 export class AuthController {
   private readonly logger = new Logger(AuthController.name);
 
+  constructor(
+    @Inject(forwardRef(() => UsersService))
+    private readonly usersService: UsersService,
+  ) {}
+
   @Get('google')
   @UseGuards(GoogleAuthGuard)
   googleAuth(): void {
@@ -25,10 +31,10 @@ export class AuthController {
 
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
-  googleAuthRedirect(
+  async googleAuthRedirect(
     @Req() req: AuthenticatedRequest,
     @Res() res: Response,
-  ): void {
+  ): Promise<void> {
     try {
       this.logger.log('Google callback received');
 
@@ -39,11 +45,31 @@ export class AuthController {
 
       this.logger.log(`Processing login for user: ${req.user.email}`);
 
-      // TODO: Inject UserService properly
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-      res.redirect(
-        `${frontendUrl}/auth/success?user=${encodeURIComponent(JSON.stringify(req.user))}`,
+      // Login or register user with Google OAuth
+      const result = await this.usersService.loginOrRegisterWithGoogle(
+        req.user.email,
+        req.user.firstName,
+        req.user.lastName,
       );
+
+      // Set JWT cookies
+      res.cookie('access_token', result.access_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 15 * 60 * 1000, // 15 minutes
+      });
+      
+      res.cookie('refresh_token', result.refresh_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+
+      // Redirect to frontend dashboard
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      res.redirect(`${frontendUrl}/dash`);
     } catch (error) {
       this.logger.error('Google OAuth error:', error);
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
