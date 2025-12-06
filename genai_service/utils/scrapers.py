@@ -64,7 +64,7 @@ class ScraperUtils:
         "country":"",
         "email": "",
     }
-    
+    # Scrapers are to obtain raw data from different platforms without filtering or enrichment
 
     def instagram_scraper(self, link):
         # try:
@@ -83,6 +83,7 @@ class ScraperUtils:
 
     def facebook_scraper(self,link):
         return {"message": "Facebook scraper not yet implemented."}
+    
     def linkedin_scraper(self,link):
         return {"message": "LinkedIn scraper not yet implemented."}
 

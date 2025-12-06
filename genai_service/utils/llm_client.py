@@ -1,4 +1,4 @@
-from ..config.prompts import platform_prompt
+from ..config.prompts import platform_prompt, score_prompt
 from langchain_core.output_parsers import StrOutputParser
 from langchain_groq import ChatGroq
 from dotenv import load_dotenv
@@ -47,3 +47,15 @@ async def platform_detection(link) -> str:
         logger.exception("Error detecting platform: %s", e)
         return "unknown"
     
+async def calculate_score(profile, criteria) -> int: 
+    try:
+        score_chain =  score_prompt | core_model | StrOutputParser()
+        score =  await score_chain.ainvoke({
+            "lead_information": profile,
+            "keywords": criteria
+        })
+        logger.info("Calculated lead score: %s", score)
+        return int(score)
+    except Exception as e:
+        logger.exception("Error calculating lead score: %s", e)
+        return 0

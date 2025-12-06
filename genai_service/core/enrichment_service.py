@@ -1,6 +1,4 @@
-from langchain_core.output_parsers import StrOutputParser
-from ..config.prompts import score_prompt
-from ..utils.llm_client import core_model
+from ..utils.llm_client import calculate_score
 import logging
 import csv 
 
@@ -23,19 +21,18 @@ def email_generator(profile_data):
             logger.exception("Error generating email: %s", e)
             return ""
         
-
-def calculate_score(profile, criteria) -> int: 
+    
+async def filter_profiles(profiles, keywords: list[str]):
+    filtered_profiles = []
     try:
-        score_chain =  score_prompt | core_model | StrOutputParser()
-        score =  score_chain.ainvoke({
-            "lead_information": profile,
-            "keywords": criteria
-        })
-        logger.info("Calculated lead score: %s", score)
-        return int(score)
+        logger.info("Starting profile filtering process.")
+        for profile in profiles:
+            calculated_score = await calculate_score(profile=profile, criteria=keywords)
+            logger.info("Profile: %s, Score: %d", profile.get("name", ""), calculated_score)
+            filtered_profiles.append({"profile": profile, "score": calculated_score})
     except Exception as e:
-        logger.exception("Error calculating lead score: %s", e)
-        return 0
+        logger.exception("Error during profile filtering: %s", e)
+        return filtered_profiles
     
 async def export(profile_list):
     file_name = "leads.csv"
