@@ -63,6 +63,7 @@ class ScraperUtils:
         "education": "",
         "country":"",
         "email": "",
+        "score":0
     }
     # Scrapers are to obtain raw data from different platforms without filtering or enrichment
 

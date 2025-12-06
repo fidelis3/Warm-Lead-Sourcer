@@ -52,3 +52,8 @@ async def lead_generator(post: PostInput):
     elif platform == "unknown":
         logger.warning("Unknown platform detected. Cannot proceed with lead generation.")
         return {"message": "The provided link does not belong to a supported platform."}
+    
+
+@app.post("/export/csv")
+async def export_leads(profiles: list[GeneralProfile]):
+    pass

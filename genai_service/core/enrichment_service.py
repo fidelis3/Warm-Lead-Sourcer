@@ -12,9 +12,9 @@ if __name__ == "__main__":
 
 def email_generator(profile_data):
         try:
-            logger.info("Generating email for profile: %s", profile_data)
-            first_name, last_name = profile_data["name"][0].split(" ")
-            university = profile_data["education"][0].lower()
+            logger.info("Generating email for profile: %s", profile_data["name"])
+            first_name, last_name = profile_data["name"].lower().split(" ")
+            university = profile_data["education"].replace(" ", "").lower()
             logger.info("Email generated successfully.")
             return f"{first_name}.{last_name}@{university}.edu"
         except Exception as e:
@@ -29,10 +29,27 @@ async def filter_profiles(profiles, keywords: list[str]):
         for profile in profiles:
             calculated_score = await calculate_score(profile=profile, criteria=keywords)
             logger.info("Profile: %s, Score: %d", profile.get("name", ""), calculated_score)
-            filtered_profiles.append({"profile": profile, "score": calculated_score})
+            profile["score"] = calculated_score
+            filtered_profiles.append(profile)
+        logger.info("Profile filtering completed successfully.")
     except Exception as e:
         logger.exception("Error during profile filtering: %s", e)
         return filtered_profiles
+    return filtered_profiles
+
+def lead_presentation(profiles_with_scores):
+    final_leads = []
+    try:
+        logger.info("Formatting generated leads for presentation.")
+        for lead in profiles_with_scores:
+            lead["email"] = email_generator(lead)
+        logger.info("Leads formatted successfully.")
+        final_leads.append(lead)
+        return final_leads
+    except Exception as e:
+        logger.exception("Error formatting leads: %s", e)
+        return final_leads
+
     
 async def export(profile_list):
     file_name = "leads.csv"
