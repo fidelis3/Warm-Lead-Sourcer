@@ -53,13 +53,13 @@ export default function LandingPage() {
       >
         <div className="absolute inset-0 bg-black/50" />
         <div className="relative mx-auto flex max-w-7xl flex-col items-center justify-center px-6 py-32 text-center">
-          <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-pink-500 to-purple-600">
+          <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-pink-500 to-purple-600">
             <span className="text-2xl font-bold text-white">N</span>
           </div>
           <h1 className="mb-12 text-5xl font-bold leading-tight text-white">
             Turn Social Engagement Into
             <br />
-            Warm Leads _ Instanly
+            Warm Leads _ Instantly
           </h1>
           <div className="flex gap-4">
             <Button

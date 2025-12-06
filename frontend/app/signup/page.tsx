@@ -124,7 +124,7 @@ export default function SignupPage() {
         </div>
 
         {/* Right Side - Image */}
-        <div className="hidden w-1/2 bg-gradient-to-br from-gray-100 to-gray-200 lg:block">
+        <div className="hidden w-1/2 bg-linear-to-br from-gray-100 to-gray-200 lg:block">
           <div className="flex h-full items-center justify-center p-12">
             <div className="relative">
               <Image
@@ -213,7 +213,7 @@ export default function SignupPage() {
       </div>
 
       {/* Right Side - Image */}
-      <div className="hidden w-1/2 bg-gradient-to-br from-gray-100 to-gray-200 lg:block">
+      <div className="hidden w-1/2 bg-linear-to-br from-gray-100 to-gray-200 lg:block">
         <div className="flex h-full items-center justify-center p-12">
           <div className="relative">
             <Image
