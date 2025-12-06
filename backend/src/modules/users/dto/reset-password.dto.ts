@@ -13,8 +13,4 @@ export class ResetPasswordDto {
       'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
   })
   newPassword: string;
-
-  @IsNotEmpty({ message: 'Please confirm your password' })
-  @IsString()
-  confirmPassword: string;
 }

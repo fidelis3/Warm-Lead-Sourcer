@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
+import cookieParser from 'cookie-parser';
 
 /**
  * Bootstrap the NestJS application
@@ -8,6 +9,9 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   // Create NestJS application instance
   const app = await NestFactory.create(AppModule);
+
+  // Enable cookie parser
+  app.use(cookieParser());
 
   // Enable validation globally
   app.useGlobalPipes(
@@ -18,8 +22,11 @@ async function bootstrap() {
     }),
   );
 
-  // Enable CORS
-  app.enableCors();
+  // Enable CORS with credentials
+  app.enableCors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    credentials: true,
+  });
 
   // Get port from environment or default to 5000
   const port = process.env.PORT || 5000;

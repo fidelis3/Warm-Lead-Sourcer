@@ -5,9 +5,6 @@ export type UserDocument = User & Document;
 
 @Schema({ timestamps: true })
 export class User {
-  toObject(): { [x: string]: any; password: any } {
-    throw new Error('Method not implemented.');
-  }
   @Prop({ required: true })
   firstName: string;
 
@@ -31,6 +28,9 @@ export class User {
 
   @Prop({ required: false })
   resetPasswordExpires?: Date;
+
+  @Prop({ required: false })
+  refreshToken?: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
