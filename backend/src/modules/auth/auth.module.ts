@@ -13,17 +13,21 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        secret:
-          configService.get<string>('JWT_SECRET') ||
-          'your-secret-key-change-in-production',
-        signOptions: { expiresIn: '24h' },
-      }),
+      useFactory: (configService: ConfigService) => {
+        const secret = configService.get<string>('JWT_SECRET');
+        if (!secret) {
+          throw new Error('JWT_SECRET is not defined in environment variables');
+        }
+        return {
+          secret,
+          signOptions: { expiresIn: '24h' },
+        };
+      },
       inject: [ConfigService],
     }),
   ],
   controllers: [AuthController],
   providers: [GoogleStrategy, JwtStrategy, GoogleAuthGuard, JwtAuthGuard],
-  exports: [GoogleAuthGuard, JwtAuthGuard, JwtStrategy, GoogleStrategy],
+  exports: [GoogleAuthGuard, JwtAuthGuard, JwtStrategy, GoogleStrategy, JwtModule],
 })
 export class AuthModule {}

@@ -45,19 +45,26 @@ export class ScrapingService {
         totalEngagements: engagements.length,
       });
 
-      // Process each engagement to create leads
-      let processedCount = 0;
-      for (const engagement of engagements) {
-        try {
-          await this.processEngagement(postId, post.userId, engagement);
-          processedCount++;
-        } catch (error) {
+      // Process each engagement to create leads (parallel processing)
+      const results = await Promise.allSettled(
+        engagements.map((engagement) =>
+          this.processEngagement(postId, post.userId, engagement),
+        ),
+      );
+
+      const processedCount = results.filter(
+        (result) => result.status === 'fulfilled',
+      ).length;
+
+      // Log failed engagements
+      results.forEach((result, index) => {
+        if (result.status === 'rejected') {
           this.logger.warn(
-            `Failed to process engagement for ${engagement.user.name}:`,
-            error.message,
+            `Failed to process engagement for ${engagements[index].user.name}:`,
+            result.reason,
           );
         }
-      }
+      });
 
       // Mark as completed
       await this.postModel.findByIdAndUpdate(postId, {

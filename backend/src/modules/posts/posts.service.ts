@@ -30,7 +30,9 @@ export class PostsService {
     // Trigger scraping asynchronously
     this.scrapingService
       .processPost(savedPost._id.toString())
-      .catch((error) => console.error('Scraping failed:', error));
+      .catch((error) => {
+        console.error('Scraping failed:', error);
+      });
 
     return savedPost;
   }

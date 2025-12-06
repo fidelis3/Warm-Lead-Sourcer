@@ -1,22 +1,97 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, Res, Req, HttpCode, UnauthorizedException } from '@nestjs/common';
+import type { Response, Request } from 'express';
+import { Throttle } from '@nestjs/throttler';
 import { UsersService, LoginResponse } from './users.service';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  private setCookies(res: Response, accessToken: string, refreshToken: string) {
+    res.cookie('access_token', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 15 * 60 * 1000, // 15 minutes
+    });
+    
+    res.cookie('refresh_token', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+  }
+
   @Post('register')
-  async register(@Body() registerUserDto: RegisterUserDto) {
-    const user = await this.usersService.register(registerUserDto);
-    const userObj = (user as any).toObject();
-    const { password, ...userWithoutPassword } = userObj;
-    return userWithoutPassword;
+  @Throttle({ default: { limit: 3, ttl: 60000 } }) // 3 requests per minute
+  async register(
+    @Body() registerUserDto: RegisterUserDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.usersService.register(registerUserDto);
+    this.setCookies(res, result.access_token, result.refresh_token);
+    return { user: result.user };
   }
 
   @Post('login')
-  async login(@Body() loginUserDto: LoginUserDto): Promise<LoginResponse> {
-    return this.usersService.login(loginUserDto);
+  @HttpCode(200)
+  @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 requests per minute
+  async login(
+    @Body() loginUserDto: LoginUserDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.usersService.login(loginUserDto);
+    this.setCookies(res, result.access_token, result.refresh_token);
+    return { user: result.user };
+  }
+
+  @Post('refresh')
+  @HttpCode(200)
+  @Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 requests per minute
+  async refresh(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const refreshToken = req.cookies?.refresh_token;
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token not found');
+    }
+
+    const result = await this.usersService.refreshAccessToken(refreshToken);
+    
+    // Set new access token cookie
+    res.cookie('access_token', result.access_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 15 * 60 * 1000, // 15 minutes
+    });
+
+    return { message: 'Token refreshed successfully' };
+  }
+
+  @Post('forgot-password')
+  @Throttle({ default: { limit: 3, ttl: 60000 } }) // 3 requests per minute
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    return this.usersService.forgotPassword(forgotPasswordDto.email);
+  }
+
+  @Post('reset-password')
+  @Throttle({ default: { limit: 3, ttl: 60000 } }) // 3 requests per minute
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    return this.usersService.resetPassword(resetPasswordDto.token, resetPasswordDto.newPassword);
+  }
+
+  @Post('logout')
+  @HttpCode(200)
+  async logout(@Res({ passthrough: true }) res: Response) {
+    res.clearCookie('access_token');
+    res.clearCookie('refresh_token');
+    return { message: 'Logged out successfully' };
   }
 }

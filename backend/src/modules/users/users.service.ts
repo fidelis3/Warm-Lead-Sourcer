@@ -14,6 +14,7 @@ import { LoginUserDto } from './dto/login-user.dto';
 
 export interface LoginResponse {
   access_token: string;
+  refresh_token: string;
   user: Partial<User>;
 }
 
@@ -24,7 +25,7 @@ export class UsersService {
     private jwtService: JwtService,
   ) {}
 
-  async register(registerUserDto: RegisterUserDto): Promise<User> {
+  async register(registerUserDto: RegisterUserDto): Promise<LoginResponse> {
     const { firstName, lastName, email, password, confirmPassword } =
       registerUserDto;
 
@@ -49,7 +50,23 @@ export class UsersService {
       password: hashedPassword,
     });
 
-    return await newUser.save();
+    const savedUser = await newUser.save();
+
+    // Auto-login after registration
+    const payload = { sub: savedUser._id, email: savedUser.email };
+    const access_token = await this.jwtService.signAsync(payload, { expiresIn: '15m' });
+    const refresh_token = await this.jwtService.signAsync(payload, { expiresIn: '7d' });
+
+    await this.userModel.findByIdAndUpdate(savedUser._id, { refreshToken: refresh_token });
+
+    const userObj = savedUser.toObject();
+    const { password: _, refreshToken: __, ...userWithoutPassword } = userObj;
+
+    return {
+      access_token,
+      refresh_token,
+      user: userWithoutPassword,
+    };
   }
 
   async login(loginUserDto: LoginUserDto): Promise<LoginResponse> {
@@ -66,13 +83,18 @@ export class UsersService {
     }
 
     const payload = { sub: user._id, email: user.email };
-    const access_token = await this.jwtService.signAsync(payload);
+    const access_token = await this.jwtService.signAsync(payload, { expiresIn: '15m' });
+    const refresh_token = await this.jwtService.signAsync(payload, { expiresIn: '7d' });
+
+    // Store refresh token in database
+    await this.userModel.findByIdAndUpdate(user._id, { refreshToken: refresh_token });
 
     const userObj = user.toObject();
-    const { password: _, ...userWithoutPassword } = userObj;
+    const { password: _, refreshToken: __, ...userWithoutPassword } = userObj;
 
     return {
       access_token,
+      refresh_token,
       user: userWithoutPassword,
     };
   }
@@ -83,5 +105,87 @@ export class UsersService {
 
   async findByEmail(email: string): Promise<User | null> {
     return await this.userModel.findOne({ email: email.toLowerCase() });
+  }
+
+  async refreshAccessToken(refreshToken: string): Promise<{ access_token: string }> {
+    try {
+      const payload = await this.jwtService.verifyAsync(refreshToken);
+      const user = await this.userModel.findById(payload.sub);
+
+      if (!user || user.refreshToken !== refreshToken) {
+        throw new UnauthorizedException('Invalid refresh token');
+      }
+
+      const newPayload = { sub: user._id, email: user.email };
+      const access_token = await this.jwtService.signAsync(newPayload, { expiresIn: '15m' });
+
+      return { access_token };
+    } catch (error) {
+      throw new UnauthorizedException('Invalid or expired refresh token');
+    }
+  }
+
+  async forgotPassword(email: string): Promise<{ message: string }> {
+    const user = await this.userModel.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      // Don't reveal if email exists
+      return { message: 'If the email exists, a reset link has been sent' };
+    }
+
+    // Generate reset token (6 digit code)
+    const resetToken = Math.floor(100000 + Math.random() * 900000).toString();
+    const hashedToken = await bcrypt.hash(resetToken, 10);
+
+    // Token expires in 1 hour
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 1);
+
+    await this.userModel.findByIdAndUpdate(user._id, {
+      resetPasswordToken: hashedToken,
+      resetPasswordExpires: expiresAt,
+    });
+
+    // TODO: Send email with resetToken (not hashedToken)
+    // Email service integration pending
+
+    return { message: 'If the email exists, a reset link has been sent' };
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<{ message: string }> {
+    // Find users with valid reset tokens
+    const users = await this.userModel.find({
+      resetPasswordExpires: { $gt: new Date() },
+      resetPasswordToken: { $exists: true, $ne: null },
+    }).select('+resetPasswordToken');
+
+    if (users.length === 0) {
+      throw new BadRequestException('Invalid or expired reset token');
+    }
+
+    // Find matching user by comparing hashed tokens
+    let matchedUser: UserDocument | null = null;
+    for (const user of users) {
+      if (user.resetPasswordToken) {
+        const isValid = await bcrypt.compare(token, user.resetPasswordToken);
+        if (isValid) {
+          matchedUser = user;
+          break;
+        }
+      }
+    }
+
+    if (!matchedUser) {
+      throw new BadRequestException('Invalid or expired reset token');
+    }
+
+    // Hash new password and update user
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await this.userModel.findByIdAndUpdate(matchedUser._id, {
+      password: hashedPassword,
+      resetPasswordToken: null,
+      resetPasswordExpires: null,
+    });
+
+    return { message: 'Password has been reset successfully' };
   }
 }

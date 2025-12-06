@@ -38,6 +38,10 @@ export class LinkedInProvider implements ScrapingProvider {
         { headers: this.getHeaders() },
       );
 
+      if (!response.data?.data?.post) {
+        throw new Error('Invalid API response: post data not found');
+      }
+
       const data = response.data.data.post;
 
       return {
@@ -74,19 +78,22 @@ export class LinkedInProvider implements ScrapingProvider {
       );
 
       if (
-        commentsResponse.data.success &&
-        commentsResponse.data.data.comments
+        commentsResponse.data?.success &&
+        commentsResponse.data?.data?.comments &&
+        Array.isArray(commentsResponse.data.data.comments)
       ) {
         commentsResponse.data.data.comments.forEach((comment: any) => {
-          engagements.push({
-            type: EngagementType.COMMENT,
-            user: {
-              name: comment.author?.name || '',
-              profileUrl: comment.author?.profileUrl || '',
-              urn: comment.author?.urn || '',
-              headline: comment.author?.headline || '',
-            },
-          });
+          if (comment?.author?.urn) {
+            engagements.push({
+              type: EngagementType.COMMENT,
+              user: {
+                name: comment.author?.name || '',
+                profileUrl: comment.author?.profileUrl || '',
+                urn: comment.author.urn,
+                headline: comment.author?.headline || '',
+              },
+            });
+          }
         });
       }
 
@@ -120,28 +127,38 @@ export class LinkedInProvider implements ScrapingProvider {
         { headers: this.getHeaders() },
       );
 
-      // Get skills data
-      let skillsData = [];
+      // Get experience data
+      let experience: any[] = [];
       try {
-        const skillsResponse = await axios.get(
-          `https://${this.rapidApiHost}/api/v1/profile/skills?urn=${profileUrn}`,
+        const experienceResponse = await axios.get(
+          `https://${this.rapidApiHost}/api/v1/profile/full-experience?urn=${profileUrn}`,
           { headers: this.getHeaders() },
         );
-        skillsData = skillsResponse.data.data?.skills || [];
+        const expData = experienceResponse.data?.data?.experience;
+        if (Array.isArray(expData)) {
+          experience = expData.map((exp: any) => ({
+            title: exp?.title || '',
+            company: exp?.companyName || '',
+            startYear: exp?.durationParsed?.start?.year || undefined,
+            endYear: exp?.durationParsed?.end?.year || undefined,
+          }));
+        }
       } catch (error) {
-        this.logger.warn('Skills extraction failed:', error.message);
+        this.logger.warn('Experience extraction failed:', error.message);
       }
 
-      const education = educationResponse.data.data?.education || [];
+      const education = educationResponse.data?.data?.education || [];
 
       // Map education data to our format
-      const mappedEducation = education.map((edu: any) => ({
-        institution: edu.university || '',
-        degree: edu.degree || '',
-        fieldOfStudy: '',
-        startYear: edu.durationParsed?.start?.year || undefined,
-        endYear: edu.durationParsed?.end?.year || undefined,
-      }));
+      const mappedEducation = Array.isArray(education)
+        ? education.map((edu: any) => ({
+            institution: edu?.university || '',
+            degree: edu?.degree || '',
+            fieldOfStudy: edu?.fieldOfStudy || '',
+            startYear: edu?.durationParsed?.start?.year || undefined,
+            endYear: edu?.durationParsed?.end?.year || undefined,
+          }))
+        : [];
 
       return {
         urn: profileUrn,
@@ -152,7 +169,7 @@ export class LinkedInProvider implements ScrapingProvider {
           city: '',
         },
         education: mappedEducation,
-        experience: [], // Not available in current API
+        experience: experience,
         profileUrl: `https://linkedin.com/in/${profileUrn}`,
       };
     } catch (error) {
