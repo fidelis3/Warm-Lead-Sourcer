@@ -1,10 +1,16 @@
 from apify_client import ApifyClient
 from dotenv import load_dotenv
-from logs import logger
-
+import logging
 import os
 
 load_dotenv()
+logger = logging.getLogger(__name__)
+
+if __name__ == "__main__":
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    )
 
 try:
     client = ApifyClient(os.getenv("APIFY_TOKEN"))
@@ -50,11 +56,19 @@ def instagram_input(link):
 
 
 class ScraperUtils:
-    def __init__(self, link):
-        self.link = link
+    enriched_output: dict = {
+        "name": "",
+        "username": "",
+        "current_role": "",
+        "education": "",
+        "country":"",
+        "email": "",
+    }
+    # def __init__(self, link):
+    #     self.link = link
     
 
-    def get_instagram_results(self, link):
+    def instagram_scraper(self, link):
         try:
             logger.info("Starting Instagram scraper actor.")
             raw_results = instagram_actor.call(run_input=instagram_input(link=link))
