@@ -22,7 +22,7 @@ export default function LoginPage() {
                 id="username"
                 type="text"
                 placeholder="username"
-                className="w-full rounded-md border-0 bg-purple-100 px-4 py-3 text-sm placeholder:text-purple-400"
+                className="w-full rounded-md border-0 bg-purple-100 px-4 py-3 text-sm placeholder:text-gray-500"
               />
             </div>
 
@@ -34,7 +34,7 @@ export default function LoginPage() {
                 id="email"
                 type="email"
                 placeholder="name@gmail.com"
-                className="w-full rounded-md border-0 bg-purple-100 px-4 py-3 text-sm placeholder:text-purple-400"
+                className="w-full rounded-md border-0 bg-purple-100 px-4 py-3 text-sm placeholder:text-gray-500"
               />
             </div>
 
@@ -47,7 +47,7 @@ export default function LoginPage() {
                   id="password"
                   type="password"
                   placeholder="password"
-                  className="w-full rounded-md border-0 bg-purple-100 px-4 py-3 pr-10 text-sm placeholder:text-purple-400"
+                  className="w-full rounded-md border-0 bg-purple-100 px-4 py-3 pr-10 text-sm placeholder:text-gray-500"
                 />
                 <button
                   type="button"
