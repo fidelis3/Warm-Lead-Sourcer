@@ -136,7 +136,7 @@ function LoginForm() {
                 </button>
               </div>
               <div className="text-right">
-                <Link href="#" className="text-xs text-purple-600 hover:underline">
+                <Link href="/forgot-password" className="text-xs text-purple-600 hover:underline">
                   forgot password?
                 </Link>
               </div>
