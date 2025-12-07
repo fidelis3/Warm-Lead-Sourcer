@@ -313,12 +313,7 @@ export default function SignupPage() {
               CONTINUE WITH GOOGLE
             </Button>
 
-            <Button
-              variant="outline"
-              className="w-full rounded-md border-2 border-gray-300 bg-gray-200 py-6 text-sm font-medium text-gray-700 hover:bg-gray-300"
-            >
-              CONTINUE AS A GUEST
-            </Button>
+           
           </div>
 
           <div className="text-center text-xs text-gray-600">
