@@ -3,7 +3,10 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { LeadsController } from './leads.controller';
 import { LeadsService } from './leads.service';
 import { Lead, LeadSchema } from './schemas/lead.schema';
-import { FilterPreset, FilterPresetSchema } from './schemas/filter-preset.schema';
+import {
+  FilterPreset,
+  FilterPresetSchema,
+} from './schemas/filter-preset.schema';
 
 @Module({
   imports: [

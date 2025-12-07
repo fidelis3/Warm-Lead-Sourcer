@@ -16,13 +16,7 @@ import { LeadsService } from './leads.service';
 import { LeadFilterDto } from './dto/lead-filter.dto';
 import { CreateFilterPresetDto } from './dto/create-filter-preset.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-
-interface AuthenticatedRequest {
-  user: {
-    userId: string;
-    email: string;
-  };
-}
+import type { AuthenticatedRequest } from '../auth/interfaces/authenticated-request.interface';
 
 @Controller('leads')
 @UseGuards(JwtAuthGuard)
@@ -42,7 +36,11 @@ export class LeadsController {
   async getPostStats(
     @Param('postId') postId: string,
     @Request() req: AuthenticatedRequest,
-  ) {
+  ): Promise<{
+    total: number;
+    byEngagementType: Record<string, number>;
+    averageScore: number;
+  }> {
     return this.leadsService.getStats(postId, req.user.userId);
   }
 

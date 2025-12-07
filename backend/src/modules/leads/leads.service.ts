@@ -2,7 +2,10 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, FilterQuery } from 'mongoose';
 import { Lead, LeadDocument } from './schemas/lead.schema';
-import { FilterPreset, FilterPresetDocument } from './schemas/filter-preset.schema';
+import {
+  FilterPreset,
+  FilterPresetDocument,
+} from './schemas/filter-preset.schema';
 import { LeadFilterDto } from './dto/lead-filter.dto';
 import { CreateFilterPresetDto } from './dto/create-filter-preset.dto';
 
@@ -20,7 +23,8 @@ export class LeadsService {
 
   constructor(
     @InjectModel(Lead.name) private readonly leadModel: Model<LeadDocument>,
-    @InjectModel(FilterPreset.name) private readonly filterPresetModel: Model<FilterPresetDocument>,
+    @InjectModel(FilterPreset.name)
+    private readonly filterPresetModel: Model<FilterPresetDocument>,
   ) {}
 
   async findByPost(
@@ -53,29 +57,44 @@ export class LeadsService {
     return query;
   }
 
-  private applyLocationFilter(query: FilterQuery<Lead>, filters: LeadFilterDto): void {
+  private applyLocationFilter(
+    query: FilterQuery<Lead>,
+    filters: LeadFilterDto,
+  ): void {
     if (filters.country) {
-      query['location.country'] = new RegExp(this.escapeRegex(filters.country), 'i');
+      query['location.country'] = new RegExp(
+        this.escapeRegex(filters.country),
+        'i',
+      );
     }
   }
 
-  private applyUniversityFilter(query: FilterQuery<Lead>, filters: LeadFilterDto): void {
+  private applyUniversityFilter(
+    query: FilterQuery<Lead>,
+    filters: LeadFilterDto,
+  ): void {
     if (filters.university) {
-      query['education.institution'] = new RegExp(this.escapeRegex(filters.university), 'i');
+      query['education.institution'] = new RegExp(
+        this.escapeRegex(filters.university),
+        'i',
+      );
     }
   }
 
-  private applyRoleFilter(query: FilterQuery<Lead>, filters: LeadFilterDto): void {
+  private applyRoleFilter(
+    query: FilterQuery<Lead>,
+    filters: LeadFilterDto,
+  ): void {
     if (filters.role) {
       const roleRegex = new RegExp(this.escapeRegex(filters.role), 'i');
-      query.$or = [
-        { headline: roleRegex },
-        { 'experience.title': roleRegex },
-      ];
+      query.$or = [{ headline: roleRegex }, { 'experience.title': roleRegex }];
     }
   }
 
-  private applySearchFilter(query: FilterQuery<Lead>, filters: LeadFilterDto): void {
+  private applySearchFilter(
+    query: FilterQuery<Lead>,
+    filters: LeadFilterDto,
+  ): void {
     if (filters.search) {
       const searchRegex = new RegExp(this.escapeRegex(filters.search), 'i');
       query.$and = query.$and || [];
@@ -94,27 +113,40 @@ export class LeadsService {
     }
   }
 
-  private applyScoreRangeFilter(query: FilterQuery<Lead>, filters: LeadFilterDto): void {
+  private applyScoreRangeFilter(
+    query: FilterQuery<Lead>,
+    filters: LeadFilterDto,
+  ): void {
     if (filters.minScore !== undefined || filters.maxScore !== undefined) {
-      query.matchScore = {};
+      const scoreQuery: { $gte?: number; $lte?: number } = {};
       if (filters.minScore !== undefined) {
-        query.matchScore.$gte = filters.minScore;
+        scoreQuery.$gte = filters.minScore;
       }
       if (filters.maxScore !== undefined) {
-        query.matchScore.$lte = filters.maxScore;
+        scoreQuery.$lte = filters.maxScore;
       }
+      query.matchScore = scoreQuery;
     }
   }
 
-  private applyEngagementTypeFilter(query: FilterQuery<Lead>, filters: LeadFilterDto): void {
+  private applyEngagementTypeFilter(
+    query: FilterQuery<Lead>,
+    filters: LeadFilterDto,
+  ): void {
     if (filters.engagementType) {
       query.engagementType = filters.engagementType;
     }
   }
 
-  private applyTagsFilter(query: FilterQuery<Lead>, filters: LeadFilterDto): void {
+  private applyTagsFilter(
+    query: FilterQuery<Lead>,
+    filters: LeadFilterDto,
+  ): void {
     if (filters.tags) {
-      const tagArray = filters.tags.split(',').map((t) => t.trim()).filter(Boolean);
+      const tagArray = filters.tags
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean);
       if (tagArray.length > 0) {
         query.tags = { $in: tagArray };
       }
@@ -123,7 +155,8 @@ export class LeadsService {
 
   private buildPaginationOptions(filters?: LeadFilterDto) {
     const sortBy = filters?.sortBy || this.DEFAULT_SORT_BY;
-    const sortOrder = filters?.sortOrder === 'asc' ? 1 : this.DEFAULT_SORT_ORDER;
+    const sortOrder =
+      (filters?.sortOrder as string) === 'asc' ? 1 : this.DEFAULT_SORT_ORDER;
     const sort: Record<string, 1 | -1> = { [sortBy]: sortOrder };
     const limit = filters?.limit || this.DEFAULT_LIMIT;
     const skip = filters?.skip || 0;
@@ -146,10 +179,13 @@ export class LeadsService {
       };
     }
 
-    const byEngagementType = leads.reduce((acc, lead) => {
-      acc[lead.engagementType] = (acc[lead.engagementType] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    const byEngagementType = leads.reduce(
+      (acc, lead) => {
+        acc[lead.engagementType] = (acc[lead.engagementType] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
 
     const totalScore = leads.reduce((sum, lead) => sum + lead.matchScore, 0);
     const averageScore = Math.round((totalScore / leads.length) * 100) / 100;
@@ -203,10 +239,14 @@ export class LeadsService {
   }
 
   async deleteFilterPreset(presetId: string, userId: string): Promise<void> {
-    const result = await this.filterPresetModel.deleteOne({ _id: presetId, userId }).exec();
-    
+    const result = await this.filterPresetModel
+      .deleteOne({ _id: presetId, userId })
+      .exec();
+
     if (result.deletedCount === 0) {
-      throw new NotFoundException(`Filter preset with ID ${presetId} not found`);
+      throw new NotFoundException(
+        `Filter preset with ID ${presetId} not found`,
+      );
     }
   }
 }

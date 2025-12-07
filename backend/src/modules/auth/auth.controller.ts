@@ -1,4 +1,13 @@
-import { Controller, Get, Req, UseGuards, Res, Logger, Inject, forwardRef } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Req,
+  UseGuards,
+  Res,
+  Logger,
+  Inject,
+  forwardRef,
+} from '@nestjs/common';
 import type { Response, Request } from 'express';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { UsersService } from '../users/users.service';
@@ -59,7 +68,7 @@ export class AuthController {
         sameSite: 'strict',
         maxAge: 15 * 60 * 1000, // 15 minutes
       });
-      
+
       res.cookie('refresh_token', result.refresh_token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
