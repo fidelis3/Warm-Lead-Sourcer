@@ -10,6 +10,7 @@ import { UsersModule } from './modules/users/users.module';
 import { PostsModule } from './modules/posts/posts.module';
 import { ScrapingModule } from './modules/scraping/scraping.module';
 import { LeadsModule } from './modules/leads/leads.module';
+import { ExportModule } from './modules/export/export.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { LeadsModule } from './modules/leads/leads.module';
     PostsModule,
     ScrapingModule,
     LeadsModule,
+    ExportModule,
   ],
   controllers: [AppController],
   providers: [
