@@ -24,13 +24,15 @@ def email_generator(profile_data):
     
 async def filter_profiles(profiles, keywords: list[str]):
     filtered_profiles = []
+    threshold = 5  # Define your threshold
     try:
         logger.info("Starting profile filtering process.")
         for profile in profiles:
             calculated_score = await calculate_score(profile=profile, criteria=keywords)
             logger.info("Profile: %s, Score: %d", profile.get("name", ""), calculated_score)
             profile["score"] = calculated_score
-            filtered_profiles.append(profile)
+            if calculated_score >= threshold:
+                filtered_profiles.append(profile)
         logger.info("Profile filtering completed successfully.")
     except Exception as e:
         logger.exception("Error during profile filtering: %s", e)
@@ -43,8 +45,8 @@ def lead_presentation(profiles_with_scores):
         logger.info("Formatting generated leads for presentation.")
         for lead in profiles_with_scores:
             lead["email"] = email_generator(lead)
+            final_leads.append(lead)
         logger.info("Leads formatted successfully.")
-        final_leads.append(lead)
         return final_leads
     except Exception as e:
         logger.exception("Error formatting leads: %s", e)

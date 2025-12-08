@@ -30,4 +30,4 @@ class LeadScoreOutput(BaseModel):
 
 class PostInput(BaseModel):
     post_url: str
-    keywords: Optional[list[str]]
+    keywords: Optional[list[str]] = None

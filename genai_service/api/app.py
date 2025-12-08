@@ -22,6 +22,32 @@ try:
 except Exception as e:
     logger.exception("Failed to set up scraper utilities: %s", e)
 
+async def main_pipeline(post_url, filters: list[str]):
+    try:
+        platform = await platform_detection(link=post_url)
+        logger.info("Platform detected: %s", platform)
+        logger.info("Identified platform. Proceeding with lead generation.")
+    except Exception as e:
+        logger.exception("Error in lead generation process: %s", e)
+        return {"message": "Failed to detect platform", "error": str(e)}
+    if platform == "linkedin":
+        logger.info("LinkedIn platform detected. Proceeding with LinkedIn lead generation.")
+        return scraper.linkedin_scraper(link=post_url)
+    elif platform == "instagram":
+        logger.info("Instagram platform detected. Proceeding with Instagram lead generation.")
+        return scraper.instagram_scraper(link=post_url)
+    elif platform == "x":
+        logger.info("X platform detected. Proceeding with X lead generation.")
+        return scraper.x_scraper(link=post_url)
+    elif platform == "facebook":
+        logger.info("Facebook platform detected. Proceeding with Facebook lead generation.")
+        return scraper.facebook_scraper(link=post_url)
+    elif platform == "unknown":
+        logger.warning("Unknown platform detected. Cannot proceed with lead generation.")
+        return {"message": "The provided link does not belong to a supported platform."}
+    
+    
+
 
 @app.get("/")
 async def health_check():
