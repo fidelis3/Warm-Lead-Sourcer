@@ -1,23 +1,36 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuthModule } from './modules/auth/auth.module';
+import { UsersModule } from './modules/users/users.module';
+import { PostsModule } from './modules/posts/posts.module';
+import { ScrapingModule } from './modules/scraping/scraping.module';
+import { LeadsModule } from './modules/leads/leads.module';
+import { ExportModule } from './modules/export/export.module';
 
 @Module({
   imports: [
-    // Global configuration module for environment variables
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    // MongoDB connection with async configuration
+
+    ThrottlerModule.forRoot([
+      {
+        ttl: Number(process.env.THROTTLE_TTL) || 60000,
+        limit: Number(process.env.THROTTLE_LIMIT) || 20,
+      },
+    ]),
+
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => {
+      useFactory: (configService: ConfigService) => {
         const uri = configService.get<string>('MONGODB_URI');
         return {
           uri,
-          // Connection event handlers for monitoring
           onConnectionCreate: (connection) => {
             connection.on('connected', () => {
               console.log('✅ Database connected successfully');
@@ -31,8 +44,22 @@ import { AppService } from './app.service';
       },
       inject: [ConfigService],
     }),
+
+    AuthModule,
+    UsersModule,
+    PostsModule,
+    ScrapingModule,
+    LeadsModule,
+    ExportModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}
