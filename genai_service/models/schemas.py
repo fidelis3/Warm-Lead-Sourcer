@@ -3,6 +3,9 @@ from pydantic import BaseModel, Field, validator, field_validator
 from datetime import datetime
 from enum import Enum
 
+class PostInput(BaseModel):
+    post_url: str
+    keywords: Optional[list[str]] = None
 class EngagementSource(str, Enum):
     '''type of engagement'''
     reaction = "reaction"
