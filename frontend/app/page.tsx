@@ -21,7 +21,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="flex items-center gap-8">
-            <Link href="#" className="text-sm text-gray-700 hover:text-black">
+            <Link href="/" className="text-sm text-gray-700 hover:text-black">
               Home
             </Link>
             <Link href="#how-it-works" className="text-sm text-gray-700 hover:text-black">
@@ -31,7 +31,10 @@ export default function LandingPage() {
               Use Cases
             </Link>
             <Link href="#compliance" className="text-sm text-gray-700 hover:text-black">
-              Privacy & Legal
+            Legal
+            </Link>
+             <Link href="/privacy-policy" className="text-sm text-gray-700 hover:text-black">
+            Privacy
             </Link>
             <Link href="/signup">
               <Button 
@@ -248,7 +251,10 @@ export default function LandingPage() {
               Use Cases
             </Link>
             <Link href="#compliance" className="hover:underline">
-              Privacy & Legal
+               Legal
+            </Link>
+            <Link href="/privacy-policy" className="hover:underline">
+              Privacy 
             </Link>
           </div>
         </div>
