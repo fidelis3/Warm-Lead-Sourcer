@@ -1,13 +1,13 @@
 "use client"
 
-import { useState, FormEvent, useEffect, useRef } from "react"
+import { useState, FormEvent, useEffect, useRef, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import { useAuth } from "@/contexts/AuthContext"
 
-export default function VerifyEmailPage() {
+function VerifyEmailForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { checkAuth } = useAuth()
@@ -195,5 +195,20 @@ export default function VerifyEmailPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center bg-white">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    }>
+      <VerifyEmailForm />
+    </Suspense>
   )
 }
