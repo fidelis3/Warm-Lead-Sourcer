@@ -183,7 +183,7 @@ export default function ForgotPasswordPage() {
                     {code.map((digit, index) => (
                       <input
                         key={index}
-                        ref={(el) => (inputRefs.current[index] = el)}
+                        ref={(el) => { inputRefs.current[index] = el }}
                         type="text"
                         inputMode="numeric"
                         maxLength={1}
@@ -209,7 +209,7 @@ export default function ForgotPasswordPage() {
 
               <div className="text-center text-sm text-gray-700">
                 Didn't receive the code?{" "}
-                <button onClick={() => handleEmailSubmit()} className="text-purple-600 font-medium hover:underline">
+                <button onClick={(e) => { e.preventDefault(); handleEmailSubmit(e as React.FormEvent); }} className="text-purple-600 font-medium hover:underline">
                   Resend
                 </button>
               </div>
