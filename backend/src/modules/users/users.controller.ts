@@ -1,4 +1,15 @@
-import { Controller, Post, Get, Body, Res, Req, HttpCode, UnauthorizedException, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  Res,
+  Req,
+  HttpCode,
+  UnauthorizedException,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import type { Response, Request as ExpressRequest } from 'express';
 import { Throttle } from '@nestjs/throttler';
 import { UsersService } from './users.service';
@@ -7,7 +18,6 @@ import { LoginUserDto } from './dto/login-user.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-
 
 interface AuthenticatedRequest extends ExpressRequest {
   user: {
@@ -27,7 +37,7 @@ export class UsersController {
       sameSite: 'strict',
       maxAge: 15 * 60 * 1000, // 15 minutes
     });
-    
+
     res.cookie('refresh_token', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -72,7 +82,7 @@ export class UsersController {
     }
 
     const result = await this.usersService.refreshAccessToken(refreshToken);
-    
+
     // Set new access token cookie
     res.cookie('access_token', result.access_token, {
       httpOnly: true,
@@ -93,7 +103,10 @@ export class UsersController {
   @Post('reset-password')
   @Throttle({ default: { limit: 3, ttl: 60000 } }) // 3 requests per minute
   async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
-    return this.usersService.resetPassword(resetPasswordDto.token, resetPasswordDto.newPassword);
+    return this.usersService.resetPassword(
+      resetPasswordDto.token,
+      resetPasswordDto.newPassword,
+    );
   }
 
   @Post('logout')

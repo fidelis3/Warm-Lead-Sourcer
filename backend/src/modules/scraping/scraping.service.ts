@@ -111,7 +111,7 @@ export class ScrapingService {
       // Use name and headline from engagement data since profile endpoints don't provide them
       profileData.name = engagement.user.name;
       profileData.headline = engagement.user.headline || '';
-    } catch (error) {
+    } catch {
       // Create basic lead with available data if profile extraction fails
       profileData = {
         urn: engagement.user.urn,
