@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import axios, { AxiosResponse } from 'axios';
+import axios from 'axios';
 import {
   ScrapingProvider,
   PostData,

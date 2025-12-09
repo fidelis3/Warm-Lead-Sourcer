@@ -13,7 +13,7 @@ function AuthSuccessContent() {
     
     if (userParam) {
       try {
-        const user = JSON.parse(decodeURIComponent(userParam))
+        JSON.parse(decodeURIComponent(userParam))
         // User is authenticated via Google OAuth
         // Cookies are set by the backend, so we can just redirect
         router.push("/dash")

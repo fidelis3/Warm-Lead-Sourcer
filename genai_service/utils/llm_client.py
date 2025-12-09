@@ -1,4 +1,4 @@
-from ..config.prompts import platform_prompt
+from ..config.prompts import platform_prompt, score_prompt
 from langchain_core.output_parsers import StrOutputParser
 from langchain_groq import ChatGroq
 from dotenv import load_dotenv
@@ -42,7 +42,7 @@ async def platform_detection(link) -> str:
         platform_chain = platform_prompt | core_model | StrOutputParser()
         platform = await platform_chain.ainvoke({"link": link})
         logger.info("Detected platform: %s", platform)
-        logger.exception("Error detecting platform")
+        return platform.lower()
     except Exception as e:
         logger.exception("Error detecting platform: %s", e)
         return "unknown"

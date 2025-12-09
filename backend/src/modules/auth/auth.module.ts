@@ -30,6 +30,12 @@ import { UsersModule } from '../users/users.module';
   ],
   controllers: [AuthController],
   providers: [GoogleStrategy, JwtStrategy, GoogleAuthGuard, JwtAuthGuard],
-  exports: [GoogleAuthGuard, JwtAuthGuard, JwtStrategy, GoogleStrategy, JwtModule],
+  exports: [
+    GoogleAuthGuard,
+    JwtAuthGuard,
+    JwtStrategy,
+    GoogleStrategy,
+    JwtModule,
+  ],
 })
 export class AuthModule {}

@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
+import type { SentMessageInfo } from 'nodemailer';
 
 @Injectable()
 export class EmailService {
@@ -12,16 +13,16 @@ export class EmailService {
   }
 
   private initializeTransporter() {
-    const emailHost = this.configService.get<string>('SMTP_HOST') || 'smtp.gmail.com';
+    const emailHost =
+      this.configService.get<string>('SMTP_HOST') || 'smtp.gmail.com';
     const emailPort = this.configService.get<number>('SMTP_PORT') || 587;
     const emailUser = this.configService.get<string>('SMTP_USER');
     const emailPassword = this.configService.get<string>('SMTP_PASSWORD');
-    const emailFrom = this.configService.get<string>('SMTP_FROM') || emailUser;
 
     if (!emailUser || !emailPassword) {
       this.logger.warn(
         'Email credentials not configured. Email functionality will be disabled. ' +
-        'Please set EMAIL_USER, EMAIL_PASSWORD, and optionally EMAIL_FROM in your .env file.',
+          'Please set EMAIL_USER, EMAIL_PASSWORD, and optionally EMAIL_FROM in your .env file.',
       );
       return;
     }
@@ -36,7 +37,6 @@ export class EmailService {
       },
     });
 
-  
     this.transporter.verify((error) => {
       if (error) {
         this.logger.error('Email transporter verification failed:', error);
@@ -48,11 +48,17 @@ export class EmailService {
 
   async sendPasswordResetCode(email: string, code: string): Promise<void> {
     if (!this.transporter) {
-      this.logger.error('Email transporter not initialized. Cannot send password reset code.');
-      throw new Error('Email service is not configured. Please contact support.');
+      this.logger.error(
+        'Email transporter not initialized. Cannot send password reset code.',
+      );
+      throw new Error(
+        'Email service is not configured. Please contact support.',
+      );
     }
 
-    const emailFrom = this.configService.get<string>('EMAIL_FROM') || this.configService.get<string>('EMAIL_USER');
+    const emailFrom =
+      this.configService.get<string>('EMAIL_FROM') ||
+      this.configService.get<string>('EMAIL_USER');
     const appName = this.configService.get<string>('APP_NAME') || 'WarmLead';
 
     const mailOptions = {
@@ -96,11 +102,19 @@ export class EmailService {
     };
 
     try {
-      const info = await this.transporter.sendMail(mailOptions);
-      this.logger.log(`Password reset code sent to ${email}. MessageId: ${info.messageId}`);
+      const info: SentMessageInfo =
+        await this.transporter.sendMail(mailOptions);
+      this.logger.log(
+        `Password reset code sent to ${email}. MessageId: ${info.messageId}`,
+      );
     } catch (error) {
-      this.logger.error(`Failed to send password reset code to ${email}:`, error);
-      throw new Error('Failed to send password reset email. Please try again later.');
+      this.logger.error(
+        `Failed to send password reset code to ${email}:`,
+        error,
+      );
+      throw new Error(
+        'Failed to send password reset email. Please try again later.',
+      );
     }
   }
 }

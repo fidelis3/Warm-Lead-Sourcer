@@ -54,12 +54,17 @@ export class UsersService {
 
     const savedUser = await newUser.save();
 
-   
     const payload = { sub: savedUser._id, email: savedUser.email };
-    const access_token = await this.jwtService.signAsync(payload, { expiresIn: '15m' });
-    const refresh_token = await this.jwtService.signAsync(payload, { expiresIn: '7d' });
+    const access_token = await this.jwtService.signAsync(payload, {
+      expiresIn: '15m',
+    });
+    const refresh_token = await this.jwtService.signAsync(payload, {
+      expiresIn: '7d',
+    });
 
-    await this.userModel.findByIdAndUpdate(savedUser._id, { refreshToken: refresh_token });
+    await this.userModel.findByIdAndUpdate(savedUser._id, {
+      refreshToken: refresh_token,
+    });
 
     const userObj = savedUser.toObject();
     const { password: _, refreshToken: __, ...userWithoutPassword } = userObj;
@@ -85,11 +90,17 @@ export class UsersService {
     }
 
     const payload = { sub: user._id, email: user.email };
-    const access_token = await this.jwtService.signAsync(payload, { expiresIn: '15m' });
-    const refresh_token = await this.jwtService.signAsync(payload, { expiresIn: '7d' });
+    const access_token = await this.jwtService.signAsync(payload, {
+      expiresIn: '15m',
+    });
+    const refresh_token = await this.jwtService.signAsync(payload, {
+      expiresIn: '7d',
+    });
 
     // Store refresh token in database
-    await this.userModel.findByIdAndUpdate(user._id, { refreshToken: refresh_token });
+    await this.userModel.findByIdAndUpdate(user._id, {
+      refreshToken: refresh_token,
+    });
 
     const userObj = user.toObject();
     const { password: _, refreshToken: __, ...userWithoutPassword } = userObj;
@@ -115,10 +126,10 @@ export class UsersService {
     lastName: string,
   ): Promise<LoginResponse> {
     const normalizedEmail = email.toLowerCase();
-    
+
     // Check if user exists
     let user = await this.userModel.findOne({ email: normalizedEmail });
-    
+
     if (!user) {
       // Create new user for Google OAuth (no password required)
       user = new this.userModel({
@@ -139,11 +150,17 @@ export class UsersService {
 
     // Generate JWT tokens
     const payload = { sub: user._id.toString(), email: user.email };
-    const access_token = await this.jwtService.signAsync(payload, { expiresIn: '15m' });
-    const refresh_token = await this.jwtService.signAsync(payload, { expiresIn: '7d' });
+    const access_token = await this.jwtService.signAsync(payload, {
+      expiresIn: '15m',
+    });
+    const refresh_token = await this.jwtService.signAsync(payload, {
+      expiresIn: '7d',
+    });
 
     // Store refresh token
-    await this.userModel.findByIdAndUpdate(user._id, { refreshToken: refresh_token });
+    await this.userModel.findByIdAndUpdate(user._id, {
+      refreshToken: refresh_token,
+    });
 
     const userObj = user.toObject();
     const { password: _, refreshToken: __, ...userWithoutPassword } = userObj;
@@ -155,7 +172,9 @@ export class UsersService {
     };
   }
 
-  async refreshAccessToken(refreshToken: string): Promise<{ access_token: string }> {
+  async refreshAccessToken(
+    refreshToken: string,
+  ): Promise<{ access_token: string }> {
     try {
       const payload = await this.jwtService.verifyAsync(refreshToken);
       const user = await this.userModel.findById(payload.sub);
@@ -165,10 +184,12 @@ export class UsersService {
       }
 
       const newPayload = { sub: user._id, email: user.email };
-      const access_token = await this.jwtService.signAsync(newPayload, { expiresIn: '15m' });
+      const access_token = await this.jwtService.signAsync(newPayload, {
+        expiresIn: '15m',
+      });
 
       return { access_token };
-    } catch (error) {
+    } catch {
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
   }
@@ -205,12 +226,17 @@ export class UsersService {
     return { message: 'If the email exists, a reset link has been sent' };
   }
 
-  async resetPassword(token: string, newPassword: string): Promise<{ message: string }> {
+  async resetPassword(
+    token: string,
+    newPassword: string,
+  ): Promise<{ message: string }> {
     // Find users with valid reset tokens
-    const users = await this.userModel.find({
-      resetPasswordExpires: { $gt: new Date() },
-      resetPasswordToken: { $exists: true, $ne: null },
-    }).select('+resetPasswordToken');
+    const users = await this.userModel
+      .find({
+        resetPasswordExpires: { $gt: new Date() },
+        resetPasswordToken: { $exists: true, $ne: null },
+      })
+      .select('+resetPasswordToken');
 
     if (users.length === 0) {
       throw new BadRequestException('Invalid or expired reset token');
