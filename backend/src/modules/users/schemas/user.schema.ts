@@ -31,6 +31,12 @@ export class User {
 
   @Prop({ required: false })
   refreshToken?: string;
+
+  @Prop({ required: false })
+  expiresAt?: Date;
+
+  @Prop({ required: false })
+  deletedAt?: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

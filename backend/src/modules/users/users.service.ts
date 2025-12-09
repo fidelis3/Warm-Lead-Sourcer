@@ -45,11 +45,15 @@ export class UsersService {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 30); // 30 days from now
+
     const newUser = new this.userModel({
       firstName,
       lastName,
       email: email.toLowerCase(),
       password: hashedPassword,
+      expiresAt,
     });
 
     const savedUser = await newUser.save();
@@ -97,9 +101,13 @@ export class UsersService {
       expiresIn: '7d',
     });
 
-    // Store refresh token in database
+    // Store refresh token and extend expiration for active users
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 30); // Extend by 30 days
+
     await this.userModel.findByIdAndUpdate(user._id, {
       refreshToken: refresh_token,
+      expiresAt, // Extend expiration on login
     });
 
     const userObj = user.toObject();
@@ -113,11 +121,17 @@ export class UsersService {
   }
 
   async findById(id: string): Promise<UserDocument | null> {
-    return await this.userModel.findById(id);
+    return await this.userModel.findOne({
+      _id: id,
+      deletedAt: { $exists: false },
+    });
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    return await this.userModel.findOne({ email: email.toLowerCase() });
+    return await this.userModel.findOne({
+      email: email.toLowerCase(),
+      deletedAt: { $exists: false },
+    });
   }
 
   async loginOrRegisterWithGoogle(
@@ -132,11 +146,15 @@ export class UsersService {
 
     if (!user) {
       // Create new user for Google OAuth (no password required)
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 30); // 30 days from now
+
       user = new this.userModel({
         firstName,
         lastName,
         email: normalizedEmail,
         password: '', // Google OAuth users don't need a password
+        expiresAt,
         provider: 'google',
       });
       await user.save();
@@ -157,9 +175,13 @@ export class UsersService {
       expiresIn: '7d',
     });
 
-    // Store refresh token
+    // Store refresh token and extend expiration for active users
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 30); // Extend by 30 days
+
     await this.userModel.findByIdAndUpdate(user._id, {
       refreshToken: refresh_token,
+      expiresAt, // Extend expiration on login
     });
 
     const userObj = user.toObject();
