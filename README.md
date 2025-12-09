@@ -190,7 +190,7 @@ npm run dev
 
 2. **Paste LinkedIn Post URL**
    ```
-   https://www.linkedin.com/posts/username_activity-7402045266020794369-Hb47
+   https://www.linkedin.com/posts/username_activity-.......
    ```
 
 3. **Click "START EXTRACTION"**
@@ -381,8 +381,8 @@ Export Service (CSV/XLSX)
 MONGODB_URI=mongodb://localhost:27017/warm-lead-sourcer
 
 # RapidAPI Configuration
-RAPIDAPI_KEY=4c06e45050msh1e01763c6e5f5cdp13d379jsn597c847af350
-RAPIDAPI_HOST=linkdapi-best-unofficial-linkedin-api.p.rapidapi.com
+RAPIDAPI_KEY=your rapid api key
+RAPIDAPI_HOST=your rapid api host
 
 # Authentication
 JWT_SECRET=your-super-secret-jwt-key-change-this
@@ -642,7 +642,7 @@ npm run test:integration
 curl -X POST http://localhost:5000/posts \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -d '{"url": "https://www.linkedin.com/feed/update/urn:li:activity:7353638537595932672"}'
+  -d '{"url": "https://www.linkedin.com/feed/update/urn:li:activity:......"}'
 ```
 
 ## 📈 Performance
