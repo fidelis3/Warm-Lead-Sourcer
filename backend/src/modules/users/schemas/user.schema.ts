@@ -32,6 +32,15 @@ export class User {
   @Prop({ required: false })
   refreshToken?: string;
 
+  @Prop({ default: false })
+  isEmailVerified: boolean;
+
+  @Prop({ required: false })
+  emailVerificationToken?: string;
+
+  @Prop({ required: false })
+  emailVerificationExpires?: Date;
+
   @Prop({ required: false })
   expiresAt?: Date;
 
