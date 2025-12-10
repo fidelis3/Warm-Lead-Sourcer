@@ -18,7 +18,7 @@ export class CleanupService {
     @InjectModel(Post.name) private postModel: Model<PostDocument>,
   ) {}
 
-  /*
+  /** 
    * Runs daily at 2:00 AM to clean up expired PII data
   
    */
@@ -51,7 +51,7 @@ export class CleanupService {
     }
   }
 
-  /*
+  /** 
    * Soft delete users that have expired (expiresAt < now)
    */
   private async softDeleteExpiredUsers(): Promise<void> {
@@ -85,7 +85,7 @@ export class CleanupService {
     }
   }
 
-  /*
+  /** 
    * Soft delete leads that have expired
    */
   private async softDeleteExpiredLeads(): Promise<void> {
@@ -116,7 +116,7 @@ export class CleanupService {
     }
   }
 
-  /*
+  /** 
    * Soft delete posts that have expired
    */
   private async softDeleteExpiredPosts(): Promise<void> {
