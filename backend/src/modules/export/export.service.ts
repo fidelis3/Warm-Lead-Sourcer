@@ -7,6 +7,7 @@ interface ExportData {
   Headline: string;
   'Profile URL': string;
   'Engagement Type': string;
+  'Comment/Engagement': string;
   'Match Score': number;
   'Guessed Email': string;
   Country: string;
@@ -20,22 +21,35 @@ interface ExportData {
 
 @Injectable()
 export class ExportService {
-  exportToCSV(_leads: Lead[]): string {
-    // TODO: Install xlsx package
-    throw new Error('Export feature not available');
-    // const data = this.formatLeadsForExport(leads);
-    // const worksheet = XLSX.utils.json_to_sheet(data);
-    // return XLSX.utils.sheet_to_csv(worksheet);
+  exportToCSV(leads: Lead[]): string {
+    const data = this.formatLeadsForExport(leads);
+    
+    if (data.length === 0) {
+      return 'No data to export';
+    }
+    
+    // Create CSV headers
+    const headers = Object.keys(data[0]).join(',');
+    
+    // Create CSV rows
+    const rows = data.map(row => 
+      Object.values(row).map(value => {
+        if (typeof value === 'string') {
+          // Escape quotes and wrap in quotes if contains comma, quote, or newline
+          if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+            return `"${value.replace(/"/g, '""')}"`;
+          }
+        }
+        return value;
+      }).join(',')
+    );
+    
+    return [headers, ...rows].join('\n');
   }
 
-  exportToXLSX(_leads: Lead[]): Buffer {
-    // TODO: Install xlsx package
-    throw new Error('Export feature not available');
-    // const data = this.formatLeadsForExport(leads);
-    // const worksheet = XLSX.utils.json_to_sheet(data);
-    // const workbook = XLSX.utils.book_new();
-    // XLSX.utils.book_append_sheet(workbook, worksheet, 'Leads');
-    // return XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' }) as Buffer;
+  exportToXLSX(leads: Lead[]): string {
+    // For now, return CSV format (can be opened in Excel)
+    return this.exportToCSV(leads);
   }
 
   private formatLeadsForExport(leads: Lead[]): ExportData[] {
@@ -44,6 +58,7 @@ export class ExportService {
       Headline: lead.headline || '',
       'Profile URL': lead.profileUrl || '',
       'Engagement Type': lead.engagementType,
+      'Comment/Engagement': (lead as any).engagementContent || '',
       'Match Score': lead.matchScore,
       'Guessed Email': lead.guessedEmail || '',
       Country: lead.location?.country || '',
