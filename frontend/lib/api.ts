@@ -1,7 +1,7 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 class ApiClient {
-  private getAuthHeaders() {
+  private getAuthHeaders(): Record<string, string> {
     if (typeof window === 'undefined') return {};
     
     const token = document.cookie
@@ -22,8 +22,8 @@ class ApiClient {
         headers: {
           'Content-Type': 'application/json',
           ...this.getAuthHeaders(),
-          ...(options.headers as Record<string, string>),
-        },
+          ...(options.headers || {}),
+        } as HeadersInit,
       });
 
       if (response.status === 401) {
@@ -41,8 +41,8 @@ class ApiClient {
             headers: {
               'Content-Type': 'application/json',
               ...this.getAuthHeaders(),
-              ...(options.headers as Record<string, string>),
-            },
+              ...(options.headers || {}),
+            } as HeadersInit,
           });
           
           if (retryResponse.ok) {

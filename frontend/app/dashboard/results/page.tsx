@@ -14,8 +14,8 @@ interface Lead {
   name: string
   headline?: string
   profileUrl: string
-  education?: Array<{ institution: string; degree?: string; fieldOfStudy?: string }>
-  experience?: Array<{ company: string; title: string }>
+  education?: Array<{ institution: string; degree?: string; fieldOfStudy?: string; startYear?: number; endYear?: number }>
+  experience?: Array<{ company: string; title: string; startYear?: number; endYear?: number }>
   guessedEmail?: string
   matchScore: number
   location?: { city?: string; country?: string }
