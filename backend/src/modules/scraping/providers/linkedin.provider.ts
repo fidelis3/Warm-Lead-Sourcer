@@ -62,6 +62,14 @@ export class LinkedInProvider implements ScrapingProvider {
         createdAt: new Date(),
       };
     } catch (error) {
+      if (error.response?.status === 429) {
+        this.logger.error('Rate limit exceeded for post data extraction');
+        throw new Error('Rate limit exceeded. Please wait before trying again or upgrade your RapidAPI plan.');
+      }
+      if (error.response?.status === 403) {
+        this.logger.error('API access forbidden - check your RapidAPI key and subscription');
+        throw new Error('API access denied. Please check your RapidAPI key and subscription status.');
+      }
       this.logger.error('Failed to extract post data:', error.message);
       throw new Error(`Failed to extract post data: ${error.message}`);
     }
@@ -92,6 +100,7 @@ export class LinkedInProvider implements ScrapingProvider {
                 urn: comment.author.urn,
                 headline: comment.author?.headline || '',
               },
+              content: comment.text || comment.content || '',
             });
           }
         });
@@ -114,6 +123,10 @@ export class LinkedInProvider implements ScrapingProvider {
 
       return engagements;
     } catch (error) {
+      if (error.response?.status === 429) {
+        this.logger.error('Rate limit exceeded for engagements extraction');
+        throw new Error('Rate limit exceeded. Please wait before trying again or upgrade your RapidAPI plan.');
+      }
       this.logger.error('Failed to extract engagements:', error.message);
       throw new Error(`Failed to extract engagements: ${error.message}`);
     }
@@ -127,24 +140,16 @@ export class LinkedInProvider implements ScrapingProvider {
         { headers: this.getHeaders() },
       );
 
-      // Get experience data
-      let experience: any[] = [];
+      // Get full profile data for location and other details
+      let fullProfile: any = {};
       try {
-        const experienceResponse = await axios.get(
-          `https://${this.rapidApiHost}/api/v1/profile/full-experience?urn=${profileUrn}`,
+        const fullResponse = await axios.get(
+          `https://${this.rapidApiHost}/api/v1/profile/full?urn=${profileUrn}`,
           { headers: this.getHeaders() },
         );
-        const expData = experienceResponse.data?.data?.experience;
-        if (Array.isArray(expData)) {
-          experience = expData.map((exp: any) => ({
-            title: exp?.title || '',
-            company: exp?.companyName || '',
-            startYear: exp?.durationParsed?.start?.year || undefined,
-            endYear: exp?.durationParsed?.end?.year || undefined,
-          }));
-        }
+        fullProfile = fullResponse.data?.data || {};
       } catch (error) {
-        this.logger.warn('Experience extraction failed:', error.message);
+        this.logger.warn('Full profile extraction failed:', error.message);
       }
 
       const education = educationResponse.data?.data?.education || [];
@@ -160,19 +165,37 @@ export class LinkedInProvider implements ScrapingProvider {
           }))
         : [];
 
+      // Extract experience from full profile
+      const experience = Array.isArray(fullProfile.experience)
+        ? fullProfile.experience.map((exp: any) => ({
+            title: exp?.title || '',
+            company: exp?.companyName || '',
+            startYear: exp?.durationParsed?.start?.year || undefined,
+            endYear: exp?.durationParsed?.end?.year || undefined,
+          }))
+        : [];
+
       return {
         urn: profileUrn,
         name: '', // Name comes from engagement data
         headline: '', // Headline comes from engagement data
         location: {
-          country: '',
-          city: '',
+          country: fullProfile.location?.country || '',
+          city: fullProfile.location?.city || '',
         },
         education: mappedEducation,
         experience: experience,
         profileUrl: `https://linkedin.com/in/${profileUrn}`,
       };
     } catch (error) {
+      if (error.response?.status === 429) {
+        this.logger.error('Rate limit exceeded for profile extraction');
+        throw new Error('Rate limit exceeded. Please wait before trying again or upgrade your RapidAPI plan.');
+      }
+      if (error.response?.status === 403) {
+        this.logger.error('API access forbidden for profile extraction');
+        throw new Error('API access denied. Please check your RapidAPI key and subscription status.');
+      }
       this.logger.error('Failed to extract profile:', error.message);
       throw new Error(`Failed to extract profile: ${error.message}`);
     }
@@ -195,4 +218,6 @@ export class LinkedInProvider implements ScrapingProvider {
 
     throw new Error('Could not extract URN from LinkedIn URL');
   }
+
+
 }
