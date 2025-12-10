@@ -1,12 +1,12 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import Navbar from "@/components/layout/Navbar"
-import { useRouter } from "next/navigation"
 
 export default function ExtractPage() {
   const [step, setStep] = useState<"input" | "processing" | "error">("input")
