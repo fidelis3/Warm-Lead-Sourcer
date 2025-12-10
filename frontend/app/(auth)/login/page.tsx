@@ -39,7 +39,7 @@ function LoginForm() {
 
     try {
       await login(email, password)
-      router.push("/")
+      router.push("/input-url")
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed. Please try again.")
     } finally {
