@@ -8,8 +8,16 @@ import { api } from "@/lib/api"
 import toast from "react-hot-toast"
 import { useSidebar } from "@/contexts/SidebarContext"
 
+interface Post {
+  _id: string
+  url: string
+  status: string
+  processedEngagements?: number
+  createdAt: string
+}
+
 export default function ScrapesPage() {
-  const [posts, setPosts] = useState([])
+  const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
   const { isOpen } = useSidebar()
 
@@ -28,7 +36,7 @@ export default function ScrapesPage() {
     }
   }
 
-  const getStatusColor = (status) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed': return 'bg-green-100 text-green-800'
       case 'processing': return 'bg-yellow-100 text-yellow-800'
@@ -94,7 +102,7 @@ export default function ScrapesPage() {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {posts.map((post) => (
+                      {posts.map((post: Post) => (
                         <tr key={post._id} className="hover:bg-gray-50">
                           <td className="px-3 lg:px-6 py-3 lg:py-4">
                             <div className="text-xs lg:text-sm text-gray-900 max-w-32 lg:max-w-64 truncate">

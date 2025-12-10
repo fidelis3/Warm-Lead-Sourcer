@@ -9,40 +9,60 @@ import { api } from "@/lib/api"
 import toast from "react-hot-toast"
 import { useSidebar } from "@/contexts/SidebarContext"
 
+interface Lead {
+  _id: string
+  name: string
+  headline?: string
+  profileUrl: string
+  education?: Array<{ institution: string; degree?: string; fieldOfStudy?: string }>
+  experience?: Array<{ company: string; title: string }>
+  guessedEmail?: string
+  matchScore: number
+  location?: { city?: string; country?: string }
+}
+
+interface Post {
+  _id: string
+  url: string
+  totalEngagements?: number
+}
+
 export default function ResultsPage() {
-  const [leads, setLeads] = useState([])
-  const [post, setPost] = useState(null)
+  const [leads, setLeads] = useState<Lead[]>([])
+  const [post, setPost] = useState<Post | null>(null)
   const [loading, setLoading] = useState(true)
-  const [selectedLead, setSelectedLead] = useState(null)
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
   const searchParams = useSearchParams()
   const postId = searchParams.get('postId')
   const { isOpen } = useSidebar()
 
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [postData, leadsData] = await Promise.all([
+          api.get(`/posts/${postId}`),
+          api.get(`/leads?postId=${postId}`)
+        ])
+        setPost(postData)
+        setLeads(Array.isArray(leadsData) ? leadsData : [])
+        console.log('Post data:', postData)
+        console.log('Leads data:', leadsData)
+      } catch (error) {
+        console.error('Error loading results:', error)
+        toast.error('Failed to load results')
+      } finally {
+        setLoading(false)
+      }
+    }
+
     if (postId) {
-      fetchData()
+      void fetchData()
     } else {
       setLoading(false)
     }
-  }, [postId, fetchData])
+  }, [postId])
 
-  const fetchData = async () => {
-    try {
-      const [postData, leadsData] = await Promise.all([
-        api.get(`/posts/${postId}`),
-        api.get(`/leads?postId=${postId}`)
-      ])
-      setPost(postData)
-      setLeads(Array.isArray(leadsData) ? leadsData : [])
-      console.log('Post data:', postData)
-      console.log('Leads data:', leadsData)
-    } catch (error) {
-      console.error('Error loading results:', error)
-      toast.error('Failed to load results')
-    } finally {
-      setLoading(false)
-    }
-  }
+
 
   const handleExport = async (format: string) => {
     const toastId = toast.loading('Starting download...')
@@ -211,13 +231,13 @@ export default function ResultsPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {leads.map((lead, index) => (
+                  {leads.map((lead: Lead, index: number) => (
                     <tr key={index} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
                             <span className="text-purple-600 font-medium text-sm">
-                              {lead.name.split(' ').map(n => n[0]).join('')}
+                              {lead.name.split(' ').map((n: string) => n[0]).join('')}
                             </span>
                           </div>
                           <div className="ml-3">
@@ -283,7 +303,7 @@ export default function ResultsPage() {
               <div className="flex items-center space-x-4">
                 <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center">
                   <span className="text-purple-600 font-bold text-xl">
-                    {selectedLead.name.split(' ').map(n => n[0]).join('')}
+                    {selectedLead.name.split(' ').map((n: string) => n[0]).join('')}
                   </span>
                 </div>
                 <div>
@@ -324,7 +344,7 @@ export default function ResultsPage() {
                 <h4 className="font-semibold text-gray-900 mb-2">Education</h4>
                 {selectedLead.education && selectedLead.education.length > 0 ? (
                   <div className="space-y-2">
-                    {selectedLead.education.map((edu, index) => (
+                    {selectedLead.education.map((edu, index: number) => (
                       <div key={index} className="bg-gray-50 p-3 rounded">
                         <p className="font-medium">{edu.institution}</p>
                         <p className="text-sm text-gray-600">{edu.degree} {edu.fieldOfStudy && `in ${edu.fieldOfStudy}`}</p>
@@ -345,7 +365,7 @@ export default function ResultsPage() {
                 <h4 className="font-semibold text-gray-900 mb-2">Experience</h4>
                 {selectedLead.experience && selectedLead.experience.length > 0 ? (
                   <div className="space-y-2">
-                    {selectedLead.experience.map((exp, index) => (
+                    {selectedLead.experience.map((exp, index: number) => (
                       <div key={index} className="bg-gray-50 p-3 rounded">
                         <p className="font-medium">{exp.title}</p>
                         <p className="text-sm text-gray-600">{exp.company}</p>

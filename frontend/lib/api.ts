@@ -22,7 +22,7 @@ class ApiClient {
         headers: {
           'Content-Type': 'application/json',
           ...this.getAuthHeaders(),
-          ...options.headers,
+          ...(options.headers as Record<string, string>),
         },
       });
 
@@ -41,7 +41,7 @@ class ApiClient {
             headers: {
               'Content-Type': 'application/json',
               ...this.getAuthHeaders(),
-              ...options.headers,
+              ...(options.headers as Record<string, string>),
             },
           });
           

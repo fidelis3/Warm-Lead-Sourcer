@@ -1,10 +1,15 @@
 "use client"
 
-import { createContext, useContext, useState } from "react"
+import { createContext, useContext, useState, ReactNode } from "react"
 
-const SidebarContext = createContext()
+interface SidebarContextType {
+  isOpen: boolean
+  setIsOpen: (open: boolean) => void
+}
 
-export function SidebarProvider({ children }) {
+const SidebarContext = createContext<SidebarContextType | undefined>(undefined)
+
+export function SidebarProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(true)
   
   return (
