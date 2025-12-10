@@ -23,27 +23,33 @@ interface ExportData {
 export class ExportService {
   exportToCSV(leads: Lead[]): string {
     const data = this.formatLeadsForExport(leads);
-    
+
     if (data.length === 0) {
       return 'No data to export';
     }
-    
+
     // Create CSV headers
     const headers = Object.keys(data[0]).join(',');
-    
+
     // Create CSV rows
-    const rows = data.map(row => 
-      Object.values(row).map(value => {
-        if (typeof value === 'string') {
-          // Escape quotes and wrap in quotes if contains comma, quote, or newline
-          if (value.includes(',') || value.includes('"') || value.includes('\n')) {
-            return `"${value.replace(/"/g, '""')}"`;
+    const rows = data.map((row) =>
+      Object.values(row)
+        .map((value) => {
+          if (typeof value === 'string') {
+            // Escape quotes and wrap in quotes if contains comma, quote, or newline
+            if (
+              value.includes(',') ||
+              value.includes('"') ||
+              value.includes('\n')
+            ) {
+              return `"${value.replace(/"/g, '""')}"`;
+            }
           }
-        }
-        return value;
-      }).join(',')
+          return value;
+        })
+        .join(','),
     );
-    
+
     return [headers, ...rows].join('\n');
   }
 

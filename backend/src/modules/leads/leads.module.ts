@@ -7,6 +7,7 @@ import {
   FilterPreset,
   FilterPresetSchema,
 } from './schemas/filter-preset.schema';
+import { ExportService } from '../export/export.service';
 
 @Module({
   imports: [
@@ -16,7 +17,7 @@ import {
     ]),
   ],
   controllers: [LeadsController],
-  providers: [LeadsService],
+  providers: [LeadsService, ExportService],
   exports: [LeadsService],
 })
 export class LeadsModule {}

@@ -125,7 +125,7 @@ export default function ForgotPasswordPage() {
                 </div>
               )}
 
-              <form onSubmit={handleEmailSubmit} className="space-y-4">
+              <form onSubmit={handleEmailSubmit} className="space-y-4" suppressHydrationWarning>
                 <div className="space-y-2">
                   <label htmlFor="email" className="text-sm font-medium text-black">
                     Email
@@ -137,6 +137,7 @@ export default function ForgotPasswordPage() {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="name@gmail.com"
                     required
+                    suppressHydrationWarning
                     className="w-full rounded-md border border-gray-300 bg-purple-50 px-4 py-3 text-sm text-black placeholder:text-gray-400 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
                   />
                 </div>

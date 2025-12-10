@@ -112,7 +112,9 @@ export class ScrapingService {
       profileData.name = engagement.user.name;
       profileData.headline = engagement.user.headline || '';
     } catch (error) {
-      this.logger.warn(`Profile extraction failed for ${engagement.user.name}: ${error.message}`);
+      this.logger.warn(
+        `Profile extraction failed for ${engagement.user.name}: ${error.message}`,
+      );
       // Create basic lead with available data if profile extraction fails
       profileData = {
         urn: engagement.user.urn,
@@ -201,9 +203,11 @@ export class ScrapingService {
       if (predefinedDomain) {
         return `${firstName}.${lastName}@${predefinedDomain}`;
       }
-      
+
       // Generate email based on university name
-      const universityEmail = this.generateUniversityEmail(university.institution);
+      const universityEmail = this.generateUniversityEmail(
+        university.institution,
+      );
       if (universityEmail) {
         return `${firstName}.${lastName}@${universityEmail}`;
       }
@@ -217,7 +221,7 @@ export class ScrapingService {
     const domains: Record<string, string> = {
       'stanford university': 'stanford.edu',
       'harvard university': 'harvard.edu',
-      'mit': 'mit.edu',
+      mit: 'mit.edu',
       'university of california': 'berkeley.edu',
       'carnegie mellon': 'cmu.edu',
       'georgia tech': 'gatech.edu',
@@ -235,7 +239,7 @@ export class ScrapingService {
 
   private generateUniversityEmail(institution: string): string | undefined {
     if (!institution) return undefined;
-    
+
     // Clean and format university name for email
     const cleanName = institution
       .toLowerCase()
@@ -243,12 +247,12 @@ export class ScrapingService {
       .replace(/[^a-z\s]/g, '')
       .trim()
       .split(' ')
-      .filter(word => word.length > 2)
+      .filter((word) => word.length > 2)
       .slice(0, 2)
       .join('');
-    
+
     if (cleanName.length < 3) return undefined;
-    
+
     return `${cleanName}gmail.com`;
   }
 }

@@ -144,7 +144,7 @@ export default function Navbar() {
                       <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">{user.email}</p>
                     </div>
                     <Link
-                      href="/dash"
+                      href="/dashboard"
                       onClick={() => setDropdownOpen(false)}
                       className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-purple-50 dark:hover:bg-slate-700/50 transition-colors"
                     >
@@ -235,7 +235,7 @@ export default function Navbar() {
                 <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">{user.email}</p>
               </div>
               <Link
-                href="/dash"
+                href="/dashboard"
                 className="text-lg font-medium text-slate-700 dark:text-slate-200 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
                 onClick={() => setMobileMenuOpen(false)}
               >

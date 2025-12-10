@@ -64,11 +64,17 @@ export class LinkedInProvider implements ScrapingProvider {
     } catch (error) {
       if (error.response?.status === 429) {
         this.logger.error('Rate limit exceeded for post data extraction');
-        throw new Error('Rate limit exceeded. Please wait before trying again or upgrade your RapidAPI plan.');
+        throw new Error(
+          'Rate limit exceeded. Please wait before trying again or upgrade your RapidAPI plan.',
+        );
       }
       if (error.response?.status === 403) {
-        this.logger.error('API access forbidden - check your RapidAPI key and subscription');
-        throw new Error('API access denied. Please check your RapidAPI key and subscription status.');
+        this.logger.error(
+          'API access forbidden - check your RapidAPI key and subscription',
+        );
+        throw new Error(
+          'API access denied. Please check your RapidAPI key and subscription status.',
+        );
       }
       this.logger.error('Failed to extract post data:', error.message);
       throw new Error(`Failed to extract post data: ${error.message}`);
@@ -125,7 +131,9 @@ export class LinkedInProvider implements ScrapingProvider {
     } catch (error) {
       if (error.response?.status === 429) {
         this.logger.error('Rate limit exceeded for engagements extraction');
-        throw new Error('Rate limit exceeded. Please wait before trying again or upgrade your RapidAPI plan.');
+        throw new Error(
+          'Rate limit exceeded. Please wait before trying again or upgrade your RapidAPI plan.',
+        );
       }
       this.logger.error('Failed to extract engagements:', error.message);
       throw new Error(`Failed to extract engagements: ${error.message}`);
@@ -190,11 +198,15 @@ export class LinkedInProvider implements ScrapingProvider {
     } catch (error) {
       if (error.response?.status === 429) {
         this.logger.error('Rate limit exceeded for profile extraction');
-        throw new Error('Rate limit exceeded. Please wait before trying again or upgrade your RapidAPI plan.');
+        throw new Error(
+          'Rate limit exceeded. Please wait before trying again or upgrade your RapidAPI plan.',
+        );
       }
       if (error.response?.status === 403) {
         this.logger.error('API access forbidden for profile extraction');
-        throw new Error('API access denied. Please check your RapidAPI key and subscription status.');
+        throw new Error(
+          'API access denied. Please check your RapidAPI key and subscription status.',
+        );
       }
       this.logger.error('Failed to extract profile:', error.message);
       throw new Error(`Failed to extract profile: ${error.message}`);
@@ -218,6 +230,4 @@ export class LinkedInProvider implements ScrapingProvider {
 
     throw new Error('Could not extract URN from LinkedIn URL');
   }
-
-
 }

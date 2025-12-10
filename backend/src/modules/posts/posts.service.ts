@@ -36,6 +36,7 @@ export class PostsService {
       .processPost(savedPost._id.toString())
       .catch((error) => {
         console.error('Scraping failed:', error);
+        this.updateStatus(savedPost._id.toString(), 'failed', error.message);
       });
 
     return savedPost;
@@ -56,6 +57,32 @@ export class PostsService {
       throw new NotFoundException('Post not found');
     }
     return post;
+  }
+
+  async process(
+    id: string,
+    userId: string,
+  ): Promise<{ message: string; postId: string }> {
+    const post = await this.findOne(id, userId);
+
+    if (post.status === 'processing') {
+      return { message: 'Post is already being processed', postId: id };
+    }
+
+    if (post.status === 'completed') {
+      return { message: 'Post has already been processed', postId: id };
+    }
+
+    // Update status to processing
+    await this.updateStatus(id, 'processing');
+
+    // Trigger scraping asynchronously
+    this.scrapingService.processPost(id).catch((error) => {
+      console.error('Scraping failed:', error);
+      this.updateStatus(id, 'failed', error.message);
+    });
+
+    return { message: 'Post processing started', postId: id };
   }
 
   async updateStatus(

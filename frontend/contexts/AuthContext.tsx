@@ -38,15 +38,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const checkAuth = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      console.log('Checking auth with URL:', `${apiUrl}/users/me`);
+      
+      const response = await fetch(`${apiUrl}/users/me`, {
         credentials: 'include',
       });
       
+      console.log('Auth check response:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('User data:', data);
         setUser(data.user);
+      } else {
+        console.log('Auth check failed:', response.status);
+        setUser(null);
       }
-    } catch {
+    } catch (error) {
+      console.error('Auth check error:', error);
       setUser(null);
     } finally {
       setIsLoading(false);

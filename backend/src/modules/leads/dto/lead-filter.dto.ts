@@ -29,6 +29,10 @@ enum SortOrder {
 export class LeadFilterDto {
   @IsOptional()
   @IsString()
+  postId?: string;
+
+  @IsOptional()
+  @IsString()
   country?: string;
 
   @IsOptional()
@@ -84,4 +88,8 @@ export class LeadFilterDto {
   @IsNumber()
   @Min(0)
   skip?: number;
+
+  @IsOptional()
+  @IsString()
+  format?: string;
 }
