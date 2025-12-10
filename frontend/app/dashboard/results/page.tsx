@@ -24,7 +24,7 @@ export default function ResultsPage() {
     } else {
       setLoading(false)
     }
-  }, [postId])
+  }, [postId, fetchData])
 
   const fetchData = async () => {
     try {

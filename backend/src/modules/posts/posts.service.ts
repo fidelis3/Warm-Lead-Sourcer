@@ -32,11 +32,15 @@ export class PostsService {
     const savedPost = await post.save();
 
     // Trigger scraping asynchronously
-    this.scrapingService
+    void this.scrapingService
       .processPost(savedPost._id.toString())
       .catch((error) => {
         console.error('Scraping failed:', error);
-        this.updateStatus(savedPost._id.toString(), 'failed', error.message);
+        void this.updateStatus(
+          savedPost._id.toString(),
+          'failed',
+          error.message as string,
+        );
       });
 
     return savedPost;
@@ -77,9 +81,9 @@ export class PostsService {
     await this.updateStatus(id, 'processing');
 
     // Trigger scraping asynchronously
-    this.scrapingService.processPost(id).catch((error) => {
+    void this.scrapingService.processPost(id).catch((error) => {
       console.error('Scraping failed:', error);
-      this.updateStatus(id, 'failed', error.message);
+      void this.updateStatus(id, 'failed', error.message as string);
     });
 
     return { message: 'Post processing started', postId: id };

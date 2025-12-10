@@ -62,8 +62,8 @@ export class DashboardService {
 
     const totalTime = completedPosts.reduce((sum, post: any) => {
       const processingTime =
-        new Date(post.processedAt).getTime() -
-        new Date(post.createdAt).getTime();
+        new Date(post.processedAt as string).getTime() -
+        new Date(post.createdAt as string).getTime();
       return sum + processingTime;
     }, 0);
 

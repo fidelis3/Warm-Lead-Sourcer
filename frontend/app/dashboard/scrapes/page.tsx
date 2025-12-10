@@ -21,7 +21,7 @@ export default function ScrapesPage() {
     try {
       const data = await api.get('/posts')
       setPosts(data)
-    } catch (error) {
+    } catch {
       toast.error('Failed to load scrapes')
     } finally {
       setLoading(false)

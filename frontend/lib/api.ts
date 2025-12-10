@@ -75,7 +75,7 @@ class ApiClient {
     return this.request(endpoint);
   }
 
-  async post(endpoint: string, data: any) {
+  async post(endpoint: string, data: Record<string, unknown>) {
     return this.request(endpoint, {
       method: 'POST',
       body: JSON.stringify(data),
@@ -91,7 +91,7 @@ export const dashboardApi = {
 };
 
 export const leadsApi = {
-  getByPost: (postId: string, filters?: any) => {
+  getByPost: (postId: string, filters?: Record<string, string>) => {
     const params = new URLSearchParams(filters).toString();
     return api.get(`/leads/post/${postId}${params ? `?${params}` : ''}`);
   },
