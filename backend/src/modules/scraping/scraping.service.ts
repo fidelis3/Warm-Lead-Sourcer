@@ -111,13 +111,15 @@ export class ScrapingService {
       // Use name and headline from engagement data since profile endpoints don't provide them
       profileData.name = engagement.user.name;
       profileData.headline = engagement.user.headline || '';
-    } catch {
+    } catch (error) {
+      this.logger.warn(`Profile extraction failed for ${engagement.user.name}: ${error.message}`);
       // Create basic lead with available data if profile extraction fails
       profileData = {
         urn: engagement.user.urn,
         name: engagement.user.name,
         headline: engagement.user.headline || '',
         profileUrl: engagement.user.profileUrl,
+        location: { country: '', city: '' },
         education: [],
         experience: [],
       };
@@ -144,6 +146,7 @@ export class ScrapingService {
       education: profileData.education,
       experience: profileData.experience,
       engagementType: engagement.type,
+      engagementContent: engagement.content,
       matchScore,
       guessedEmail,
       tags: [],
@@ -191,12 +194,18 @@ export class ScrapingService {
 
     if (!firstName || !lastName) return undefined;
 
-    // Try to find university domain
     const university = profile.education[0];
     if (university?.institution) {
-      const domain = this.getUniversityDomain(university.institution);
-      if (domain) {
-        return `${firstName}.${lastName}@${domain}`;
+      // First try predefined domains
+      const predefinedDomain = this.getUniversityDomain(university.institution);
+      if (predefinedDomain) {
+        return `${firstName}.${lastName}@${predefinedDomain}`;
+      }
+      
+      // Generate email based on university name
+      const universityEmail = this.generateUniversityEmail(university.institution);
+      if (universityEmail) {
+        return `${firstName}.${lastName}@${universityEmail}`;
       }
     }
 
@@ -204,17 +213,14 @@ export class ScrapingService {
   }
 
   private getUniversityDomain(institution: string): string | undefined {
-    // University domain mapping
+    // Known university domain mapping
     const domains: Record<string, string> = {
       'stanford university': 'stanford.edu',
       'harvard university': 'harvard.edu',
-      mit: 'mit.edu',
+      'mit': 'mit.edu',
       'university of california': 'berkeley.edu',
       'carnegie mellon': 'cmu.edu',
       'georgia tech': 'gatech.edu',
-      'ubb cluj': 'ubbcluj.ro',
-      'technical university of cluj napoca': 'utcluj.ro',
-      'holon institute of technology': 'hit.ac.il',
     };
 
     const institutionLower = institution.toLowerCase();
@@ -225,5 +231,24 @@ export class ScrapingService {
     }
 
     return undefined;
+  }
+
+  private generateUniversityEmail(institution: string): string | undefined {
+    if (!institution) return undefined;
+    
+    // Clean and format university name for email
+    const cleanName = institution
+      .toLowerCase()
+      .replace(/university|college|institute|school/g, '')
+      .replace(/[^a-z\s]/g, '')
+      .trim()
+      .split(' ')
+      .filter(word => word.length > 2)
+      .slice(0, 2)
+      .join('');
+    
+    if (cleanName.length < 3) return undefined;
+    
+    return `${cleanName}gmail.com`;
   }
 }

@@ -71,6 +71,9 @@ export class Lead {
   @Prop({ required: true, enum: ['like', 'comment', 'share', 'reaction'] })
   engagementType: string;
 
+  @Prop()
+  engagementContent?: string;
+
   @Prop({ min: 0, max: 100, default: 0 })
   matchScore: number;
 
