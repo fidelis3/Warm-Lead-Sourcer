@@ -40,4 +40,9 @@ export class PostsController {
   async findOne(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
     return this.postsService.findOne(id, req.user.userId);
   }
+
+  @Post(':id/process')
+  async process(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
+    return this.postsService.process(id, req.user.userId);
+  }
 }

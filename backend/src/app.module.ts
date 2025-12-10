@@ -13,6 +13,7 @@ import { ScrapingModule } from './modules/scraping/scraping.module';
 import { LeadsModule } from './modules/leads/leads.module';
 import { ExportModule } from './modules/export/export.module';
 import { CleanupModule } from './modules/cleanup/cleanup.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -56,6 +57,7 @@ import { CleanupModule } from './modules/cleanup/cleanup.module';
     LeadsModule,
     ExportModule,
     CleanupModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [

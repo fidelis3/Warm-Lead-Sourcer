@@ -31,6 +31,7 @@ export interface EngagementData {
     urn: string;
     headline?: string;
   };
+  content?: string;
   timestamp?: Date;
 }
 

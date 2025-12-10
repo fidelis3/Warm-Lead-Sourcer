@@ -11,6 +11,18 @@
   --font-mono: var(--font-geist-mono);
 }
 
+:root {
+  --toast-bg: #ffffff;
+  --toast-color: #1f2937;
+  --toast-border: #e5e7eb;
+}
+
+.dark {
+  --toast-bg: #1f2937;
+  --toast-color: #f9fafb;
+  --toast-border: #374151;
+}
+
 @variant dark (&:where(.dark, .dark *));
 
 body {
