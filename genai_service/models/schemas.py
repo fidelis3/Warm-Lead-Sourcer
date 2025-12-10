@@ -29,7 +29,6 @@ class EmailPattern(BaseModel):
         }
 
 
-# after extraction, immediate schema
 class ExtractedFields(BaseModel):
     '''fields extracted by LLM from raw profile text'''
     role: Optional[str] = None
@@ -85,6 +84,29 @@ class ValidationResult(BaseModel):
     is_valid: bool
     errors: List[str] = Field(default_factory=list)
     warnings: List[str] = Field(default_factory=list)
+
+class GeneralProfile(BaseModel):
+    """General profile structure for existing code"""
+    name: str
+    linkedin_url: Optional[str] = None
+    current_role: Optional[str] = None
+    education: Optional[str] = None
+    country: Optional[str] = None
+    email: Optional[str] = None
+    score: int = 0
+
+class LeadScoreOutput(BaseModel):
+    """Output schema for lead scoring"""
+    score: int = Field(ge=1, le=10, description="Lead quality score from 1-10")
+    reasoning: str = Field(description="Explanation for the score")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "score": 8,
+                "reasoning": "Strong match: Software Engineer with Stanford background aligns with target criteria"
+            }
+        }
 
 
 

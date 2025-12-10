@@ -1,9 +1,15 @@
-from ..config.prompts import platform_prompt, score_prompt
+from genai_service.config.prompts import platform_prompt, score_prompt
 from langchain_core.output_parsers import StrOutputParser
 from langchain_groq import ChatGroq
 from dotenv import load_dotenv
 import logging
 import os
+import asyncio
+import json
+import re
+from typing import Optional
+from groq import Groq
+import google.generativeai as genai
 
 load_dotenv()
 logger = logging.getLogger(__name__)
@@ -14,51 +20,83 @@ if __name__ == "__main__":
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
 
-# We shall have multiple LLM models for different purposes
-# llama-3.1 - general
-# openai 120b - scoring logic/ complex tasks
+DEFAULT_GENERAL_MODEL = "llama-3.3-70b-versatile"
+DEFAULT_CORE_MODEL = "llama-3.3-70b-versatile"
+DEFAULT_FALLBACK_MODEL = "llama-3.1-8b-instant"
 
-
-# Implement extensive error handling for model initialization
 try:
     logger.info("Setting up main Groq LLM model.")
-    general_model = ChatGroq(model=os.getenv("GENERAL_MODEL"), api_key=os.getenv("GROQ_API_KEY"))
-    logger.info("Successfully set up general model.")
+    general_model_name = os.getenv("GENERAL_MODEL", DEFAULT_GENERAL_MODEL)
+    groq_api_key = os.getenv("GROQ_API_KEY")
+    
+    if not groq_api_key:
+        raise ValueError("GROQ_API_KEY is not set in environment variables")
+    
+    general_model = ChatGroq(model=general_model_name, api_key=groq_api_key)
+    logger.info(f"Successfully set up general model: {general_model_name}")
 except Exception as e:
     logger.exception("Failed to set up general model. Switching to Fallback model")
-    general_model = ChatGroq(model=os.getenv("FALLBACK_MODEL"), api_key=os.getenv("GROQ_API_KEY"))
+    fallback_model_name = os.getenv("FALLBACK_MODEL", DEFAULT_FALLBACK_MODEL)
+    general_model = ChatGroq(model=fallback_model_name, api_key=os.getenv("GROQ_API_KEY"))
+    logger.info(f"Using fallback model: {fallback_model_name}")
 
 try:
     logger.info("Setting up Groq LLM models.")
-    core_model = ChatGroq(model=os.getenv("CORE_MODEL"), api_key=os.getenv("GROQ_API_KEY"))
-    logger.info("Successfully set up core logic model.")
+    core_model_name = os.getenv("CORE_MODEL", DEFAULT_CORE_MODEL)
+    core_model = ChatGroq(model=core_model_name, api_key=os.getenv("GROQ_API_KEY"))
+    logger.info(f"Successfully set up core logic model: {core_model_name}")
 except Exception as e:
-    logger.exception("Failed to set up core logic model. Switching to general model", e)
-    core_model = ChatGroq(model=os.getenv("FALLBACK_MODEL"), api_key=os.getenv("GROQ_API_KEY"))
+    logger.exception("Failed to set up core logic model. Switching to general model")
+    core_model = general_model
+    logger.info("Using general model as core model")
 
 
-async def platform_detection(link) -> str:
+async def platform_detection(link: str) -> str:
+    """Detect platform from URL"""
     try:
         platform_chain = platform_prompt | core_model | StrOutputParser()
         platform = await platform_chain.ainvoke({"link": link})
         logger.info("Detected platform: %s", platform)
-        return platform.lower()
+        return platform.lower().strip()
     except Exception as e:
         logger.exception("Error detecting platform: %s", e)
         return "unknown"
-import os
-from typing import Optional
-from dotenv import load_dotenv
-import asyncio
-import json
-from groq import Groq
-import google.generativeai as genai
+
+
+async def calculate_score(profile: dict, criteria: list) -> int:
+    """Calculate lead score (1-10) using LangChain chain"""
+    try:
+        criteria_str = ", ".join(criteria) if criteria else "general quality"
+        
+        score_chain = score_prompt | core_model | StrOutputParser()
+        result = await score_chain.ainvoke({
+            "lead_information": str(profile),
+            "keywords": criteria_str
+        })
+        
+        score_match = re.search(r'Score:\s*(\d+)', result, re.IGNORECASE)
+        if not score_match:
+            score_match = re.search(r'\b([1-9]|10)\b', result)
+        
+        if score_match:
+            score = int(score_match.group(1))
+            logger.info(f"Calculated score: {score} for {profile.get('name', 'unknown')}")
+            return min(max(score, 1), 10)  
+        
+        logger.warning(f"Could not extract score from: {result}")
+        return 5  
+        
+    except Exception as e:
+        logger.exception(f"Error calculating score: {e}")
+        return 5
+
 
 class LLMClient:
-    def __init__(self):
+    
+    def __init__(self):  
         self.provider = os.getenv("LLM_PROVIDER", "groq").lower()
-        self.temperature = float(os.getenv("LLM_TEMPERATURE", 0.3))
-        self.max_tokens = int(os.getenv("LLM_MAX_TOKENS", 1000))
+        self.temperature = float(os.getenv("LLM_TEMPERATURE", "0.3"))
+        self.max_tokens = int(os.getenv("LLM_MAX_TOKENS", "1000"))
         self.timeout = int(os.getenv("LLM_TIMEOUT", "15"))
         
         if self.provider == "groq":
@@ -67,6 +105,7 @@ class LLMClient:
                 raise ValueError("GROQ_API_KEY is not set in environment variables.")
             self.client = Groq(api_key=api_key)
             self.model = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+            logger.info(f"✓ LLMClient initialized with Groq: {self.model}")
         elif self.provider == "gemini":
             api_key = os.getenv("GOOGLE_API_KEY")
             if not api_key:
@@ -74,7 +113,7 @@ class LLMClient:
             genai.configure(api_key=api_key)
             self.model_name = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
             self.client = genai.GenerativeModel(self.model_name)
-            print(f"Gemini client initialized with model: {self.model_name}")
+            logger.info(f"✓ LLMClient initialized with Gemini: {self.model_name}")
         else:
             raise ValueError(f"Unsupported LLM provider: {self.provider}")
 
@@ -85,16 +124,6 @@ class LLMClient:
         max_tokens: Optional[int] = None,
         json_mode: bool = False
     ) -> str:
-        """
-        Args:
-            prompt (str): The prompt to send to the LLM
-            temperature: Override default temperature
-            max_tokens: Override default max max_tokens
-            json_mode: Force json output parsing
-
-        Returns:
-            str: The response from the LLM
-        """
         temp = temperature if temperature is not None else self.temperature
         tokens = max_tokens if max_tokens is not None else self.max_tokens
         
@@ -104,7 +133,7 @@ class LLMClient:
             elif self.provider == "gemini":
                 return await self._call_gemini(prompt, temp, tokens)
         except Exception as e:
-            print(f"❌ LLM API Error ({self.provider}): {e}")
+            logger.error(f"LLM API Error ({self.provider}): {e}")
             raise
 
     async def _call_groq(
@@ -114,13 +143,9 @@ class LLMClient:
         max_tokens: int,
         json_mode: bool
     ) -> str:
-        """Call Groq API (synchronous client, but wrapped for async compatibility)"""
-        
         messages = [{"role": "user", "content": prompt}]
-# Groq supports JSON mode for structured outputs
         response_format = {"type": "json_object"} if json_mode else None
         
-        # Run in thread pool since Groq client is sync
         loop = asyncio.get_event_loop()
         response = await loop.run_in_executor(
             None,
@@ -134,36 +159,33 @@ class LLMClient:
         )
         
         return response.choices[0].message.content.strip()
+    
     async def _call_gemini(
-            self,
-            prompt: str,
-            temperature: float,
-            max_tokens: int
+        self,
+        prompt: str,
+        temperature: float,
+        max_tokens: int
     ) -> str:
-        '''call Gemini API'''
+        """Call Gemini API"""
         generation_config = {
             "temperature": temperature,
             "max_output_tokens": max_tokens
         }
-        loop=asyncio.get_event_loop()
+        loop = asyncio.get_event_loop()
         response = await loop.run_in_executor(
             None,
-            lambda: self.client.generate_text(
-                prompt=prompt,
+            lambda: self.client.generate_content(
+                prompt,
                 generation_config=generation_config
             )
-
         )
         return response.text.strip()
+    
     def parse_json_response(self, response: str) -> dict:
-        """
-        Parse JSON from LLM response, handling common formatting issues.
-        """
+        """Parse JSON from LLM response, handling common formatting issues"""
         try:
-            # Try direct parsing first
             return json.loads(response)
         except json.JSONDecodeError:
-            # Try to extract JSON from markdown code blocks
             if "```json" in response:
                 json_str = response.split("```json")[1].split("```")[0].strip()
                 return json.loads(json_str)
@@ -174,23 +196,26 @@ class LLMClient:
                 raise ValueError(f"Could not parse JSON from response: {response[:200]}")
 
 
-# Test the client
 async def test_llm():
-    """Test LLM connection with both providers"""
-    print("\n🧪 Testing LLM Client...\n")
+    """Test LLM connection and all functions"""
+    print("\n🧪 Testing LLM Setup...\n")
     
+    # Test 1: Platform detection
+    print("Test 1: Platform Detection")
+    platform = await platform_detection("https://linkedin.com/posts/test123")
+    print(f"✓ Detected platform: {platform}\n")
+    
+    # Test 2: LLMClient
+    print("Test 2: LLMClient Extraction")
     client = LLMClient()
-    
-    # Test 1: Simple text generation
-    print("Test 1: Simple generation")
-    response = await client.call("Say 'Hello, GenAI service is working!'")
+    response = await client.call("Say 'LLMClient is working!'")
     print(f"✓ Response: {response}\n")
     
-    # Test 2: JSON extraction (important for our use case)
-    print("Test 2: JSON extraction")
+    # Test 3: JSON extraction
+    print("Test 3: JSON Extraction")
     json_prompt = """Extract information from this text and return ONLY valid JSON:
 
-Text: "John Doe is a Software Engineer at Google. He studied at Stanford University and lives in San Francisco, USA."
+Text: "Eric Theuri is a Software Engineer at Google. He studied at Jomo Kenyatta University and lives in Nairobi, Kenya."
 
 Return this format:
 {
@@ -200,27 +225,28 @@ Return this format:
   "country": "string"
 }"""
     
-    json_response = await client.call(
-        json_prompt, 
-        json_mode=(client.provider == "groq")  # Groq supports native JSON mode
-    )
-    print(f"✓ JSON Response: {json_response}\n")
+    json_response = await client.call(json_prompt, json_mode=True)
+    print(f"✓ JSON Response: {json_response}")
     
-    # Parse the JSON
     try:
         data = client.parse_json_response(json_response)
-        print(f"✓ Parsed data: {data}")
-        print(f"✓ Role extracted: {data.get('role')}")
+        print(f"✓ Parsed: role={data.get('role')}, university={data.get('university')}\n")
     except Exception as e:
-        print(f"❌ JSON parsing failed: {e}")
+        print(f"✗ JSON parsing failed: {e}\n")
     
-    print("\n✅ LLM Client is working!")
+    # Test 4: Score calculation
+    print("Test 4: Score Calculation")
+    sample_profile = {
+        "name": "Eric Theuri",
+        "current_role": "Software Engineer",
+        "education": "Jomo Kenyatta University",
+        "country": "Kenya"
+    }
+    score = await calculate_score(sample_profile, ["software", "engineer", "stanford"])
+    print(f"✓ Calculated score: {score}/10\n")
+    
+    print("✅ All LLM tests passed!")
 
 
 if __name__ == "__main__":
     asyncio.run(test_llm())
-
-    
-    
-
-    
