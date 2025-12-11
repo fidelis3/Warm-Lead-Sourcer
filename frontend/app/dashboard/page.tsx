@@ -52,12 +52,12 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
         <Sidebar />
         <div className="flex-1 lg:ml-60 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading dashboard...</p>
+            <p className="mt-4 text-gray-600 dark:text-gray-400">Loading dashboard...</p>
           </div>
         </div>
       </div>
@@ -65,15 +65,15 @@ export default function Dashboard() {
   }
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50 flex">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
         <Sidebar />
 
         <div className={`flex-1 transition-all duration-300 ${isOpen ? 'ml-60' : 'ml-16'}`}>
-          <header className="bg-white border-b border-gray-200 px-4 py-4">
+          <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-4">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-xl lg:text-2xl font-bold text-gray-900">Dashboard</h1>
-                <p className="text-sm lg:text-base text-gray-600">
+                <h1 className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+                <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400">
                   Welcome, {user ? `${user.firstName} ${user.lastName}` : 'Guest'}
                 </p>
               </div>
@@ -90,7 +90,7 @@ export default function Dashboard() {
         <main className="p-4 lg:p-6">
           {/* Quick Stats */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-6 lg:mb-8">
-            <div className="bg-white rounded-xl shadow-sm border p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-6">
               <div className="flex items-center">
                 <div className="p-2 bg-purple-100 rounded-lg">
                   <svg className="w-6 h-6 text-purple-600" fill="currentColor" viewBox="0 0 24 24">
@@ -98,13 +98,13 @@ export default function Dashboard() {
                   </svg>
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Total Scrapes</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats?.totalScrapes || 0}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Scrapes</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats?.totalScrapes || 0}</p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-6">
               <div className="flex items-center">
                 <div className="p-2 bg-blue-100 rounded-lg">
                   <svg className="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
@@ -112,13 +112,13 @@ export default function Dashboard() {
                   </svg>
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Total Leads</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats?.totalLeads || 0}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Leads</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats?.totalLeads || 0}</p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-6">
               <div className="flex items-center">
                 <div className="p-2 bg-green-100 rounded-lg">
                   <svg className="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 24 24">
@@ -126,13 +126,13 @@ export default function Dashboard() {
                   </svg>
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">High Quality</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats?.highQualityLeads || 0}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">High Quality</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats?.highQualityLeads || 0}</p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-6">
               <div className="flex items-center">
                 <div className="p-2 bg-yellow-100 rounded-lg">
                   <svg className="w-6 h-6 text-yellow-600" fill="currentColor" viewBox="0 0 24 24">
@@ -140,8 +140,8 @@ export default function Dashboard() {
                   </svg>
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Avg Time</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats?.avgProcessingTime || '0s'}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Avg Time</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats?.avgProcessingTime || '0s'}</p>
                 </div>
               </div>
             </div>
@@ -149,7 +149,7 @@ export default function Dashboard() {
 
           {/* Quick Actions */}
           <div className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <Link href="/input-url" className="bg-purple-600 hover:bg-purple-700 text-white p-6 rounded-xl transition-colors">
                 <div className="flex items-center gap-3">
@@ -163,26 +163,26 @@ export default function Dashboard() {
                 </div>
               </Link>
               
-              <Link href="/dashboard/results" className="bg-white border-2 border-gray-200 hover:border-purple-300 p-6 rounded-xl transition-colors">
+              <Link href="/dashboard/results" className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-500 p-6 rounded-xl transition-colors">
                 <div className="flex items-center gap-3">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M9 3H5C3.89543 3 3 3.89543 3 5V9C3 10.1046 3.89543 11 5 11H9C10.1046 11 11 10.1046 11 9V5C11 3.89543 10.1046 3 9 3Z" stroke="currentColor" strokeWidth="2"/>
                   </svg>
                   <div>
-                    <h3 className="font-semibold text-gray-900">View Results</h3>
-                    <p className="text-sm text-gray-600">Browse scraped leads</p>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">View Results</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Browse scraped leads</p>
                   </div>
                 </div>
               </Link>
               
-              <div className="bg-white border-2 border-gray-200 p-6 rounded-xl">
+              <div className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 p-6 rounded-xl">
                 <div className="flex items-center gap-3">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M4 16V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V16M16 12L12 16M12 16L8 12M12 16V4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                   <div>
-                    <h3 className="font-semibold text-gray-900">Export Data</h3>
-                    <p className="text-sm text-gray-600">Download as CSV/XLSX</p>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">Export Data</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Download as CSV/XLSX</p>
                   </div>
                 </div>
               </div>
@@ -191,15 +191,15 @@ export default function Dashboard() {
 
           {/* Recent Activity */}
           <div className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Recent Activity</h2>
-            <div className="bg-white rounded-xl shadow-sm border p-6">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Recent Activity</h2>
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-6">
               <div className="space-y-4">
                 {recentActivity.length > 0 ? (
                   recentActivity.map((activity) => (
-                    <div key={activity.id} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0">
+                    <div key={activity.id} className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700 last:border-b-0">
                       <div>
-                        <p className="font-medium text-gray-900">{activity.description}</p>
-                        <p className="text-sm text-gray-600">
+                        <p className="font-medium text-gray-900 dark:text-white">{activity.description}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
                           {activity.url.substring(0, 50)}... • {new Date(activity.timestamp).toLocaleString()}
                         </p>
                       </div>
@@ -213,7 +213,7 @@ export default function Dashboard() {
                     </div>
                   ))
                 ) : (
-                  <p className="text-gray-500 text-center py-4">No recent activity</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-center py-4">No recent activity</p>
                 )}
               </div>
             </div>
