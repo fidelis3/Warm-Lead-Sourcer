@@ -29,17 +29,25 @@ export default function Dashboard() {
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const { isOpen } = useSidebar();
-  const { user } = useAuth();
+  const { user, isLoading: authLoading, isInitialized } = useAuth();
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!user) {
+        console.log('No user found, skipping dashboard data fetch');
+        setLoading(false);
+        return;
+      }
+      
       try {
+        console.log('Fetching dashboard data for user:', user.email);
         const [statsData, activityData] = await Promise.all([
           dashboardApi.getStats(),
           dashboardApi.getRecentActivity(),
         ]);
         setStats(statsData);
         setRecentActivity(activityData);
+        console.log('Dashboard data loaded successfully');
       } catch (error) {
         console.error('Failed to fetch dashboard data:', error);
       } finally {
@@ -47,8 +55,15 @@ export default function Dashboard() {
       }
     };
 
-    fetchData();
-  }, []);
+    // Only fetch data when auth is fully initialized and user is authenticated
+    if (isInitialized && !authLoading && user) {
+      fetchData();
+    } else if (isInitialized && !authLoading && !user) {
+      // Auth is complete but no user found
+      console.log('No authenticated user found for dashboard');
+      setLoading(false);
+    }
+  }, [user, authLoading, isInitialized]);
 
   if (loading) {
     return (

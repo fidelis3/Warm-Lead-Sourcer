@@ -23,6 +23,8 @@ async function bootstrap() {
     origin: [
       'http://localhost:3000',
       'https://warm-lead-sourcer-frontend.vercel.app',
+      /\.vercel\.app$/,
+      /localhost:\d+$/,
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
