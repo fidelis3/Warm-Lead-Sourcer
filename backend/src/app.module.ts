@@ -44,9 +44,11 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
           retryWrites: true,
           retryReads: true,
           maxPoolSize: 10,
-          serverSelectionTimeoutMS: 10000,
+          serverSelectionTimeoutMS: 30000,
           socketTimeoutMS: 45000,
-          connectTimeoutMS: 10000,
+          connectTimeoutMS: 30000,
+          family: 4,
+          useUnifiedTopology: true,
           connectionFactory: (connection) => {
             connection.on('connected', () => {
               console.log('MongoDB connected successfully');
