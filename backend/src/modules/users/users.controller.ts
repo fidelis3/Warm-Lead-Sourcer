@@ -39,7 +39,6 @@ export class UsersController {
       secure: isProduction,
       sameSite: isProduction ? 'none' : 'lax',
       maxAge: 15 * 60 * 1000, // 15 minutes
-      domain: isProduction ? '.onrender.com' : undefined,
     });
 
     res.cookie('refresh_token', refreshToken, {
@@ -47,7 +46,6 @@ export class UsersController {
       secure: isProduction,
       sameSite: isProduction ? 'none' : 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      domain: isProduction ? '.onrender.com' : undefined,
     });
   }
 
@@ -95,7 +93,6 @@ export class UsersController {
       secure: isProduction,
       sameSite: isProduction ? 'none' : 'lax',
       maxAge: 15 * 60 * 1000, // 15 minutes
-      domain: isProduction ? '.onrender.com' : undefined,
     });
 
     return { message: 'Token refreshed successfully' };
