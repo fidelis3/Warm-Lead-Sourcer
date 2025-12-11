@@ -38,17 +38,17 @@ export default function ScrapesPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed': return 'bg-green-100 text-green-800'
-      case 'processing': return 'bg-yellow-100 text-yellow-800'
-      case 'failed': return 'bg-red-100 text-red-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case 'completed': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+      case 'processing': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+      case 'failed': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
     }
   }
 
   if (loading) {
     return (
       <ProtectedRoute>
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
         </div>
       </ProtectedRoute>
@@ -57,15 +57,15 @@ export default function ScrapesPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50 flex">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
         <Sidebar />
 
         <div className={`flex-1 transition-all duration-300 ${isOpen ? 'ml-60' : 'ml-16'}`}>
-          <header className="bg-white border-b border-gray-200 px-4 pl-16 lg:pl-6 lg:px-6 py-4">
+          <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 pl-16 lg:pl-6 lg:px-6 py-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <h1 className="text-xl lg:text-2xl font-bold text-gray-900">My Scrapes</h1>
-                <p className="text-sm lg:text-base text-gray-600">View all your previous LinkedIn post scrapes</p>
+                <h1 className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">My Scrapes</h1>
+                <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400">View all your previous LinkedIn post scrapes</p>
               </div>
               <Link 
                 href="/input-url"
@@ -79,8 +79,8 @@ export default function ScrapesPage() {
           <main className="p-4 lg:p-6">
             {posts.length === 0 ? (
               <div className="text-center py-12">
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No scrapes yet</h3>
-                <p className="text-gray-600 mb-6">Start by scraping your first LinkedIn post</p>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No scrapes yet</h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-6">Start by scraping your first LinkedIn post</p>
                 <Link 
                   href="/input-url"
                   className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg"
@@ -89,23 +89,23 @@ export default function ScrapesPage() {
                 </Link>
               </div>
             ) : (
-              <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden">
                 <div className="overflow-x-auto -mx-4 lg:mx-0">
                   <table className="w-full">
-                    <thead className="bg-gray-50">
+                    <thead className="bg-gray-50 dark:bg-gray-700">
                       <tr>
-                        <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Post URL</th>
-                        <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                        <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Leads</th>
-                        <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created</th>
-                        <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                        <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Post URL</th>
+                        <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Status</th>
+                        <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Leads</th>
+                        <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Created</th>
+                        <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                       {posts.map((post: Post) => (
-                        <tr key={post._id} className="hover:bg-gray-50">
+                        <tr key={post._id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                           <td className="px-3 lg:px-6 py-3 lg:py-4">
-                            <div className="text-xs lg:text-sm text-gray-900 max-w-32 lg:max-w-64 truncate">
+                            <div className="text-xs lg:text-sm text-gray-900 dark:text-white max-w-32 lg:max-w-64 truncate">
                               {post.url}
                             </div>
                           </td>
@@ -114,22 +114,22 @@ export default function ScrapesPage() {
                               {post.status}
                             </span>
                           </td>
-                          <td className="px-3 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-xs lg:text-sm text-gray-900">
+                          <td className="px-3 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-xs lg:text-sm text-gray-900 dark:text-gray-300">
                             {post.processedEngagements || 0}
                           </td>
-                          <td className="px-3 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-xs lg:text-sm text-gray-500">
+                          <td className="px-3 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-xs lg:text-sm text-gray-500 dark:text-gray-400">
                             {new Date(post.createdAt).toLocaleDateString()}
                           </td>
                           <td className="px-3 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-xs lg:text-sm">
                             {post.status === 'completed' ? (
                               <Link 
                                 href={`/dashboard/results?postId=${post._id}`}
-                                className="text-purple-600 hover:text-purple-900"
+                                className="text-purple-600 dark:text-purple-400 hover:text-purple-900 dark:hover:text-purple-300"
                               >
                                 View Results
                               </Link>
                             ) : (
-                              <span className="text-gray-400">No results</span>
+                              <span className="text-gray-400 dark:text-gray-500">No results</span>
                             )}
                           </td>
                         </tr>
