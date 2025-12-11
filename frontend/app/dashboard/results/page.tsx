@@ -109,10 +109,10 @@ function ResultsPageContent() {
   if (loading) {
     return (
       <ProtectedRoute>
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading results...</p>
+            <p className="text-gray-600 dark:text-gray-400">Loading results...</p>
           </div>
         </div>
       </ProtectedRoute>
@@ -122,12 +122,12 @@ function ResultsPageContent() {
   if (!postId) {
     return (
       <ProtectedRoute>
-        <div className="min-h-screen bg-gray-50 flex">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
           <Sidebar />
           <div className={`flex-1 transition-all duration-300 ${isOpen ? 'ml-60' : 'ml-16'} flex items-center justify-center`}>
             <div className="text-center">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">No Results to Display</h2>
-              <p className="text-gray-600 mb-6">Please process a post first to see results.</p>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">No Results to Display</h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">Please process a post first to see results.</p>
               <Link href="/input-url" className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg">
                 Start New Scrape
               </Link>
@@ -140,24 +140,24 @@ function ResultsPageContent() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50 flex">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
         <Sidebar />
 
       {/* Main Content */}
       <div className={`flex-1 transition-all duration-300 ${isOpen ? 'ml-60' : 'ml-16'}`}>
         {/* Header */}
-        <header className="bg-white border-b border-gray-200 px-4 pl-16 lg:pl-6 lg:px-6 py-3">
+        <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 pl-16 lg:pl-6 lg:px-6 py-3">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h1 className="text-lg lg:text-xl font-bold text-gray-900">Scraping Results</h1>
-              <p className="text-xs lg:text-sm text-gray-600">
-                Results from <span className="text-purple-600 font-medium">{post?.url || 'LinkedIn post'}</span>
+              <h1 className="text-lg lg:text-xl font-bold text-gray-900 dark:text-white">Scraping Results</h1>
+              <p className="text-xs lg:text-sm text-gray-600 dark:text-gray-400">
+                Results from <span className="text-purple-600 dark:text-purple-400 font-medium">{post?.url || 'LinkedIn post'}</span>
               </p>
             </div>
             <div className="flex gap-2">
               <Link 
                 href="/input-url"
-                className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 text-xs lg:text-sm rounded-lg transition-colors"
+                className="bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 px-3 py-2 text-xs lg:text-sm rounded-lg transition-colors"
               >
                 New Scrape
               </Link>
@@ -222,62 +222,62 @@ function ResultsPageContent() {
           </div>
 
           {/* Results Table */}
-          <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-            <div className="px-4 lg:px-6 py-3 border-b border-gray-200 bg-gray-50">
-              <h3 className="text-base lg:text-lg font-semibold text-gray-900">Lead Results ({leads.length})</h3>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden">
+            <div className="px-4 lg:px-6 py-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
+              <h3 className="text-base lg:text-lg font-semibold text-gray-900 dark:text-white">Lead Results ({leads.length})</h3>
             </div>
             
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
+                <thead className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
                   <tr>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">LinkedIn</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">University</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Score</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Name</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">LinkedIn</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Role</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">University</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Email</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Score</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                   {leads.map((lead: Lead, index: number) => (
-                    <tr key={index} className="hover:bg-purple-50 transition-colors">
+                    <tr key={index} className="hover:bg-purple-50 dark:hover:bg-gray-700 transition-colors">
                       <td className="px-4 py-2 whitespace-nowrap">
                         <div className="flex items-center">
-                          <div className="w-7 h-7 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
-                            <span className="text-purple-600 font-medium text-xs">
+                          <div className="w-7 h-7 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span className="text-purple-600 dark:text-purple-300 font-medium text-xs">
                               {lead.name.split(' ').map((n: string) => n[0]).join('')}
                             </span>
                           </div>
                           <div className="ml-2">
-                            <div className="text-xs font-medium text-gray-900">{lead.name}</div>
+                            <div className="text-xs font-medium text-gray-900 dark:text-white">{lead.name}</div>
                           </div>
                         </div>
                       </td>
                       <td className="px-4 py-2 whitespace-nowrap text-xs">
-                        <a href={lead.profileUrl} target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:text-purple-800 hover:underline">
+                        <a href={lead.profileUrl} target="_blank" rel="noopener noreferrer" className="text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 hover:underline">
                           View Profile
                         </a>
                       </td>
-                      <td className="px-4 py-2 text-xs text-gray-900 max-w-32">
+                      <td className="px-4 py-2 text-xs text-gray-900 dark:text-gray-300 max-w-32">
                         <div className="truncate">
                           {lead.headline || 'N/A'}
                         </div>
                       </td>
-                      <td className="px-4 py-2 whitespace-nowrap text-xs text-gray-900 max-w-32">
+                      <td className="px-4 py-2 whitespace-nowrap text-xs text-gray-900 dark:text-gray-300 max-w-32">
                         <div className="truncate">
                           {lead.education?.[0]?.institution || 'N/A'}
                         </div>
                       </td>
-                      <td className="px-4 py-2 whitespace-nowrap text-xs text-gray-900">
+                      <td className="px-4 py-2 whitespace-nowrap text-xs text-gray-900 dark:text-gray-300">
                         {lead.guessedEmail || 'N/A'}
                       </td>
                       <td className="px-4 py-2 whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          lead.matchScore >= 80 ? 'bg-green-100 text-green-800' :
-                          lead.matchScore >= 60 ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-red-100 text-red-800'
+                          lead.matchScore >= 80 ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                          lead.matchScore >= 60 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
+                          'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
                         }`}>
                           {lead.matchScore}
                         </span>
@@ -285,8 +285,7 @@ function ResultsPageContent() {
                       <td className="px-4 py-2 whitespace-nowrap">
                         <button 
                           onClick={() => setSelectedLead(lead)}
-                          className="text-purple-600 hover:text-purple-800 transition-colors"
-                        >
+                          className="text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 transition-colors">
                           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
                             <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
@@ -307,12 +306,12 @@ function ResultsPageContent() {
       {/* Lead Details Modal */}
       {selectedLead && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setSelectedLead(null)}>
-          <div className="bg-white rounded-lg p-4 lg:p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 lg:p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-gray-900">Lead Details</h2>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Lead Details</h2>
               <button 
                 onClick={() => setSelectedLead(null)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -322,38 +321,38 @@ function ResultsPageContent() {
             
             <div className="space-y-4">
               <div className="flex items-center space-x-4">
-                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center">
-                  <span className="text-purple-600 font-bold text-xl">
+                <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
+                  <span className="text-purple-600 dark:text-purple-300 font-bold text-xl">
                     {selectedLead.name.split(' ').map((n: string) => n[0]).join('')}
                   </span>
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold">{selectedLead.name}</h3>
-                  <p className="text-gray-600">{selectedLead.headline || 'No headline'}</p>
+                  <h3 className="text-lg font-semibold dark:text-white">{selectedLead.name}</h3>
+                  <p className="text-gray-600 dark:text-gray-400">{selectedLead.headline || 'No headline'}</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">Contact Information</h4>
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Contact Information</h4>
                   <div className="space-y-2 text-sm">
-                    <p><span className="font-medium">LinkedIn:</span> 
-                      <a href={selectedLead.profileUrl} target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:underline ml-1">
+                    <p className="dark:text-gray-300"><span className="font-medium">LinkedIn:</span> 
+                      <a href={selectedLead.profileUrl} target="_blank" rel="noopener noreferrer" className="text-purple-600 dark:text-purple-400 hover:underline ml-1">
                         View Profile
                       </a>
                     </p>
-                    <p><span className="font-medium">Guessed Email:</span> {selectedLead.guessedEmail || 'N/A'}</p>
-                    <p><span className="font-medium">Location:</span> {selectedLead.location?.city || selectedLead.location?.country || 'N/A'}</p>
+                    <p className="dark:text-gray-300"><span className="font-medium">Guessed Email:</span> {selectedLead.guessedEmail || 'N/A'}</p>
+                    <p className="dark:text-gray-300"><span className="font-medium">Location:</span> {selectedLead.location?.city || selectedLead.location?.country || 'N/A'}</p>
                   </div>
                 </div>
 
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">Lead Score</h4>
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Lead Score</h4>
                   <div className="flex items-center space-x-2">
                     <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${
-                      selectedLead.matchScore >= 80 ? 'bg-green-100 text-green-800' :
-                      selectedLead.matchScore >= 60 ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-red-100 text-red-800'
+                      selectedLead.matchScore >= 80 ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                      selectedLead.matchScore >= 60 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
+                      'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
                     }`}>
                       {selectedLead.matchScore}/100
                     </span>
@@ -362,15 +361,15 @@ function ResultsPageContent() {
               </div>
 
               <div>
-                <h4 className="font-semibold text-gray-900 mb-2">Education</h4>
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Education</h4>
                 {selectedLead.education && selectedLead.education.length > 0 ? (
                   <div className="space-y-2">
                     {selectedLead.education.map((edu, index: number) => (
-                      <div key={index} className="bg-gray-50 p-3 rounded">
-                        <p className="font-medium">{edu.institution}</p>
-                        <p className="text-sm text-gray-600">{edu.degree} {edu.fieldOfStudy && `in ${edu.fieldOfStudy}`}</p>
+                      <div key={index} className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
+                        <p className="font-medium dark:text-white">{edu.institution}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{edu.degree} {edu.fieldOfStudy && `in ${edu.fieldOfStudy}`}</p>
                         {(edu.startYear || edu.endYear) && (
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-gray-500 dark:text-gray-500">
                             {edu.startYear} - {edu.endYear || 'Present'}
                           </p>
                         )}
@@ -378,20 +377,20 @@ function ResultsPageContent() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-gray-500">No education information available</p>
+                  <p className="text-gray-500 dark:text-gray-400">No education information available</p>
                 )}
               </div>
 
               <div>
-                <h4 className="font-semibold text-gray-900 mb-2">Experience</h4>
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Experience</h4>
                 {selectedLead.experience && selectedLead.experience.length > 0 ? (
                   <div className="space-y-2">
                     {selectedLead.experience.map((exp, index: number) => (
-                      <div key={index} className="bg-gray-50 p-3 rounded">
-                        <p className="font-medium">{exp.title}</p>
-                        <p className="text-sm text-gray-600">{exp.company}</p>
+                      <div key={index} className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
+                        <p className="font-medium dark:text-white">{exp.title}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{exp.company}</p>
                         {(exp.startYear || exp.endYear) && (
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-gray-500 dark:text-gray-500">
                             {exp.startYear} - {exp.endYear || 'Present'}
                           </p>
                         )}
@@ -399,7 +398,7 @@ function ResultsPageContent() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-gray-500">No experience information available</p>
+                  <p className="text-gray-500 dark:text-gray-400">No experience information available</p>
                 )}
               </div>
             </div>
@@ -414,7 +413,7 @@ function ResultsPageContent() {
 export default function ResultsPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
       </div>
     }>
