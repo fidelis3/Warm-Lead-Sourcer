@@ -34,14 +34,31 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => {
         const uri = configService.get<string>('MONGODB_URI');
-        console.log('🔗 Connecting to MongoDB...');
+        console.log('Connecting to MongoDB...');
+        if (!uri) {
+          console.error('MONGODB_URI not found in environment variables');
+          throw new Error('MONGODB_URI is required');
+        }
         return {
           uri,
           retryWrites: true,
           retryReads: true,
           maxPoolSize: 10,
-          serverSelectionTimeoutMS: 5000,
+          serverSelectionTimeoutMS: 10000,
           socketTimeoutMS: 45000,
+          connectTimeoutMS: 10000,
+          connectionFactory: (connection) => {
+            connection.on('connected', () => {
+              console.log('MongoDB connected successfully');
+            });
+            connection.on('error', (error: Error) => {
+              console.error('MongoDB connection error:', error.message);
+            });
+            connection.on('disconnected', () => {
+              console.log('MongoDB disconnected');
+            });
+            return connection;
+          },
         };
       },
       inject: [ConfigService],
