@@ -35,11 +35,12 @@ async function bootstrap() {
     res.json({ status: 'OK', timestamp: new Date().toISOString() });
   });
 
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
+  console.log(`🚀 Application is running on port ${port}`);
 }
 
 // Start the application
 bootstrap().catch((error) => {
-  console.error('Failed to start application:', error);
+  console.error('❌ Failed to start application:', error);
   process.exit(1);
 });

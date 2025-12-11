@@ -34,8 +34,14 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => {
         const uri = configService.get<string>('MONGODB_URI');
+        console.log('🔗 Connecting to MongoDB...');
         return {
           uri,
+          retryWrites: true,
+          retryReads: true,
+          maxPoolSize: 10,
+          serverSelectionTimeoutMS: 5000,
+          socketTimeoutMS: 45000,
         };
       },
       inject: [ConfigService],

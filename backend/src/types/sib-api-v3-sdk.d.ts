@@ -5,13 +5,13 @@ declare module 'sib-api-v3-sdk' {
       'api-key': { apiKey: string };
     };
   }
-  
+
   export class TransactionalEmailsApi {
     constructor();
     setApiKey(type: number, key: string): void;
     sendTransacEmail(emailData: any): Promise<any>;
   }
-  
+
   export class SendSmtpEmail {
     constructor();
     subject?: string;

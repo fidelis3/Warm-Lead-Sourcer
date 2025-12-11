@@ -61,7 +61,7 @@ export class ScrapingService {
         if (result.status === 'rejected') {
           this.logger.warn(
             `Failed to process engagement for ${engagements[index].user.name}:`,
-            (result as PromiseRejectedResult).reason,
+            result.reason,
           );
         }
       });
@@ -77,7 +77,10 @@ export class ScrapingService {
         `Successfully processed post ${postId}: ${processedCount}/${engagements.length} leads created`,
       );
     } catch (error: unknown) {
-      this.logger.error(`Failed to process post ${postId}:`, (error as any).message);
+      this.logger.error(
+        `Failed to process post ${postId}:`,
+        (error as any).message,
+      );
       await this.postModel.findByIdAndUpdate(postId, {
         status: 'failed',
         errorMessage: (error as any).message,
