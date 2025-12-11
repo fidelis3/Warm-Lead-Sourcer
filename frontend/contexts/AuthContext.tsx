@@ -38,25 +38,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const checkAuth = async () => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || ' https://warm-lead-sourcer.onrender.com';
-      console.log('Checking auth with URL:', `${apiUrl}/users/me`);
-      
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
       const response = await fetch(`${apiUrl}/users/me`, {
         credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
-      
-      console.log('Auth check response:', response.status);
       
       if (response.ok) {
         const data = await response.json();
-        console.log('User data:', data);
         setUser(data.user);
       } else {
-        console.log('Auth check failed:', response.status);
         setUser(null);
       }
-    } catch (error) {
-      console.error('Auth check error:', error);
+    } catch {
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -64,39 +60,63 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const login = async (email: string, password: string) => {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/login`, {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+    const response = await fetch(`${apiUrl}/users/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email: email.toLowerCase().trim(), password }),
     });
 
-    if (!response.ok) throw new Error('Login failed');
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Login failed');
+    }
 
     const data = await response.json();
     setUser(data.user);
   };
 
   const register = async (data: RegisterData) => {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/register`, {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+    const sanitizedData = {
+      ...data,
+      email: data.email.toLowerCase().trim(),
+      firstName: data.firstName.trim(),
+      lastName: data.lastName.trim(),
+    };
+    
+    const response = await fetch(`${apiUrl}/users/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify(data),
+      body: JSON.stringify(sanitizedData),
     });
 
-    if (!response.ok) throw new Error('Registration failed');
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Registration failed');
+    }
 
     const result = await response.json();
-    setUser(result.user);
+    return result;
   };
 
   const logout = async () => {
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/logout`, {
-      method: 'POST',
-      credentials: 'include',
-    });
-    setUser(null);
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      await fetch(`${apiUrl}/users/logout`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+    } catch {
+      // Logout failed on server, but clear local state anyway
+    } finally {
+      setUser(null);
+    }
   };
 
   return (

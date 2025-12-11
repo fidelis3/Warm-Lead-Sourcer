@@ -7,6 +7,9 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
+import { PostsService } from './posts.service';
+import { CreatePostDto } from './dto/create-post.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 interface AuthenticatedRequest {
   user: {
@@ -14,9 +17,6 @@ interface AuthenticatedRequest {
     email: string;
   };
 }
-import { PostsService } from './posts.service';
-import { CreatePostDto } from './dto/create-post.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('posts')
 @UseGuards(JwtAuthGuard)

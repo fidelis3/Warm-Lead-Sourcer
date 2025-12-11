@@ -36,15 +36,6 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
         const uri = configService.get<string>('MONGODB_URI');
         return {
           uri,
-          onConnectionCreate: (connection) => {
-            connection.on('connected', () => {
-              console.log('✅ Database connected successfully');
-            });
-            connection.on('error', (err) => {
-              console.error('❌ Database connection error:', err);
-            });
-            return connection;
-          },
         };
       },
       inject: [ConfigService],

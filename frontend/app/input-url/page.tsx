@@ -12,11 +12,36 @@ import toast from "react-hot-toast"
 
 export default function ExtractPage() {
   const [step, setStep] = useState<"input" | "processing" | "error">("input")
-  const [url, setUrl] = useState("")
+  const [url, setUrl] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      const prefilledUrl = urlParams.get('url')
+      return prefilledUrl ? decodeURIComponent(prefilledUrl) : ""
+    }
+    return ""
+  })
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
   const [postId, setPostId] = useState<string | null>(null)
   const [error, setError] = useState("")
   const router = useRouter()
+
+  // Handle auto-start from URL parameters
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      const autoStart = urlParams.get('autoStart')
+      
+      if (autoStart === 'true') {
+        // Auto-start processing after a brief delay
+        setTimeout(() => {
+          const form = document.querySelector('form') as HTMLFormElement
+          if (form) {
+            form.requestSubmit()
+          }
+        }, 100)
+      }
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -143,6 +168,7 @@ export default function ExtractPage() {
                   placeholder="https://www.linkedin.com..."
                   className="w-full h-14 bg-purple-200 border-none text-gray-700 placeholder:text-gray-500"
                   required
+                  autoFocus
                 />
 
                 <div className="flex justify-center">
