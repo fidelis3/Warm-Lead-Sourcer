@@ -9,15 +9,15 @@ import {
 export class RegisterUserDto {
   @IsNotEmpty({ message: 'First name is required' })
   @IsString()
-  firstName: string;
+  firstName!: string;
 
   @IsNotEmpty({ message: 'Last name is required' })
   @IsString()
-  lastName: string;
+  lastName!: string;
 
   @IsNotEmpty({ message: 'Email is required' })
   @IsEmail({}, { message: 'Please provide a valid email address' })
-  email: string;
+  email!: string;
 
   @IsNotEmpty({ message: 'Password is required' })
   @IsString()
@@ -26,9 +26,9 @@ export class RegisterUserDto {
     message:
       'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
   })
-  password: string;
+  password!: string;
 
   @IsNotEmpty({ message: 'Please confirm your password' })
   @IsString()
-  confirmPassword: string;
+  confirmPassword!: string;
 }

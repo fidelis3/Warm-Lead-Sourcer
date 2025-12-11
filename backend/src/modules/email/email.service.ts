@@ -74,10 +74,10 @@ export class EmailService {
     try {
       await this.apiInstance.sendTransacEmail(sendSmtpEmail);
       this.logger.log(`Verification email sent to ${email}`);
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(
         `Failed to send verification email to ${email}:`,
-        error.response?.body || error.message || error,
+        (error as any)?.response?.body || (error as Error)?.message || error,
       );
       throw new Error('Failed to send verification email.');
     }
@@ -127,10 +127,10 @@ export class EmailService {
     try {
       await this.apiInstance.sendTransacEmail(sendSmtpEmail);
       this.logger.log(`Password reset code sent to ${email}`);
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(
         `Failed to send password reset code to ${email}:`,
-        error.response?.body || error.message || error,
+        (error as any)?.response?.body || (error as Error)?.message || error,
       );
       throw new Error(
         'Failed to send password reset email. Please try again later.',
