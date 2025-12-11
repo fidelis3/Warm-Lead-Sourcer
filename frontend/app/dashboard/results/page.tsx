@@ -146,24 +146,18 @@ function ResultsPageContent() {
       {/* Main Content */}
       <div className={`flex-1 transition-all duration-300 ${isOpen ? 'ml-60' : 'ml-16'}`}>
         {/* Header */}
-        <header className="bg-white border-b border-gray-200 px-4 pl-16 lg:pl-6 lg:px-6 py-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <header className="bg-white border-b border-gray-200 px-4 pl-16 lg:pl-6 lg:px-6 py-3">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h1 className="text-xl lg:text-2xl font-bold text-gray-900">Scraping Results</h1>
-              <p className="text-sm lg:text-base text-gray-600">
+              <h1 className="text-lg lg:text-xl font-bold text-gray-900">Scraping Results</h1>
+              <p className="text-xs lg:text-sm text-gray-600">
                 Results from <span className="text-purple-600 font-medium">{post?.url || 'LinkedIn post'}</span>
               </p>
             </div>
-            <div className="flex flex-col sm:flex-row gap-2 lg:gap-3">
-              <button 
-                onClick={() => handleExport('csv')}
-                className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 text-sm lg:px-4 lg:text-base rounded-lg transition-colors"
-              >
-                Export CSV
-              </button>
+            <div className="flex gap-2">
               <Link 
                 href="/input-url"
-                className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 text-sm lg:px-4 lg:text-base rounded-lg transition-colors"
+                className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 text-xs lg:text-sm rounded-lg transition-colors"
               >
                 New Scrape
               </Link>
@@ -172,101 +166,128 @@ function ResultsPageContent() {
         </header>
 
         {/* Results Content */}
-        <main className="p-4 lg:p-6">
+        <main className="p-4 lg:p-4">
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mb-6 lg:mb-8">
-            <div className="bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-xl p-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div className="bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-xl p-4 lg:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-purple-100 text-sm">Total Engagements</p>
-                  <p className="text-3xl font-bold">{post?.totalEngagements || 0}</p>
+                  <p className="text-purple-100 text-xs lg:text-sm mb-1">Total Engagements</p>
+                  <p className="text-2xl lg:text-3xl font-bold">{post?.totalEngagements || 0}</p>
                 </div>
-                <svg className="w-12 h-12 text-purple-200" fill="currentColor" viewBox="0 0 24 24">
+                <svg className="w-10 h-10 lg:w-12 lg:h-12 text-purple-200" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2Z"/>
                 </svg>
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl p-6">
+            <div className="bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-xl p-4 lg:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-blue-100 text-sm">Filtered Hits</p>
-                  <p className="text-3xl font-bold">{leads.length}</p>
+                  <p className="text-purple-100 text-xs lg:text-sm mb-1">Filtered Hits</p>
+                  <p className="text-2xl lg:text-3xl font-bold">{leads.length}</p>
                 </div>
-                <svg className="w-12 h-12 text-blue-200" fill="currentColor" viewBox="0 0 24 24">
+                <svg className="w-10 h-10 lg:w-12 lg:h-12 text-purple-200" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M14,12V19.88C14.04,20.18 13.94,20.5 13.71,20.71C13.32,21.1 12.69,21.1 12.3,20.71L10.29,18.7C10.06,18.47 9.96,18.16 10,17.87V12H9.97L4.21,4.62C3.87,4.19 3.95,3.56 4.38,3.22C4.57,3.08 4.78,3 5,3V3H19V3C19.22,3 19.43,3.08 19.62,3.22C20.05,3.56 20.13,4.19 19.79,4.62L14.03,12H14Z"/>
                 </svg>
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-xl p-6">
+            <div className="bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-xl p-4 lg:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-green-100 text-sm">Processing Time</p>
-                  <p className="text-3xl font-bold">1m 34s</p>
+                  <p className="text-purple-100 text-xs lg:text-sm mb-1">Processing Time</p>
+                  <p className="text-2xl lg:text-3xl font-bold">1m 34s</p>
                 </div>
-                <svg className="w-12 h-12 text-green-200" fill="currentColor" viewBox="0 0 24 24">
+                <svg className="w-10 h-10 lg:w-12 lg:h-12 text-purple-200" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M16.2,16.2L11,13V7H12.5V12.2L17,14.9L16.2,16.2Z"/>
                 </svg>
               </div>
             </div>
+
+            <button 
+              onClick={() => handleExport('csv')}
+              className="bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white rounded-xl p-4 lg:p-6 transition-all transform hover:scale-105"
+            >
+              <div className="flex items-center justify-between">
+                <div className="text-left">
+                  <p className="text-purple-100 text-xs lg:text-sm mb-1">Export Data</p>
+                  <p className="text-lg lg:text-2xl font-bold">Download CSV</p>
+                </div>
+                <svg className="w-10 h-10 lg:w-12 lg:h-12 text-purple-200" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M12,19L8,15H10.5V12H13.5V15H16L12,19M13,9V3.5L18.5,9H13Z"/>
+                </svg>
+              </div>
+            </button>
           </div>
 
           {/* Results Table */}
-          <div className="bg-white rounded-xl shadow-sm border overflow-hidden mb-6">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">Lead Results</h3>
+          <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+            <div className="px-4 lg:px-6 py-3 border-b border-gray-200 bg-gray-50">
+              <h3 className="text-base lg:text-lg font-semibold text-gray-900">Lead Results ({leads.length})</h3>
             </div>
             
-            <div className="overflow-x-auto -mx-4 lg:mx-0">
+            <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">LinkedIn</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">University</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">LinkedIn</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">University</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Score</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {leads.map((lead: Lead, index: number) => (
-                    <tr key={index} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
+                    <tr key={index} className="hover:bg-purple-50 transition-colors">
+                      <td className="px-4 py-2 whitespace-nowrap">
                         <div className="flex items-center">
-                          <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                            <span className="text-purple-600 font-medium text-sm">
+                          <div className="w-7 h-7 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span className="text-purple-600 font-medium text-xs">
                               {lead.name.split(' ').map((n: string) => n[0]).join('')}
                             </span>
                           </div>
-                          <div className="ml-3">
-                            <div className="text-sm font-medium text-gray-900">{lead.name}</div>
+                          <div className="ml-2">
+                            <div className="text-xs font-medium text-gray-900">{lead.name}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <a href={lead.profileUrl} target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:underline">
+                      <td className="px-4 py-2 whitespace-nowrap text-xs">
+                        <a href={lead.profileUrl} target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:text-purple-800 hover:underline">
                           View Profile
                         </a>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 max-w-48">
+                      <td className="px-4 py-2 text-xs text-gray-900 max-w-32">
                         <div className="truncate">
                           {lead.headline || 'N/A'}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {lead.education?.[0]?.institution || 'N/A'}
+                      <td className="px-4 py-2 whitespace-nowrap text-xs text-gray-900 max-w-32">
+                        <div className="truncate">
+                          {lead.education?.[0]?.institution || 'N/A'}
+                        </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-2 whitespace-nowrap text-xs text-gray-900">
                         {lead.guessedEmail || 'N/A'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-4 py-2 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          lead.matchScore >= 80 ? 'bg-green-100 text-green-800' :
+                          lead.matchScore >= 60 ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          {lead.matchScore}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2 whitespace-nowrap">
                         <button 
                           onClick={() => setSelectedLead(lead)}
-                          className="text-gray-400 hover:text-gray-600"
+                          className="text-purple-600 hover:text-purple-800 transition-colors"
                         >
-                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
                             <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
                           </svg>
