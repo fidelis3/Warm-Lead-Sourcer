@@ -589,7 +589,7 @@ GOOGLE_CLIENT_SECRET=your-google-client-secret
 
 **Frontend (.env.local):**
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:5000
+NEXT_PUBLIC_API_URL= https://warm-lead-sourcer.onrender.com
 ```
 
 ## 📊 API Endpoints

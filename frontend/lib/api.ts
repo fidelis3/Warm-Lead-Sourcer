@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || ' https://warm-lead-sourcer.onrender.com';
 
 class ApiClient {
   private getAuthHeaders(): Record<string, string> {

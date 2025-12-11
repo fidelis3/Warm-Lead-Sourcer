@@ -48,7 +48,7 @@ function LoginForm() {
   }
 
   const handleGoogleLogin = () => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || ' https://warm-lead-sourcer.onrender.com'
     window.location.href = `${apiUrl}/auth/google`
   }
 
