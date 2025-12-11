@@ -124,7 +124,10 @@ export class LinkedInProvider implements ScrapingProvider {
           this.logger.log('Likes data retrieved successfully');
         }
       } catch (likesError: unknown) {
-        this.logger.warn('Likes extraction failed:', (likesError as any).message);
+        this.logger.warn(
+          'Likes extraction failed:',
+          (likesError as any).message,
+        );
       }
 
       return engagements;
@@ -135,8 +138,13 @@ export class LinkedInProvider implements ScrapingProvider {
           'Rate limit exceeded. Please wait before trying again or upgrade your RapidAPI plan.',
         );
       }
-      this.logger.error('Failed to extract engagements:', (error as any).message);
-      throw new Error(`Failed to extract engagements: ${(error as any).message}`);
+      this.logger.error(
+        'Failed to extract engagements:',
+        (error as any).message,
+      );
+      throw new Error(
+        `Failed to extract engagements: ${(error as any).message}`,
+      );
     }
   }
 
@@ -157,7 +165,10 @@ export class LinkedInProvider implements ScrapingProvider {
         );
         fullProfile = fullResponse.data?.data || {};
       } catch (error: unknown) {
-        this.logger.warn('Full profile extraction failed:', (error as any).message);
+        this.logger.warn(
+          'Full profile extraction failed:',
+          (error as any).message,
+        );
       }
 
       const education = educationResponse.data?.data?.education || [];
