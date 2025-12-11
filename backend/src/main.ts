@@ -36,11 +36,10 @@ async function bootstrap() {
   });
 
   await app.listen(port, '0.0.0.0');
-  console.log(`🚀 Application is running on port ${port}`);
+  console.log(`Application running on port ${port}`);
 }
 
-// Start the application
 bootstrap().catch((error) => {
-  console.error('❌ Failed to start application:', error);
+  console.error('Failed to start application:', error);
   process.exit(1);
 });
