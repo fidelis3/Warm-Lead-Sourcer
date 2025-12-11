@@ -18,16 +18,12 @@ logging.basicConfig(
 )
 
 def get_apify_client() -> Optional[ApifyClient]:
-   
     try: 
         token = os.getenv("APIFY_TOKEN")
-        
         if not token:
             raise ValueError("APIFY_TOKEN not found in environment variables.")
-        
-        client = ApifyClient(token)
+        client = ApifyClient(token=token)
         logger.info("Apify Client initialized successfully.")
-        
         return client
         
     except Exception as e:

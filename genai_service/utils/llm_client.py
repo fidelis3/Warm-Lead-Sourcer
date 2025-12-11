@@ -66,25 +66,26 @@ async def platform_detection(link: str) -> str:
 async def calculate_score(profile: dict, criteria: list) -> int:
     """Calculate lead score (1-10) using LangChain chain"""
     try:
-        criteria_str = ", ".join(criteria) if criteria else "general quality"
+        # criteria_str = ", ".join(criteria) if criteria else "general quality"
         
         score_chain = score_prompt | core_model | StrOutputParser()
         result = await score_chain.ainvoke({
             "lead_information": str(profile),
-            "keywords": criteria_str
+            "keywords": criteria
         })
+        return result.strip()
         
-        score_match = re.search(r'Score:\s*(\d+)', result, re.IGNORECASE)
-        if not score_match:
-            score_match = re.search(r'\b([1-9]|10)\b', result)
+        # score_match = re.search(r'Score:\s*(\d+)', result, re.IGNORECASE)
+        # if not score_match:
+        #     score_match = re.search(r'\b([1-9]|10)\b', result)
         
-        if score_match:
-            score = int(score_match.group(1))
-            logger.info(f"Calculated score: {score} for {profile.get('name', 'unknown')}")
-            return min(max(score, 1), 10)  
+        # if score_match:
+        #     score = int(score_match.group(1))
+        #     logger.info(f"Calculated score: {score} for {profile.get('name', 'unknown')}")
+        #     return min(max(score, 1), 10)  
         
-        logger.warning(f"Could not extract score from: {result}")
-        return 5  
+        # logger.warning(f"Could not extract score from: {result}")
+        # return 5  
         
     except Exception as e:
         logger.exception(f"Error calculating score: {e}")
