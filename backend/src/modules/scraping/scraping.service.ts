@@ -53,7 +53,7 @@ export class ScrapingService {
       );
 
       const processedCount = results.filter(
-        (result) => result.status === 'fulfilled',
+        (result) => (result as any).status === 'fulfilled',
       ).length;
 
       // Log failed engagements
@@ -61,7 +61,7 @@ export class ScrapingService {
         if (result.status === 'rejected') {
           this.logger.warn(
             `Failed to process engagement for ${engagements[index].user.name}:`,
-            result.reason,
+            (result as PromiseRejectedResult).reason,
           );
         }
       });
@@ -76,11 +76,11 @@ export class ScrapingService {
       this.logger.log(
         `Successfully processed post ${postId}: ${processedCount}/${engagements.length} leads created`,
       );
-    } catch (error) {
-      this.logger.error(`Failed to process post ${postId}:`, error.message);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to process post ${postId}:`, (error as any).message);
       await this.postModel.findByIdAndUpdate(postId, {
         status: 'failed',
-        errorMessage: error.message,
+        errorMessage: (error as any).message,
       });
       throw error;
     }
@@ -111,9 +111,9 @@ export class ScrapingService {
       // Use name and headline from engagement data since profile endpoints don't provide them
       profileData.name = engagement.user.name;
       profileData.headline = engagement.user.headline || '';
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.warn(
-        `Profile extraction failed for ${engagement.user.name}: ${error.message}`,
+        `Profile extraction failed for ${engagement.user.name}: ${(error as any).message}`,
       );
       // Create basic lead with available data if profile extraction fails
       profileData = {

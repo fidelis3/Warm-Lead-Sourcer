@@ -6,22 +6,22 @@ export type UserDocument = User & Document;
 @Schema({ timestamps: true })
 export class User {
   @Prop({ required: true })
-  firstName: string;
+  firstName!: string;
 
   @Prop({ required: true })
-  lastName: string;
+  lastName!: string;
 
   @Prop({ required: true, unique: true, lowercase: true })
-  email: string;
+  email!: string;
 
   @Prop({ required: false })
-  password: string;
+  password!: string;
 
   @Prop({ default: 'local' })
-  provider: string;
+  provider!: string;
 
   @Prop()
-  picture: string;
+  picture!: string;
 
   @Prop({ required: false })
   resetPasswordToken?: string;
@@ -33,7 +33,7 @@ export class User {
   refreshToken?: string;
 
   @Prop({ default: false })
-  isEmailVerified: boolean;
+  isEmailVerified!: boolean;
 
   @Prop({ required: false })
   emailVerificationToken?: string;

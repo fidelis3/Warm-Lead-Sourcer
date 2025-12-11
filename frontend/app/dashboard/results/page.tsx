@@ -256,9 +256,18 @@ function ResultsPageContent() {
                         </div>
                       </td>
                       <td className="px-4 py-2 whitespace-nowrap text-xs">
-                        <a href={lead.profileUrl} target="_blank" rel="noopener noreferrer" className="text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 hover:underline">
-                          View Profile
-                        </a>
+                        {lead.profileUrl && lead.profileUrl.trim() ? (
+                          <a 
+                            href={lead.profileUrl.includes('linkedin.com') ? lead.profileUrl : `https://linkedin.com/in/${lead.profileUrl}`} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 hover:underline"
+                          >
+                            View Profile
+                          </a>
+                        ) : (
+                          <span className="text-gray-400">N/A</span>
+                        )}
                       </td>
                       <td className="px-4 py-2 text-xs text-gray-900 dark:text-gray-300 max-w-32">
                         <div className="truncate">
@@ -337,9 +346,18 @@ function ResultsPageContent() {
                   <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Contact Information</h4>
                   <div className="space-y-2 text-sm">
                     <p className="dark:text-gray-300"><span className="font-medium">LinkedIn:</span> 
-                      <a href={selectedLead.profileUrl} target="_blank" rel="noopener noreferrer" className="text-purple-600 dark:text-purple-400 hover:underline ml-1">
-                        View Profile
-                      </a>
+                      {selectedLead.profileUrl && selectedLead.profileUrl.trim() ? (
+                        <a 
+                          href={selectedLead.profileUrl.includes('linkedin.com') ? selectedLead.profileUrl : `https://linkedin.com/in/${selectedLead.profileUrl}`} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="text-purple-600 dark:text-purple-400 hover:underline ml-1"
+                        >
+                          View Profile
+                        </a>
+                      ) : (
+                        <span className="text-gray-400 ml-1">N/A</span>
+                      )}
                     </p>
                     <p className="dark:text-gray-300"><span className="font-medium">Guessed Email:</span> {selectedLead.guessedEmail || 'N/A'}</p>
                     <p className="dark:text-gray-300"><span className="font-medium">Location:</span> {selectedLead.location?.city || selectedLead.location?.country || 'N/A'}</p>

@@ -32,18 +32,22 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   private setCookies(res: Response, accessToken: string, refreshToken: string) {
+    const isProduction = process.env.NODE_ENV === 'production';
+
     res.cookie('access_token', accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
       maxAge: 15 * 60 * 1000, // 15 minutes
+      domain: isProduction ? '.onrender.com' : undefined,
     });
 
     res.cookie('refresh_token', refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      domain: isProduction ? '.onrender.com' : undefined,
     });
   }
 
@@ -85,11 +89,13 @@ export class UsersController {
     const result = await this.usersService.refreshAccessToken(refreshToken);
 
     // Set new access token cookie
+    const isProduction = process.env.NODE_ENV === 'production';
     res.cookie('access_token', result.access_token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
       maxAge: 15 * 60 * 1000, // 15 minutes
+      domain: isProduction ? '.onrender.com' : undefined,
     });
 
     return { message: 'Token refreshed successfully' };
@@ -125,6 +131,7 @@ export class UsersController {
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
+
     const userObj = user.toObject();
     const { password: _, refreshToken: __, ...userWithoutPassword } = userObj;
     return { user: userWithoutPassword };

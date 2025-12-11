@@ -6,16 +6,16 @@ export type PostDocument = Post & Document;
 @Schema({ timestamps: true })
 export class Post {
   @Prop({ required: true })
-  url: string;
+  url!: string;
 
   @Prop({ required: true, enum: ['linkedin', 'instagram', 'twitter'] })
-  platform: string;
+  platform!: string;
 
   @Prop({ required: true })
-  postId: string;
+  postId!: string;
 
   @Prop()
-  content: string;
+  content!: string;
 
   @Prop({
     type: {
@@ -24,7 +24,7 @@ export class Post {
       urn: String,
     },
   })
-  author: {
+  author!: {
     name: string;
     profileUrl: string;
     urn: string;
@@ -37,20 +37,20 @@ export class Post {
       sharesCount: { type: Number, default: 0 },
     },
   })
-  metrics: {
+  metrics!: {
     likesCount: number;
     commentsCount: number;
     sharesCount: number;
   };
 
   @Prop({ required: true })
-  userId: string;
+  userId!: string;
 
   @Prop({
     enum: ['pending', 'processing', 'completed', 'failed'],
     default: 'pending',
   })
-  status: string;
+  status!: string;
 
   @Prop()
   errorMessage?: string;
@@ -59,10 +59,10 @@ export class Post {
   processedAt?: Date;
 
   @Prop({ default: 0 })
-  totalEngagements: number;
+  totalEngagements!: number;
 
   @Prop({ default: 0 })
-  processedEngagements: number;
+  processedEngagements!: number;
 
   @Prop({ required: false })
   expiresAt?: Date;

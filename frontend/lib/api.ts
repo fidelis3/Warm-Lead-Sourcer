@@ -1,15 +1,10 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || ' https://warm-lead-sourcer.onrender.com';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 class ApiClient {
   private getAuthHeaders(): Record<string, string> {
-    if (typeof window === 'undefined') return {};
-    
-    const token = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('access_token='))
-      ?.split('=')[1];
-    
-    return token ? { Authorization: `Bearer ${token}` } : {};
+    // HTTP-only cookies are handled by credentials: 'include'
+    // No need to manually add Authorization header
+    return {};
   }
 
   async request(endpoint: string, options: RequestInit = {}) {

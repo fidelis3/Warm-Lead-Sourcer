@@ -7,13 +7,10 @@ import cookieParser from 'cookie-parser';
  * Bootstrap the NestJS application
  */
 async function bootstrap() {
-  // Create NestJS application instance
   const app = await NestFactory.create(AppModule);
 
-  // Enable cookie parser
   app.use(cookieParser());
 
-  // Enable validation globally
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -22,18 +19,23 @@ async function bootstrap() {
     }),
   );
 
-  // Enable CORS with credentials
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: [
+      'http://localhost:3000',
+      'https://warm-lead-sourcer-frontend.vercel.app',
+    ],
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
-  // Get port from environment or default to 5000
   const port = process.env.PORT || 5000;
 
-  // Start the server
+  app.getHttpAdapter().get('/health', (req, res) => {
+    res.json({ status: 'OK', timestamp: new Date().toISOString() });
+  });
+
   await app.listen(port);
-  console.log(`🚀 Backend server running on http://localhost:${port}`);
 }
 
 // Start the application

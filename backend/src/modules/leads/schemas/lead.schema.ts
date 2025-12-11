@@ -6,22 +6,22 @@ export type LeadDocument = Lead & Document;
 @Schema({ timestamps: true })
 export class Lead {
   @Prop({ required: true })
-  postId: string;
+  postId!: string;
 
   @Prop({ required: true })
-  userId: string;
+  userId!: string;
 
   @Prop({ required: true })
-  urn: string;
+  urn!: string;
 
   @Prop({ required: true })
-  name: string;
+  name!: string;
 
   @Prop()
-  headline: string;
+  headline!: string;
 
   @Prop()
-  profileUrl: string;
+  profileUrl!: string;
 
   @Prop({
     type: {
@@ -43,7 +43,7 @@ export class Lead {
       endYear: Number,
     },
   ])
-  education: Array<{
+  education!: Array<{
     institution: string;
     degree?: string;
     fieldOfStudy?: string;
@@ -60,7 +60,7 @@ export class Lead {
       current: Boolean,
     },
   ])
-  experience: Array<{
+  experience!: Array<{
     company: string;
     title: string;
     startDate?: Date;
@@ -69,22 +69,22 @@ export class Lead {
   }>;
 
   @Prop({ required: true, enum: ['like', 'comment', 'share', 'reaction'] })
-  engagementType: string;
+  engagementType!: string;
 
   @Prop()
   engagementContent?: string;
 
   @Prop({ min: 0, max: 100, default: 0 })
-  matchScore: number;
+  matchScore!: number;
 
   @Prop()
   guessedEmail?: string;
 
   @Prop([String])
-  tags: string[];
+  tags!: string[];
 
   @Prop({ default: false })
-  exported: boolean;
+  exported!: boolean;
 
   @Prop({ required: false })
   expiresAt?: Date;

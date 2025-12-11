@@ -4,7 +4,7 @@ import { Platform } from '../../../common/interfaces/scraping.interface';
 export class CreatePostDto {
   @IsUrl({}, { message: 'Please provide a valid URL' })
   @IsNotEmpty()
-  url: string;
+  url!: string;
 
   @IsEnum(Platform)
   @IsOptional()

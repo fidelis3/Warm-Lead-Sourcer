@@ -39,7 +39,8 @@ function LoginForm() {
 
     try {
       await login(email, password)
-      router.push("/input-url")
+      const redirectTo = searchParams.get('redirect') || '/input-url'
+      router.push(redirectTo)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed. Please try again.")
     } finally {
@@ -49,7 +50,8 @@ function LoginForm() {
 
   const handleGoogleLogin = () => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || ' https://warm-lead-sourcer.onrender.com'
-    window.location.href = `${apiUrl}/auth/google`
+    const redirectTo = searchParams.get('redirect') || '/input-url'
+    window.location.href = `${apiUrl}/auth/google?redirect=${encodeURIComponent(redirectTo)}`
   }
 
   return (
@@ -102,6 +104,7 @@ function LoginForm() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-purple-400 hover:text-purple-600"
                   aria-label="Toggle password visibility"
+                  suppressHydrationWarning
                 >
                   {showPassword ? (
                     <svg
@@ -146,6 +149,7 @@ function LoginForm() {
               type="submit"
               disabled={isLoading}
               className="w-full rounded-md bg-purple-600 py-6 text-sm font-semibold text-white hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              suppressHydrationWarning
             >
               {isLoading ? "LOGGING IN..." : "CONFIRM"}
             </Button>
@@ -165,6 +169,7 @@ function LoginForm() {
             onClick={handleGoogleLogin}
             variant="outline"
             className="w-full rounded-md border-2 border-gray-300 bg-white py-6 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            suppressHydrationWarning
           >
             <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
               <path

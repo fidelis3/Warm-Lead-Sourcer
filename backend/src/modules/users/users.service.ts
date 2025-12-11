@@ -85,8 +85,8 @@ export class UsersService {
         savedUser.email,
         verificationCode,
       );
-    } catch (error) {
-      console.error('Failed to send verification email:', error);
+    } catch {
+      // Email sending failed - log internally but don't expose to user
     }
 
     const payload = { sub: savedUser._id, email: savedUser.email };
@@ -274,9 +274,8 @@ export class UsersService {
     // Send email with plain code (not hashed)
     try {
       await this.emailService.sendPasswordResetCode(user.email, resetToken);
-    } catch (error) {
-      // Log error but don't reveal to user for security
-      console.error('Failed to send password reset email:', error);
+    } catch {
+      // Email sending failed - log internally but don't expose to user
     }
 
     // Always return success to prevent email enumeration

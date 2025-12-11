@@ -4,9 +4,9 @@ export class CreateFilterPresetDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(50)
-  name: string;
+  name!: string;
 
   @IsObject()
   @IsNotEmpty()
-  filters: Record<string, any>;
+  filters!: Record<string, any>;
 }

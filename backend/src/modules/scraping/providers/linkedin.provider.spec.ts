@@ -13,7 +13,7 @@ describe('LinkedInProvider', () => {
   beforeEach(async () => {
     mockConfigService = {
       get: jest.fn().mockImplementation((key: string) => {
-        const config = {
+        const config: Record<string, string> = {
           RAPIDAPI_KEY: 'test-api-key',
           RAPIDAPI_HOST: 'test-host.com',
         };

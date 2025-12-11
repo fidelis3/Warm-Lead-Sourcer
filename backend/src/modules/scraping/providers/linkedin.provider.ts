@@ -61,14 +61,14 @@ export class LinkedInProvider implements ScrapingProvider {
         },
         createdAt: new Date(),
       };
-    } catch (error) {
-      if (error.response?.status === 429) {
+    } catch (error: unknown) {
+      if ((error as any).response?.status === 429) {
         this.logger.error('Rate limit exceeded for post data extraction');
         throw new Error(
           'Rate limit exceeded. Please wait before trying again or upgrade your RapidAPI plan.',
         );
       }
-      if (error.response?.status === 403) {
+      if ((error as any).response?.status === 403) {
         this.logger.error(
           'API access forbidden - check your RapidAPI key and subscription',
         );
@@ -76,8 +76,8 @@ export class LinkedInProvider implements ScrapingProvider {
           'API access denied. Please check your RapidAPI key and subscription status.',
         );
       }
-      this.logger.error('Failed to extract post data:', error.message);
-      throw new Error(`Failed to extract post data: ${error.message}`);
+      this.logger.error('Failed to extract post data:', (error as any).message);
+      throw new Error(`Failed to extract post data: ${(error as any).message}`);
     }
   }
 
@@ -123,20 +123,20 @@ export class LinkedInProvider implements ScrapingProvider {
           // Process likes data if available
           this.logger.log('Likes data retrieved successfully');
         }
-      } catch (likesError) {
-        this.logger.warn('Likes extraction failed:', likesError.message);
+      } catch (likesError: unknown) {
+        this.logger.warn('Likes extraction failed:', (likesError as any).message);
       }
 
       return engagements;
-    } catch (error) {
-      if (error.response?.status === 429) {
+    } catch (error: unknown) {
+      if ((error as any).response?.status === 429) {
         this.logger.error('Rate limit exceeded for engagements extraction');
         throw new Error(
           'Rate limit exceeded. Please wait before trying again or upgrade your RapidAPI plan.',
         );
       }
-      this.logger.error('Failed to extract engagements:', error.message);
-      throw new Error(`Failed to extract engagements: ${error.message}`);
+      this.logger.error('Failed to extract engagements:', (error as any).message);
+      throw new Error(`Failed to extract engagements: ${(error as any).message}`);
     }
   }
 
@@ -156,8 +156,8 @@ export class LinkedInProvider implements ScrapingProvider {
           { headers: this.getHeaders() },
         );
         fullProfile = fullResponse.data?.data || {};
-      } catch (error) {
-        this.logger.warn('Full profile extraction failed:', error.message);
+      } catch (error: unknown) {
+        this.logger.warn('Full profile extraction failed:', (error as any).message);
       }
 
       const education = educationResponse.data?.data?.education || [];
@@ -195,21 +195,21 @@ export class LinkedInProvider implements ScrapingProvider {
         experience: experience,
         profileUrl: `https://linkedin.com/in/${profileUrn}`,
       };
-    } catch (error) {
-      if (error.response?.status === 429) {
+    } catch (error: unknown) {
+      if ((error as any).response?.status === 429) {
         this.logger.error('Rate limit exceeded for profile extraction');
         throw new Error(
           'Rate limit exceeded. Please wait before trying again or upgrade your RapidAPI plan.',
         );
       }
-      if (error.response?.status === 403) {
+      if ((error as any).response?.status === 403) {
         this.logger.error('API access forbidden for profile extraction');
         throw new Error(
           'API access denied. Please check your RapidAPI key and subscription status.',
         );
       }
-      this.logger.error('Failed to extract profile:', error.message);
-      throw new Error(`Failed to extract profile: ${error.message}`);
+      this.logger.error('Failed to extract profile:', (error as any).message);
+      throw new Error(`Failed to extract profile: ${(error as any).message}`);
     }
   }
 

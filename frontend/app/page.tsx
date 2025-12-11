@@ -7,6 +7,7 @@ import Navbar from "@/components/layout/Navbar"
 import { useAuth } from "@/contexts/AuthContext"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import toast from "react-hot-toast"
 
 export default function LandingPage() {
   const { user } = useAuth();
@@ -37,6 +38,24 @@ export default function LandingPage() {
       bgColor: "bg-blue-100 dark:bg-blue-900/20"
     }
   ];
+
+  const handleExtract = async () => {
+    if (!linkedinUrl.trim()) {
+      toast.error('Please enter a LinkedIn post URL');
+      return;
+    }
+
+    // Simple URL validation
+    const urlPattern = /^https?:\/\/.+\..+/;
+    if (!urlPattern.test(linkedinUrl)) {
+      toast.error('Please enter a valid URL');
+      return;
+    }
+
+    // Redirect to input-url page with the URL pre-filled and auto-start processing
+    const encodedUrl = encodeURIComponent(linkedinUrl);
+    router.push(`/input-url?url=${encodedUrl}&autoStart=true`);
+  };
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -89,8 +108,9 @@ export default function LandingPage() {
                     />
                   </div>
                   <Button 
-                    onClick={() => router.push('/input-url')}
-                    className="group relative rounded-full bg-linear-to-r from-purple-500 to-purple-700 px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-semibold text-white hover:from-purple-600 hover:to-purple-800 shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 transform hover:scale-105 whitespace-nowrap w-full sm:w-auto"
+                    onClick={handleExtract}
+                    disabled={!linkedinUrl.trim()}
+                    className="group relative rounded-full bg-linear-to-r from-purple-500 to-purple-700 px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-semibold text-white hover:from-purple-600 hover:to-purple-800 shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 transform hover:scale-105 whitespace-nowrap w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                   >
                     <span className="flex items-center gap-2 justify-center">
                       Extract
