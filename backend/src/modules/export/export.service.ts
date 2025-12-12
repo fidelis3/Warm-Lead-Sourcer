@@ -12,11 +12,11 @@ interface ExportData {
   'Guessed Email': string;
   'Contact Email': string;
   'Phone Number': string;
-  'Website': string;
-  'Country': string;
-  'City': string;
+  Website: string;
+  Country: string;
+  City: string;
   'University/Institution': string;
-  'Degree': string;
+  Degree: string;
   'Field of Study': string;
   'Current Company': string;
   'Current Job Title': string;
@@ -66,11 +66,15 @@ export class ExportService {
   private formatLeadsForExport(leads: Lead[]): ExportData[] {
     return leads.map((lead) => {
       // Calculate years of experience
-      const yearsOfExperience = this.calculateYearsOfExperience(lead.experience || []);
-      
+      const yearsOfExperience = this.calculateYearsOfExperience(
+        lead.experience || [],
+      );
+
       // Clean engagement content
-      const engagementContent = this.cleanEngagementContent((lead as any).engagementContent || '');
-      
+      const engagementContent = this.cleanEngagementContent(
+        String((lead as any).engagementContent || ''),
+      );
+
       return {
         'Full Name': lead.name || 'N/A',
         'Professional Headline': lead.headline || 'N/A',
@@ -81,11 +85,11 @@ export class ExportService {
         'Guessed Email': lead.guessedEmail || 'N/A',
         'Contact Email': (lead as any).contactInfo?.email || 'N/A',
         'Phone Number': (lead as any).contactInfo?.phone || 'N/A',
-        'Website': (lead as any).contactInfo?.website || 'N/A',
-        'Country': lead.location?.country || 'N/A',
-        'City': lead.location?.city || 'N/A',
+        Website: (lead as any).contactInfo?.website || 'N/A',
+        Country: lead.location?.country || 'N/A',
+        City: lead.location?.city || 'N/A',
         'University/Institution': lead.education?.[0]?.institution || 'N/A',
-        'Degree': lead.education?.[0]?.degree || 'N/A',
+        Degree: lead.education?.[0]?.degree || 'N/A',
         'Field of Study': lead.education?.[0]?.fieldOfStudy || 'N/A',
         'Current Company': lead.experience?.[0]?.company || 'N/A',
         'Current Job Title': lead.experience?.[0]?.title || 'N/A',
@@ -95,7 +99,7 @@ export class ExportService {
           month: 'long',
           day: 'numeric',
           hour: '2-digit',
-          minute: '2-digit'
+          minute: '2-digit',
         }),
       };
     });
@@ -103,41 +107,41 @@ export class ExportService {
 
   private formatEngagementType(type: string): string {
     const typeMap: Record<string, string> = {
-      'comment': 'Comment',
-      'like': 'Like/Reaction',
-      'share': 'Share/Repost',
-      'reaction': 'Reaction'
+      comment: 'Comment',
+      like: 'Like/Reaction',
+      share: 'Share/Repost',
+      reaction: 'Reaction',
     };
     return typeMap[type] || type;
   }
 
   private cleanEngagementContent(content: string): string {
     if (!content) return 'N/A';
-    
+
     // Remove extra whitespace and newlines
     const cleaned = content.replace(/\s+/g, ' ').trim();
-    
+
     // Truncate if too long
     if (cleaned.length > 200) {
       return cleaned.substring(0, 197) + '...';
     }
-    
+
     return cleaned || 'N/A';
   }
 
   private calculateYearsOfExperience(experience: any[]): string {
     if (!experience || experience.length === 0) return 'N/A';
-    
+
     let totalYears = 0;
     const currentYear = new Date().getFullYear();
-    
-    experience.forEach(exp => {
+
+    experience.forEach((exp) => {
       if (exp.startYear) {
         const endYear = exp.endYear || currentYear;
         totalYears += Math.max(0, endYear - exp.startYear);
       }
     });
-    
+
     if (totalYears === 0) return 'N/A';
     return totalYears === 1 ? '1 year' : `${totalYears} years`;
   }

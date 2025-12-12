@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useEffect, useState, Suspense } from "react"
+import { useEffect, useState } from "react"
 import { dashboardApi } from "@/lib/api"
 import { useAuth } from "@/contexts/AuthContext"
 import { useSidebar } from "@/contexts/SidebarContext"

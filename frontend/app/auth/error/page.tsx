@@ -63,6 +63,7 @@ function AuthErrorContent() {
         <div className="space-y-4">
           {getErrorDetails().showImage ? (
             <div className="w-48 h-48 mx-auto mb-6">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img 
                 src="/images/signup.png" 
                 alt="Error illustration" 
