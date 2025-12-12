@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
+import toast from "react-hot-toast"
 
 export default function SignupPage() {
   const router = useRouter()
@@ -43,31 +44,39 @@ export default function SignupPage() {
         throw new Error(data.message || 'Registration failed')
       }
 
+      toast.success('Account created successfully! Please check your email to verify your account.')
       router.push(`/verify-email?email=${encodeURIComponent(email)}`)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Registration failed. Please try again.")
+      const errorMessage = err instanceof Error ? err.message : "Registration failed. Please try again."
+      setError(errorMessage)
+      toast.error(errorMessage)
     } finally {
       setIsLoading(false)
     }
   }
 
   const handleGoogleSignup = () => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || ' https://warm-lead-sourcer.onrender.com'
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://warm-lead-sourcer-zvoa.onrender.com'
     window.location.href = `${apiUrl}/auth/google`
   }
 
   if (showEmailForm) {
     return (
-      <div className="flex min-h-screen">
+      <div className="flex min-h-screen bg-white dark:bg-gray-900">
         {/* Left Side - Form */}
-        <div className="flex w-full items-center justify-center bg-white p-8 lg:w-1/2">
+        <div className="flex w-full items-center justify-center bg-white dark:bg-gray-900 p-4 sm:p-6 lg:p-8 lg:w-1/2">
           <div className="w-full max-w-md space-y-6">
-            <div className="text-center">
-              <h1 className="text-sm font-semibold uppercase tracking-wide text-black">CREATE ACCOUNT</h1>
+            <div className="text-center mb-6 sm:mb-8">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white mb-2">
+                Create Account
+              </h1>
+              <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400">
+                Join us to start extracting warm leads
+              </p>
             </div>
 
             {error && (
-              <div className="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-800">
+              <div className="rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-4 py-3 text-sm text-red-800 dark:text-red-400">
                 {error}
               </div>
             )}
@@ -75,7 +84,7 @@ export default function SignupPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* First Name Field */}
               <div className="space-y-2">
-                <label htmlFor="firstName" className="text-sm font-medium text-black">
+                <label htmlFor="firstName" className="text-sm font-medium text-slate-900 dark:text-white">
                   First Name
                 </label>
                 <input
@@ -83,15 +92,15 @@ export default function SignupPage() {
                   type="text"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
-                  placeholder="First Name"
+                  placeholder="Enter your first name"
                   required
-                  className="w-full rounded-md border border-gray-300 bg-purple-50 px-4 py-3 text-sm text-black placeholder:text-gray-400 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
+                  className="w-full rounded-xl border-2 border-purple-200 dark:border-purple-700 bg-purple-50 dark:bg-purple-900/20 px-4 py-3 text-sm text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-800 transition-all"
                 />
               </div>
 
               {/* Last Name Field */}
               <div className="space-y-2">
-                <label htmlFor="lastName" className="text-sm font-medium text-black">
+                <label htmlFor="lastName" className="text-sm font-medium text-slate-900 dark:text-white">
                   Last Name
                 </label>
                 <input
@@ -99,15 +108,15 @@ export default function SignupPage() {
                   type="text"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
-                  placeholder="Last Name"
+                  placeholder="Enter your last name"
                   required
-                  className="w-full rounded-md border border-gray-300 bg-purple-50 px-4 py-3 text-sm text-black placeholder:text-gray-400 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
+                  className="w-full rounded-xl border-2 border-purple-200 dark:border-purple-700 bg-purple-50 dark:bg-purple-900/20 px-4 py-3 text-sm text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-800 transition-all"
                 />
               </div>
 
               {/* Email Field */}
               <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-medium text-black">
+                <label htmlFor="email" className="text-sm font-medium text-slate-900 dark:text-white">
                   Email
                 </label>
                 <input
@@ -117,13 +126,13 @@ export default function SignupPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@gmail.com"
                   required
-                  className="w-full rounded-md border border-gray-300 bg-purple-50 px-4 py-3 text-sm text-black placeholder:text-gray-400 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
+                  className="w-full rounded-xl border-2 border-purple-200 dark:border-purple-700 bg-purple-50 dark:bg-purple-900/20 px-4 py-3 text-sm text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-800 transition-all"
                 />
               </div>
 
               {/* Password Field */}
               <div className="space-y-2">
-                <label htmlFor="password" className="text-sm font-medium text-black">
+                <label htmlFor="password" className="text-sm font-medium text-slate-900 dark:text-white">
                   Password
                 </label>
                 <div className="relative">
@@ -132,15 +141,15 @@ export default function SignupPage() {
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Password"
+                    placeholder="Create a strong password"
                     required
                     minLength={8}
-                    className="w-full rounded-md border border-gray-300 bg-purple-50 px-4 py-3 pr-10 text-sm text-black placeholder:text-gray-400 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
+                    className="w-full rounded-xl border-2 border-purple-200 dark:border-purple-700 bg-purple-50 dark:bg-purple-900/20 px-4 py-3 pr-12 text-sm text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-800 transition-all"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-purple-500 dark:text-purple-400 hover:text-purple-600 dark:hover:text-purple-300 transition-colors"
                   >
                     {showPassword ? (
                       <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -154,14 +163,14 @@ export default function SignupPage() {
                     )}
                   </button>
                 </div>
-                <p className="text-xs text-purple-600">
+                <p className="text-xs text-purple-600 dark:text-purple-400">
                   Must have at least 8 characters with uppercase, lowercase, number, and special character
                 </p>
               </div>
 
               {/* Confirm Password Field */}
               <div className="space-y-2">
-                <label htmlFor="confirmPassword" className="text-sm font-medium text-black">
+                <label htmlFor="confirmPassword" className="text-sm font-medium text-slate-900 dark:text-white">
                   Confirm Password
                 </label>
                 <div className="relative">
@@ -170,15 +179,15 @@ export default function SignupPage() {
                     type={showConfirmPassword ? "text" : "password"}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Confirm Password"
+                    placeholder="Confirm your password"
                     required
                     minLength={8}
-                    className="w-full rounded-md border border-gray-300 bg-purple-50 px-4 py-3 pr-10 text-sm text-black placeholder:text-gray-400 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
+                    className="w-full rounded-xl border-2 border-purple-200 dark:border-purple-700 bg-purple-50 dark:bg-purple-900/20 px-4 py-3 pr-12 text-sm text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-800 transition-all"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-purple-500 dark:text-purple-400 hover:text-purple-600 dark:hover:text-purple-300 transition-colors"
                   >
                     {showConfirmPassword ? (
                       <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -198,18 +207,34 @@ export default function SignupPage() {
               <Button 
                 type="submit"
                 disabled={isLoading}
-                className="w-full rounded-md bg-purple-500 py-6 text-sm font-medium text-white hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full rounded-xl bg-gradient-to-r from-purple-600 to-purple-700 py-4 text-base font-semibold text-white hover:from-purple-700 hover:to-purple-800 shadow-lg hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-[1.02] disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-lg"
               >
-                {isLoading ? "CREATING ACCOUNT..." : "CREATE ACCOUNT"}
+                {isLoading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Creating account...
+                  </span>
+                ) : (
+                  "Create Account"
+                )}
               </Button>
             </form>
 
             {/* Sign Up with Google Button */}
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-slate-300 dark:border-slate-600"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="bg-white dark:bg-gray-900 px-4 text-slate-500 dark:text-slate-400">or</span>
+              </div>
+            </div>
+
             <Button
               type="button"
               onClick={handleGoogleSignup}
               variant="outline"
-              className="w-full rounded-md border-2 border-purple-500 bg-white py-6 text-sm font-medium text-black hover:bg-gray-50"
+              className="w-full rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 py-4 text-base font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all duration-300 transform hover:scale-[1.02]"
             >
               <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
                 <path
@@ -229,39 +254,40 @@ export default function SignupPage() {
                   d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                 />
               </svg>
-              SIGN UP WITH GOOGLE
+              Continue with Google
             </Button>
 
-            <div className="text-center text-xs text-gray-600">
+            <div className="text-center text-xs text-slate-600 dark:text-slate-400">
               By continuing, you agree to our{" "}
-              <Link href="#" className="text-purple-600 hover:underline">
+              <Link href="#" className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 hover:underline transition-colors">
                 Terms of Service
               </Link>{" "}
               and acknowledge you've read our{" "}
-              <Link href="#" className="text-purple-600 hover:underline">
-                Privacy policy
+              <Link href="#" className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 hover:underline transition-colors">
+                Privacy Policy
               </Link>
             </div>
 
-            <div className="text-center text-sm text-gray-700">
+            <div className="text-center text-sm text-slate-600 dark:text-slate-400">
               Already have an account?{" "}
-              <Link href="/login" className="text-purple-600 font-medium hover:underline">
-                Log in
+              <Link href="/login" className="text-purple-600 dark:text-purple-400 font-medium hover:text-purple-700 dark:hover:text-purple-300 hover:underline transition-colors">
+                Sign in
               </Link>
             </div>
           </div>
         </div>
 
         {/* Right Side - Image */}
-        <div className="hidden w-1/2 bg-linear-to-br from-gray-100 to-gray-200 lg:block">
-          <div className="flex h-full items-center justify-center p-12">
+        <div className="hidden w-1/2 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 lg:block">
+          <div className="flex h-full items-center justify-center p-8 lg:p-12">
             <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-3xl blur-3xl"></div>
               <Image
                 src="/images/signup.png"
                 alt="Laptop with hearts and phone showing social media apps"
                 width={800}
                 height={800}
-                className="object-contain"
+                className="relative object-contain drop-shadow-2xl"
                 priority
               />
             </div>
@@ -272,27 +298,41 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-white dark:bg-gray-900">
       {/* Left Side - Form */}
-      <div className="flex w-full items-center justify-center bg-gray-50 p-8 lg:w-1/2">
+      <div className="flex w-full items-center justify-center bg-white dark:bg-gray-900 p-4 sm:p-6 lg:p-8 lg:w-1/2">
         <div className="w-full max-w-md space-y-6">
-          <div className="text-center">
-            <h1 className="text-sm font-semibold uppercase tracking-wide text-black">CREATE ACCOUNT</h1>
+          <div className="text-center mb-6 sm:mb-8">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white mb-2">
+              Get Started
+            </h1>
+            <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400">
+              Choose how you'd like to create your account
+            </p>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
             <Button 
               onClick={() => setShowEmailForm(true)}
-              className="w-full rounded-md bg-purple-500 py-6 text-sm font-medium text-white hover:bg-purple-600"
+              className="w-full rounded-xl bg-gradient-to-r from-purple-600 to-purple-700 py-4 text-base font-semibold text-white hover:from-purple-700 hover:to-purple-800 shadow-lg hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-[1.02]"
             >
-              CONTINUE WITH EMAIL
+              Continue with Email
             </Button>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-slate-300 dark:border-slate-600"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="bg-white dark:bg-gray-900 px-4 text-slate-500 dark:text-slate-400">or</span>
+              </div>
+            </div>
 
             <Button
               type="button"
               onClick={handleGoogleSignup}
               variant="outline"
-              className="w-full rounded-md border-2 border-gray-300 bg-white py-6 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="w-full rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 py-4 text-base font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all duration-300 transform hover:scale-[1.02]"
             >
               <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
                 <path
@@ -312,42 +352,43 @@ export default function SignupPage() {
                   d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                 />
               </svg>
-              CONTINUE WITH GOOGLE
+              Continue with Google
             </Button>
 
            
           </div>
 
-          <div className="text-center text-xs text-gray-600">
+          <div className="text-center text-xs text-slate-600 dark:text-slate-400">
             By continuing, you agree to our{" "}
-            <Link href="#" className="text-purple-600 hover:underline">
+            <Link href="#" className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 hover:underline transition-colors">
               Terms of Service
             </Link>{" "}
             and acknowledge you've read our{" "}
-            <Link href="#" className="text-purple-600 hover:underline">
-              Privacy policy
+            <Link href="#" className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 hover:underline transition-colors">
+              Privacy Policy
             </Link>
           </div>
 
-          <div className="text-center text-sm text-gray-700">
+          <div className="text-center text-sm text-slate-600 dark:text-slate-400">
             Already have an account?{" "}
-            <Link href="/login" className="text-purple-600 font-medium hover:underline">
-              Log in
+            <Link href="/login" className="text-purple-600 dark:text-purple-400 font-medium hover:text-purple-700 dark:hover:text-purple-300 hover:underline transition-colors">
+              Sign in
             </Link>
           </div>
         </div>
       </div>
 
       {/* Right Side - Image */}
-      <div className="hidden w-1/2 bg-linear-to-br from-gray-100 to-gray-200 lg:block">
-        <div className="flex h-full items-center justify-center p-12">
+      <div className="hidden w-1/2 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 lg:block">
+        <div className="flex h-full items-center justify-center p-8 lg:p-12">
           <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-3xl blur-3xl"></div>
             <Image
               src="/images/signup.png"
               alt="Laptop with hearts and phone showing social media apps"
               width={800}
               height={800}
-              className="object-contain"
+              className="relative object-contain drop-shadow-2xl"
               priority
             />
           </div>

@@ -150,14 +150,16 @@ export default function ExtractPage() {
           <Navbar />
 
           {/* Main Content */}
-          <main className="flex items-center justify-center min-h-[calc(100vh-80px)] px-4">
-            <div className="w-full max-w-2xl bg-purple-100 rounded-2xl p-12">
-              <form onSubmit={handleSubmit} className="space-y-8">
-                <h1 className="text-2xl font-bold text-center text-gray-900">Please enter a valid public post URL.</h1>
+          <main className="flex items-center justify-center min-h-[calc(100vh-80px)] px-4 py-8">
+            <div className="w-full max-w-2xl bg-purple-100 dark:bg-gray-800 rounded-2xl p-6 sm:p-8 lg:p-12 shadow-xl">
+              <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-center text-gray-900 dark:text-white leading-tight">
+                  Please enter a valid public post URL.
+                </h1>
 
                 {error && (
-                  <div className="p-4 bg-red-100 border border-red-300 rounded-lg">
-                    <p className="text-red-700 text-center">{error}</p>
+                  <div className="p-4 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg">
+                    <p className="text-red-700 dark:text-red-400 text-center text-sm sm:text-base">{error}</p>
                   </div>
                 )}
 
@@ -166,7 +168,7 @@ export default function ExtractPage() {
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
                   placeholder="https://www.linkedin.com..."
-                  className="w-full h-14 bg-purple-200 border-none text-gray-700 placeholder:text-gray-500"
+                  className="w-full h-12 sm:h-14 bg-purple-200 dark:bg-gray-700 border-none text-gray-700 dark:text-gray-200 placeholder:text-gray-500 dark:placeholder:text-gray-400 text-sm sm:text-base rounded-xl"
                   required
                   autoFocus
                 />
@@ -174,7 +176,7 @@ export default function ExtractPage() {
                 <div className="flex justify-center">
                   <Button
                     type="submit"
-                    className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-12 h-12 rounded-lg"
+                    className="bg-purple-600 hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-800 text-white font-semibold px-8 sm:px-12 h-12 sm:h-14 rounded-xl text-sm sm:text-base transition-all duration-200 shadow-lg hover:shadow-xl"
                   >
                     START EXTRACTION
                   </Button>
@@ -194,30 +196,34 @@ export default function ExtractPage() {
           <Navbar />
 
           {/* Main Content */}
-          <main className="flex-1 flex flex-col items-center justify-center px-4 pb-20">
-            <h1 className="text-4xl font-bold text-gray-700 mb-4 text-center">Your request is being processed.</h1>
-            <p className="text-4xl font-bold text-gray-700 mb-16 text-center">Just a moment.</p>
+          <main className="flex-1 flex flex-col items-center justify-center px-4 py-8 pb-20">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-700 dark:text-gray-200 mb-2 sm:mb-4 text-center leading-tight">
+              Your request is being processed.
+            </h1>
+            <p className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-700 dark:text-gray-200 mb-8 sm:mb-12 lg:mb-16 text-center leading-tight">
+              Just a moment.
+            </p>
 
             {/* Progress Steps */}
-            <div className="w-full max-w-4xl mb-12">
+            <div className="w-full max-w-xs sm:max-w-2xl lg:max-w-4xl mb-8 sm:mb-12">
               <div className="flex items-center justify-between relative">
                 {/* Progress Line */}
-                <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gray-200 -translate-y-1/2" />
+                <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gray-200 dark:bg-gray-700 -translate-y-1/2" />
                 <div
-                  className="absolute top-1/2 left-0 h-0.5 bg-purple-500 -translate-y-1/2 transition-all duration-500"
+                  className="absolute top-1/2 left-0 h-0.5 bg-purple-500 dark:bg-purple-400 -translate-y-1/2 transition-all duration-500"
                   style={{ width: `${(currentStepIndex / (steps.length - 1)) * 100}%` }}
                 />
 
                 {steps.map((stepName, index) => (
                   <div key={index} className="flex flex-col items-center relative z-10">
                     <div
-                      className={`w-4 h-4 rounded-full mb-2 ${
-                        index <= currentStepIndex ? "bg-purple-500" : "bg-gray-200"
+                      className={`w-3 h-3 sm:w-4 sm:h-4 rounded-full mb-1 sm:mb-2 ${
+                        index <= currentStepIndex ? "bg-purple-500 dark:bg-purple-400" : "bg-gray-200 dark:bg-gray-700"
                       }`}
                     />
                     <span
-                      className={`text-xs text-center max-w-80 ${
-                        index === currentStepIndex ? "text-purple-500 font-medium" : "text-gray-500"
+                      className={`text-xs sm:text-sm text-center max-w-16 sm:max-w-20 lg:max-w-24 leading-tight ${
+                        index === currentStepIndex ? "text-purple-500 dark:text-purple-400 font-medium" : "text-gray-500 dark:text-gray-400"
                       }`}
                     >
                       {stepName}
@@ -228,14 +234,14 @@ export default function ExtractPage() {
             </div>
 
             {/* Loading Animation */}
-            <div className="relative w-32 h-32 mb-12">
+            <div className="relative w-24 h-24 sm:w-32 sm:h-32 mb-8 sm:mb-12">
               <div className="absolute inset-0 flex items-center justify-center">
                 {[...Array(8)].map((_, i) => (
                   <div
                     key={i}
-                    className="absolute w-4 h-4 bg-purple-500 rounded-full animate-pulse"
+                    className="absolute w-3 h-3 sm:w-4 sm:h-4 bg-purple-500 dark:bg-purple-400 rounded-full animate-pulse"
                     style={{
-                      transform: `rotate(${i * 45}deg) translateY(-40px)`,
+                      transform: `rotate(${i * 45}deg) translateY(-30px) sm:translateY(-40px)`,
                       animationDelay: `${i * 0.1}s`,
                       opacity: 0.3 + i * 0.1,
                     }}
@@ -245,7 +251,7 @@ export default function ExtractPage() {
             </div>
 
             {/* Info Text */}
-            <p className="text-gray-600 text-center">
+            <p className="text-gray-600 dark:text-gray-400 text-center text-sm sm:text-base px-4">
               Did you know? You can export your leads directly to Excel or Sheets.
             </p>
           </main>
@@ -257,46 +263,46 @@ export default function ExtractPage() {
   // Error page
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-purple-200 flex items-center justify-center px-4">
-        <div className="text-center">
-          <h1 className="text-8xl font-bold text-black mb-12">Error</h1>
+      <div className="min-h-screen bg-purple-200 dark:bg-gray-900 flex items-center justify-center px-4 py-8">
+        <div className="text-center max-w-lg mx-auto">
+          <h1 className="text-4xl sm:text-6xl lg:text-8xl font-bold text-black dark:text-white mb-8 sm:mb-12">Error</h1>
           
           {error && (
-            <div className="mb-8 p-4 bg-red-100 border border-red-300 rounded-lg">
-              <p className="text-red-700">{error}</p>
+            <div className="mb-6 sm:mb-8 p-4 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg">
+              <p className="text-red-700 dark:text-red-400 text-sm sm:text-base">{error}</p>
             </div>
           )}
 
           {/* Sad Face */}
-          <div className="mb-8">
-            <svg width="200" height="200" viewBox="0 0 200 200" className="mx-auto">
+          <div className="mb-6 sm:mb-8">
+            <svg width="150" height="150" viewBox="0 0 200 200" className="mx-auto sm:w-[200px] sm:h-[200px]">
               {/* Left eyebrow */}
-              <path d="M50 70 Q60 60 75 65" stroke="black" strokeWidth="8" fill="none" strokeLinecap="round" />
+              <path d="M50 70 Q60 60 75 65" stroke="currentColor" strokeWidth="8" fill="none" strokeLinecap="round" className="text-black dark:text-white" />
 
               {/* Right eyebrow */}
-              <path d="M125 65 Q140 60 150 70" stroke="black" strokeWidth="8" fill="none" strokeLinecap="round" />
+              <path d="M125 65 Q140 60 150 70" stroke="currentColor" strokeWidth="8" fill="none" strokeLinecap="round" className="text-black dark:text-white" />
 
               {/* Left eye */}
-              <circle cx="70" cy="95" r="25" fill="white" />
-              <circle cx="65" cy="100" r="8" fill="black" />
+              <circle cx="70" cy="95" r="25" fill="white" className="dark:fill-gray-200" />
+              <circle cx="65" cy="100" r="8" fill="black" className="dark:fill-gray-800" />
 
               {/* Right eye */}
-              <circle cx="130" cy="95" r="25" fill="white" />
-              <circle cx="125" cy="100" r="8" fill="black" />
+              <circle cx="130" cy="95" r="25" fill="white" className="dark:fill-gray-200" />
+              <circle cx="125" cy="100" r="8" fill="black" className="dark:fill-gray-800" />
 
               {/* Mouth */}
-              <ellipse cx="100" cy="145" rx="30" ry="25" fill="black" />
+              <ellipse cx="100" cy="145" rx="30" ry="25" fill="black" className="dark:fill-white" />
               <ellipse cx="100" cy="135" rx="30" ry="15" fill="#FF6B6B" />
             </svg>
           </div>
 
-          <p className="text-xl text-gray-800 mb-8 max-w-md mx-auto">
+          <p className="text-lg sm:text-xl text-gray-800 dark:text-gray-200 mb-6 sm:mb-8 px-4 leading-relaxed">
             {error || "Hmm, that doesn't look like a public post url link."}
           </p>
 
           <button
             onClick={() => setStep("input")}
-            className="inline-flex items-center gap-2 text-gray-800 font-medium hover:underline"
+            className="inline-flex items-center gap-2 text-gray-800 dark:text-gray-200 font-medium hover:underline text-sm sm:text-base transition-colors"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path
