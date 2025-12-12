@@ -10,9 +10,19 @@ global.fetch = jest.fn(() =>
   })
 ) as jest.Mock
 
+// Mock console methods to reduce noise
+jest.spyOn(console, 'log').mockImplementation(() => {})
+jest.spyOn(console, 'error').mockImplementation(() => {})
+
 describe('AuthContext Simple', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    // Suppress React act warnings
+    const originalError = console.error
+    console.error = (...args: any[]) => {
+      if (args[0]?.includes?.('act(...)')) return
+      originalError(...args)
+    }
   })
 
   it('provides AuthProvider without crashing', () => {

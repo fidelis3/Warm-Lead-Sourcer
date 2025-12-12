@@ -1,6 +1,6 @@
 // Simple API test that focuses on the class structure
 describe('API Client Structure', () => {
-  it('exports api client', () => {
+  it('exports api client', async () => {
     // Mock the API module to avoid environment issues
     jest.doMock('@/lib/api', () => ({
       api: {
