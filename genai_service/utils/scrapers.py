@@ -123,40 +123,6 @@ class ScraperUtils:
                 "count": 0
             }
 
-# try:
-#     logger.info("Setting up Instagram scraper actor.")
-#     instagram_actor = client.actor("apify/instagram-scraper")
-# except Exception as e:
-#     logger.exception("Failed to set up Instagram scraper actor %s", e)
-
-# try:
-#     logger.info("Starting X scraper")
-#     # Where we have the logic for X scraper
-# except Exception as e:
-#     logger.exception("Error while running X scraper %s", e)
-
-# try:
-#     logger.info("Starting Facebook scraper")
-#     # Where we have the logic for Facebook scraper
-# except Exception as e:
-#     logger.exception("Error while running Facebook scraper", e)
-
-# try:
-#     logger.info("Starting LinkedIn scraper")
-#     # Where we have the logic for LinkedIn scraper
-# except Exception as e:
-#     logger.exception("Error while running LinkedIn scraper", e)
-
-# def instagram_input(link):
-#     logger.info("Preparing input for Instagram scraper.")
-#     run_input = { 
-#         "directUrls": [link],
-#         "resultsType": "posts",
-#         "resultsLimit": 200,
-#         "searchType": "hashtag",
-#         "searchLimit": 1, 
-#     }
-#     return run_input
 
 #testing
 if __name__ == "__main__":
