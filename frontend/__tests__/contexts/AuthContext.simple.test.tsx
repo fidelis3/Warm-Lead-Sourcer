@@ -19,7 +19,7 @@ describe('AuthContext Simple', () => {
     jest.clearAllMocks()
     // Suppress React act warnings
     const originalError = console.error
-    console.error = (...args: any[]) => {
+    console.error = (...args: unknown[]) => {
       if (args[0]?.includes?.('act(...)')) return
       originalError(...args)
     }
