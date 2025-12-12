@@ -40,9 +40,46 @@ export default function RootLayout({
                 toastOptions={{
                   duration: 4000,
                   style: {
-                    background: 'var(--toast-bg)',
-                    color: 'var(--toast-color)',
-                    border: '1px solid var(--toast-border)',
+                    borderRadius: '12px',
+                    background: '#fff',
+                    color: '#374151',
+                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                    border: '1px solid #e5e7eb',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                  },
+                  success: {
+                    style: {
+                      background: '#f0fdf4',
+                      color: '#166534',
+                      border: '1px solid #bbf7d0',
+                    },
+                    iconTheme: {
+                      primary: '#16a34a',
+                      secondary: '#f0fdf4',
+                    },
+                  },
+                  error: {
+                    style: {
+                      background: '#fef2f2',
+                      color: '#dc2626',
+                      border: '1px solid #fecaca',
+                    },
+                    iconTheme: {
+                      primary: '#dc2626',
+                      secondary: '#fef2f2',
+                    },
+                  },
+                  loading: {
+                    style: {
+                      background: '#fefbf3',
+                      color: '#d97706',
+                      border: '1px solid #fed7aa',
+                    },
+                    iconTheme: {
+                      primary: '#d97706',
+                      secondary: '#fefbf3',
+                    },
                   },
                 }}
               />

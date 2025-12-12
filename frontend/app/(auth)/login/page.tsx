@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import Image from "next/image"
 import { useAuth } from "@/contexts/AuthContext"
+import toast from "react-hot-toast"
 
 function LoginForm() {
   const router = useRouter()
@@ -39,39 +40,47 @@ function LoginForm() {
 
     try {
       await login(email, password)
+      toast.success('Welcome back! Login successful.')
       const redirectTo = searchParams.get('redirect') || '/input-url'
       router.push(redirectTo)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed. Please try again.")
+      const errorMessage = err instanceof Error ? err.message : "Login failed. Please try again."
+      setError(errorMessage)
+      toast.error(errorMessage)
     } finally {
       setIsLoading(false)
     }
   }
 
   const handleGoogleLogin = () => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || ' https://warm-lead-sourcer.onrender.com'
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://warm-lead-sourcer-zvoa.onrender.com'
     const redirectTo = searchParams.get('redirect') || '/input-url'
     window.location.href = `${apiUrl}/auth/google?redirect=${encodeURIComponent(redirectTo)}`
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-white dark:bg-gray-900">
       {/* Left Side - Form */}
-      <div className="flex w-full items-center justify-center bg-gray-50 p-8 lg:w-1/2">
+      <div className="flex w-full items-center justify-center bg-white dark:bg-gray-900 p-4 sm:p-6 lg:p-8 lg:w-1/2">
         <div className="w-full max-w-md space-y-6">
-          <div className="mb-8">
-            <h1 className="text-xl font-bold text-black">WELCOME BACK!</h1>
+          <div className="mb-6 sm:mb-8 text-center">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white mb-2">
+              Welcome Back!
+            </h1>
+            <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400">
+              Sign in to your account to continue
+            </p>
           </div>
 
           {error && (
-            <div className="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-800">
+            <div className="rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-4 py-3 text-sm text-red-800 dark:text-red-400">
               {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium text-black">
+              <label htmlFor="email" className="text-sm font-medium text-slate-900 dark:text-white">
                 Email
               </label>
               <Input
@@ -81,12 +90,12 @@ function LoginForm() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="name@gmail.com"
                 required
-                className="w-full rounded-md border-0 bg-purple-100 px-4 py-3 text-sm text-black placeholder:text-gray-500"
+                className="w-full rounded-xl border-2 border-purple-200 dark:border-purple-700 bg-purple-50 dark:bg-purple-900/20 px-4 py-3 text-sm text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-800"
               />
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium text-black">
+              <label htmlFor="password" className="text-sm font-medium text-slate-900 dark:text-white">
                 Password
               </label>
               <div className="relative">
@@ -95,14 +104,14 @@ function LoginForm() {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="password"
+                  placeholder="Enter your password"
                   required
-                  className="w-full rounded-md border-0 bg-purple-100 px-4 py-3 pr-10 text-sm text-black placeholder:text-gray-500"
+                  className="w-full rounded-xl border-2 border-purple-200 dark:border-purple-700 bg-purple-50 dark:bg-purple-900/20 px-4 py-3 pr-12 text-sm text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-800"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-purple-400 hover:text-purple-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-purple-500 dark:text-purple-400 hover:text-purple-600 dark:hover:text-purple-300 transition-colors"
                   aria-label="Toggle password visibility"
                   suppressHydrationWarning
                 >
@@ -139,8 +148,8 @@ function LoginForm() {
                 </button>
               </div>
               <div className="text-right">
-                <Link href="/forgot-password" className="text-xs text-purple-600 hover:underline">
-                  forgot password?
+                <Link href="/forgot-password" className="text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 hover:underline transition-colors">
+                  Forgot password?
                 </Link>
               </div>
             </div>
@@ -148,19 +157,26 @@ function LoginForm() {
             <Button 
               type="submit"
               disabled={isLoading}
-              className="w-full rounded-md bg-purple-600 py-6 text-sm font-semibold text-white hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full rounded-xl bg-gradient-to-r from-purple-600 to-purple-700 py-4 text-base font-semibold text-white hover:from-purple-700 hover:to-purple-800 shadow-lg hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-[1.02] disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-lg"
               suppressHydrationWarning
             >
-              {isLoading ? "LOGGING IN..." : "CONFIRM"}
+              {isLoading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  Signing in...
+                </span>
+              ) : (
+                "Sign In"
+              )}
             </Button>
           </form>
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300"></div>
+              <div className="w-full border-t border-slate-300 dark:border-slate-600"></div>
             </div>
-            <div className="relative flex justify-center text-xs">
-              <span className="bg-gray-50 px-2 text-gray-500">or</span>
+            <div className="relative flex justify-center text-sm">
+              <span className="bg-white dark:bg-gray-900 px-4 text-slate-500 dark:text-slate-400">or</span>
             </div>
           </div>
 
@@ -168,7 +184,7 @@ function LoginForm() {
             type="button"
             onClick={handleGoogleLogin}
             variant="outline"
-            className="w-full rounded-md border-2 border-gray-300 bg-white py-6 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            className="w-full rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 py-4 text-base font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all duration-300 transform hover:scale-[1.02]"
             suppressHydrationWarning
           >
             <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
@@ -189,12 +205,12 @@ function LoginForm() {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
             </svg>
-            SIGN IN WITH GOOGLE
+            Continue with Google
           </Button>
 
-          <div className="text-center text-sm text-gray-700">
+          <div className="text-center text-sm text-slate-600 dark:text-slate-400">
             Don't have an account?{" "}
-            <Link href="/signup" className="text-purple-600 font-medium hover:underline">
+            <Link href="/signup" className="text-purple-600 dark:text-purple-400 font-medium hover:text-purple-700 dark:hover:text-purple-300 hover:underline transition-colors">
               Sign up
             </Link>
           </div>
@@ -202,15 +218,16 @@ function LoginForm() {
       </div>
 
       {/* Right Side - Image */}
-      <div className="hidden w-1/2 bg-linear-to-br from-gray-100 to-gray-200 lg:block">
-        <div className="flex h-full items-center justify-center p-12">
+      <div className="hidden w-1/2 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 lg:block">
+        <div className="flex h-full items-center justify-center p-8 lg:p-12">
           <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-3xl blur-3xl"></div>
             <Image
               src="/images/signup.png"
               alt="Phone showing social media apps on laptop with hearts"
               width={800}
               height={800}
-              className="object-contain"
+              className="relative object-contain drop-shadow-2xl"
               priority
             />
           </div>

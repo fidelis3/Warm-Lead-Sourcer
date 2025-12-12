@@ -80,6 +80,19 @@ export class Lead {
   @Prop()
   guessedEmail?: string;
 
+  @Prop({
+    type: {
+      email: String,
+      phone: String,
+      website: String,
+    },
+  })
+  contactInfo?: {
+    email: string;
+    phone: string;
+    website: string;
+  };
+
   @Prop([String])
   tags!: string[];
 

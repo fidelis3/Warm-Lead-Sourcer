@@ -12,6 +12,8 @@ export default function Navbar() {
   const { theme, setTheme } = useTheme();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   
@@ -53,7 +55,7 @@ export default function Navbar() {
 
   return (
     <>
-    <nav className="sticky top-0 z-50 backdrop-blur-xl bg-white/80 dark:bg-slate-900/90 border-b border-gray-200/50 dark:border-slate-700/50 transition-all duration-300 shadow-sm">
+    <nav className="sticky top-0 z-50 backdrop-blur-xl bg-white/80 dark:bg-slate-900/90 border-b border-gray-200/50 dark:border-slate-700/50 transition-all duration-300 shadow-sm relative">
       <div className="mx-auto max-w-7xl px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -93,11 +95,11 @@ export default function Navbar() {
               <span>Home</span>
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-purple-600 to-purple-800 group-hover:w-full transition-all duration-300"></span>
             </Link>
-            <Link href="#how-it-works" className="relative text-[15px] font-medium text-slate-700 dark:text-slate-200 hover:text-purple-600 dark:hover:text-purple-400 transition-all duration-200 group">
+            <Link href="/#how-it-works" className="relative text-[15px] font-medium text-slate-700 dark:text-slate-200 hover:text-purple-600 dark:hover:text-purple-400 transition-all duration-200 group">
               <span>How it works</span>
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-purple-600 to-purple-800 group-hover:w-full transition-all duration-300"></span>
             </Link>
-            <Link href="#use-cases" className="relative text-[15px] font-medium text-slate-700 dark:text-slate-200 hover:text-purple-600 dark:hover:text-purple-400 transition-all duration-200 group">
+            <Link href="/#use-cases" className="relative text-[15px] font-medium text-slate-700 dark:text-slate-200 hover:text-purple-600 dark:hover:text-purple-400 transition-all duration-200 group">
               <span>Use Cases</span>
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-purple-600 to-purple-800 group-hover:w-full transition-all duration-300"></span>
             </Link>
@@ -191,7 +193,7 @@ export default function Navbar() {
 
     {/* Mobile Menu Drawer */}
     {mobileMenuOpen && (
-      <div className="xl:hidden absolute top-16 left-0 right-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg z-40 shadow-xl border-b border-gray-200 dark:border-slate-700">
+      <div className="xl:hidden fixed top-16 left-0 right-0 bg-white dark:bg-slate-900 z-[9999] shadow-2xl border-b border-gray-200 dark:border-slate-700 overflow-y-auto">
         <div className="flex flex-col p-6 space-y-4">
           {/* Navigation Links */}
           <nav className="flex flex-col space-y-4">
@@ -203,14 +205,14 @@ export default function Navbar() {
               Home
             </Link>
             <Link
-              href="#how-it-works"
+              href="/#how-it-works"
               className="text-lg font-medium text-slate-700 dark:text-slate-200 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
               How it works
             </Link>
             <Link
-              href="#use-cases"
+              href="/#use-cases"
               className="text-lg font-medium text-slate-700 dark:text-slate-200 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >

@@ -52,23 +52,18 @@ export class DashboardService {
       .find({
         userId,
         status: 'completed',
-        processedAt: { $exists: true },
-        createdAt: { $exists: true },
+        processingTime: { $exists: true, $gt: 0 },
       })
-      .select('createdAt processedAt')
+      .select('processingTime')
       .lean();
 
     if (completedPosts.length === 0) return '0s';
 
     const totalTime = completedPosts.reduce((sum, post: any) => {
-      const processingTime =
-        new Date(post.processedAt as string).getTime() -
-        new Date(post.createdAt as string).getTime();
-      return sum + processingTime;
+      return sum + (post.processingTime || 0);
     }, 0);
 
-    const avgTimeMs = totalTime / completedPosts.length;
-    const avgTimeSeconds = Math.round(avgTimeMs / 1000);
+    const avgTimeSeconds = Math.round(totalTime / completedPosts.length);
 
     if (avgTimeSeconds < 60) return `${avgTimeSeconds}s`;
     const minutes = Math.floor(avgTimeSeconds / 60);

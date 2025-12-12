@@ -46,6 +46,11 @@ export interface ProfileData {
   education?: EducationData[];
   experience?: ExperienceData[];
   profileUrl: string;
+  contactInfo?: {
+    email: string;
+    phone: string;
+    website: string;
+  };
 }
 
 export interface EducationData {
