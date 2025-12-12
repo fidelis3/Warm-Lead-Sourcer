@@ -56,7 +56,7 @@ export default function SignupPage() {
   }
 
   const handleGoogleSignup = () => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://warm-lead-sourcer-zvoa.onrender.com'
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://warm-lead-sourcer-2.onrender.com'
     window.location.href = `${apiUrl}/auth/google`
   }
 

@@ -60,7 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const checkAuth = async () => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://warm-lead-sourcer-zvoa.onrender.com';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://warm-lead-sourcer-2.onrender.com';
       console.log('Checking auth with:', apiUrl);
       
       const response = await fetch(`${apiUrl}/users/me`, {
@@ -125,7 +125,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const login = async (email: string, password: string) => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://warm-lead-sourcer-zvoa.onrender.com';
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://warm-lead-sourcer-2.onrender.com';
     console.log('Attempting login with:', apiUrl);
     
     const response = await fetch(`${apiUrl}/users/login`, {
@@ -155,7 +155,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const register = async (data: RegisterData) => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://warm-lead-sourcer-zvoa.onrender.com';
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://warm-lead-sourcer-2.onrender.com';
     const sanitizedData = {
       ...data,
       email: data.email.toLowerCase().trim(),
@@ -181,7 +181,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://warm-lead-sourcer-zvoa.onrender.com';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://warm-lead-sourcer-2.onrender.com';
       await fetch(`${apiUrl}/users/logout`, {
         method: 'POST',
         credentials: 'include',

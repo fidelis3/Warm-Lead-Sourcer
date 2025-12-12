@@ -53,7 +53,7 @@ function LoginForm() {
   }
 
   const handleGoogleLogin = () => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://warm-lead-sourcer-zvoa.onrender.com'
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://warm-lead-sourcer-2.onrender.com'
     const redirectTo = searchParams.get('redirect') || '/input-url'
     window.location.href = `${apiUrl}/auth/google?redirect=${encodeURIComponent(redirectTo)}`
   }
