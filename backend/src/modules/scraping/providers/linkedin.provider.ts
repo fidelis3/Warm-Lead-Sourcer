@@ -216,7 +216,10 @@ export class LinkedInProvider implements ScrapingProvider {
         name: '', // Name comes from engagement data
         headline: '', // Headline comes from engagement data
         location: {
-          country: fullProfile.location?.country || contactInfo.location?.country || '',
+          country:
+            fullProfile.location?.country ||
+            contactInfo.location?.country ||
+            '',
           city: fullProfile.location?.city || contactInfo.location?.city || '',
         },
         education: mappedEducation,

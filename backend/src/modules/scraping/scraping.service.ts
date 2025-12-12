@@ -28,9 +28,9 @@ export class ScrapingService {
 
     const startTime = Date.now();
     try {
-      await this.postModel.findByIdAndUpdate(postId, { 
+      await this.postModel.findByIdAndUpdate(postId, {
         status: 'processing',
-        startedAt: new Date()
+        startedAt: new Date(),
       });
 
       // Extract post data and engagements
@@ -185,7 +185,7 @@ export class ScrapingService {
 
     // Profile completeness scoring
     if (profile.headline && profile.headline.trim()) score += 15;
-    
+
     // Education scoring
     if (profile.education && profile.education.length > 0) {
       score += 25;
@@ -194,26 +194,34 @@ export class ScrapingService {
         score += 10;
       }
       // Bonus for field of study
-      if (profile.education.some((edu) => edu.fieldOfStudy && edu.fieldOfStudy.trim())) {
+      if (
+        profile.education.some(
+          (edu) => edu.fieldOfStudy && edu.fieldOfStudy.trim(),
+        )
+      ) {
         score += 5;
       }
     }
-    
+
     // Experience scoring
     if (profile.experience && profile.experience.length > 0) {
       score += 20;
       // Bonus for multiple experiences
       if (profile.experience.length > 1) score += 5;
     }
-    
+
     // Location scoring
-    if (profile.location?.country && profile.location.country.trim()) score += 8;
+    if (profile.location?.country && profile.location.country.trim())
+      score += 8;
     if (profile.location?.city && profile.location.city.trim()) score += 7;
-    
+
     // Contact info scoring
-    if (profile.contactInfo?.email && profile.contactInfo.email.trim()) score += 10;
-    if (profile.contactInfo?.phone && profile.contactInfo.phone.trim()) score += 5;
-    if (profile.contactInfo?.website && profile.contactInfo.website.trim()) score += 3;
+    if (profile.contactInfo?.email && profile.contactInfo.email.trim())
+      score += 10;
+    if (profile.contactInfo?.phone && profile.contactInfo.phone.trim())
+      score += 5;
+    if (profile.contactInfo?.website && profile.contactInfo.website.trim())
+      score += 3;
 
     return Math.min(score, 100);
   }
