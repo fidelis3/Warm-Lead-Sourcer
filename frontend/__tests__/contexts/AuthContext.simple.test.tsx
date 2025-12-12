@@ -20,7 +20,7 @@ describe('AuthContext Simple', () => {
     // Suppress React act warnings
     const originalError = console.error
     console.error = (...args: unknown[]) => {
-      if (args[0]?.includes?.('act(...)')) return
+      if (typeof args[0] === 'string' && args[0].includes('act(...)')) return
       originalError(...args)
     }
   })

@@ -10,11 +10,10 @@ jest.mock('next/navigation', () => ({
 }))
 
 // Mock AuthContext
+const mockUseAuth = jest.fn()
 jest.mock('@/contexts/AuthContext', () => ({
-  useAuth: jest.fn()
+  useAuth: mockUseAuth
 }))
-
-import { useAuth } from '@/contexts/AuthContext'
 
 describe('ProtectedRoute', () => {
   beforeEach(() => {
@@ -22,7 +21,7 @@ describe('ProtectedRoute', () => {
   })
 
   it('renders children when user is authenticated', () => {
-    useAuth.mockReturnValue({
+    mockUseAuth.mockReturnValue({
       user: { id: '1', email: 'test@example.com' },
       isLoading: false,
       isInitialized: true
@@ -38,7 +37,7 @@ describe('ProtectedRoute', () => {
   })
 
   it('shows loading spinner when auth is loading', () => {
-    useAuth.mockReturnValue({
+    mockUseAuth.mockReturnValue({
       user: null,
       isLoading: true,
       isInitialized: false

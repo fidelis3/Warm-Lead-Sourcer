@@ -17,7 +17,7 @@ describe('Button Component', () => {
   })
 
   it('applies variant classes', () => {
-    render(<Button variant="destructive">Delete</Button>)
+    render(<Button variant="outline">Delete</Button>)
     
     const button = screen.getByRole('button')
     expect(button).toHaveClass('inline-flex')
