@@ -167,7 +167,7 @@ npm run dev
 
 1. **Navigate to Input Page**
    ```
-   http://localhost:3000/input-url
+   https://warm-lead-sourcer-zsum.vercel.app//input-url
    ```
 
 2. **Paste LinkedIn Post URL**

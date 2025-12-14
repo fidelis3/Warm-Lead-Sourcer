@@ -22,7 +22,7 @@ async function bootstrap() {
   app.enableCors({
     origin: [
       'http://localhost:3000',
-      'https://warm-lead-sourcer-frontend.vercel.app',
+      'https://warm-lead-sourcer-zsum.vercel.app/',
       /\.vercel\.app$/,
       /localhost:\d+$/,
     ],
