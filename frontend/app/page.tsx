@@ -169,7 +169,7 @@ export default function LandingPage() {
             </h1>
             
             <p className="text-sm sm:text-base lg:text-lg text-gray-200 max-w-2xl mx-auto leading-relaxed opacity-90 px-2 sm:px-4">
-              Extract engaged users from social posts and enrich their profiles with public data in seconds
+              Extract engaged users from social posts and enrich their profiles with public data in seconds.
             </p>
             
             <div className="flex gap-2 sm:gap-4 justify-center pt-2 sm:pt-4 w-full px-2 sm:px-4">
