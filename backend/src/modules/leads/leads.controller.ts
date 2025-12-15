@@ -121,10 +121,9 @@ export class LeadsController {
       : await this.leadsService.searchAll(req.user.userId, filters);
 
     const format = filters.format || 'csv';
-    const csvData = this.exportService.exportToCSV(leads);
-
     const filename = `leads-${new Date().toISOString().split('T')[0]}.${format}`;
 
+    const csvData = this.exportService.exportToCSV(leads);
     res.setHeader('Content-Type', 'text/csv');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.send(csvData);

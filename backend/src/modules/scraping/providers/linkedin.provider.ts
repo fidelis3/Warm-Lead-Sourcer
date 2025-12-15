@@ -98,6 +98,11 @@ export class LinkedInProvider implements ScrapingProvider {
       ) {
         commentsResponse.data.data.comments.forEach((comment: any) => {
           if (comment?.author?.urn) {
+            const commentContent =
+              comment.text || comment.content || comment.message || '';
+            this.logger.debug(
+              `Comment content for ${comment.author.name}: ${commentContent}`,
+            );
             engagements.push({
               type: EngagementType.COMMENT,
               user: {
@@ -106,7 +111,7 @@ export class LinkedInProvider implements ScrapingProvider {
                 urn: comment.author.urn,
                 headline: comment.author?.headline || '',
               },
-              content: comment.text || comment.content || '',
+              content: commentContent,
             });
           }
         });
