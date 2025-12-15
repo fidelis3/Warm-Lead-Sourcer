@@ -26,8 +26,12 @@ export class ScrapingService {
       throw new Error('Post not found');
     }
 
+    const startTime = Date.now();
     try {
-      await this.postModel.findByIdAndUpdate(postId, { status: 'processing' });
+      await this.postModel.findByIdAndUpdate(postId, {
+        status: 'processing',
+        startedAt: new Date(),
+      });
 
       // Extract post data and engagements
       const postData = await this.getProvider(
@@ -66,11 +70,16 @@ export class ScrapingService {
         }
       });
 
+      const endTime = Date.now();
+      const processingTimeMs = endTime - startTime;
+      const processingTimeSeconds = Math.round(processingTimeMs / 1000);
+
       // Mark as completed
       await this.postModel.findByIdAndUpdate(postId, {
         status: 'completed',
         processedEngagements: processedCount,
         processedAt: new Date(),
+        processingTime: processingTimeSeconds,
       });
 
       this.logger.log(
@@ -154,6 +163,7 @@ export class ScrapingService {
       engagementContent: engagement.content,
       matchScore,
       guessedEmail,
+      contactInfo: profileData.contactInfo,
       tags: [],
       expiresAt,
     });
@@ -173,18 +183,45 @@ export class ScrapingService {
   private calculateMatchScore(profile: ProfileData): number {
     let score = 10; // Base score for having engagement
 
-    // Scoring logic based on available data
-    if (profile.headline) score += 15;
+    // Profile completeness scoring
+    if (profile.headline && profile.headline.trim()) score += 15;
+
+    // Education scoring
     if (profile.education && profile.education.length > 0) {
-      score += 30;
+      score += 25;
       // Bonus for degree information
-      if (profile.education.some((edu) => edu.degree)) {
+      if (profile.education.some((edu) => edu.degree && edu.degree.trim())) {
         score += 10;
       }
+      // Bonus for field of study
+      if (
+        profile.education.some(
+          (edu) => edu.fieldOfStudy && edu.fieldOfStudy.trim(),
+        )
+      ) {
+        score += 5;
+      }
     }
-    if (profile.experience && profile.experience.length > 0) score += 25;
-    if (profile.location?.country) score += 10;
-    if (profile.location?.city) score += 10;
+
+    // Experience scoring
+    if (profile.experience && profile.experience.length > 0) {
+      score += 20;
+      // Bonus for multiple experiences
+      if (profile.experience.length > 1) score += 5;
+    }
+
+    // Location scoring
+    if (profile.location?.country && profile.location.country.trim())
+      score += 8;
+    if (profile.location?.city && profile.location.city.trim()) score += 7;
+
+    // Contact info scoring
+    if (profile.contactInfo?.email && profile.contactInfo.email.trim())
+      score += 10;
+    if (profile.contactInfo?.phone && profile.contactInfo.phone.trim())
+      score += 5;
+    if (profile.contactInfo?.website && profile.contactInfo.website.trim())
+      score += 3;
 
     return Math.min(score, 100);
   }

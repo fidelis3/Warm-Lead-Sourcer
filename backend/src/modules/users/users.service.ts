@@ -89,7 +89,7 @@ export class UsersService {
       // Email sending failed - log internally but don't expose to user
     }
 
-    const payload = { sub: savedUser._id, email: savedUser.email };
+    const payload = { sub: savedUser._id.toString(), email: savedUser.email };
     const access_token = await this.jwtService.signAsync(payload, {
       expiresIn: '15m',
     });
@@ -124,7 +124,7 @@ export class UsersService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    const payload = { sub: user._id, email: user.email };
+    const payload = { sub: user._id.toString(), email: user.email };
     const access_token = await this.jwtService.signAsync(payload, {
       expiresIn: '15m',
     });
@@ -236,7 +236,7 @@ export class UsersService {
         throw new UnauthorizedException('Invalid refresh token');
       }
 
-      const newPayload = { sub: user._id, email: user.email };
+      const newPayload = { sub: user._id.toString(), email: user.email };
       const access_token = await this.jwtService.signAsync(newPayload, {
         expiresIn: '15m',
       });
@@ -354,7 +354,7 @@ export class UsersService {
     });
 
     // Generate JWT tokens for automatic login
-    const payload = { sub: user._id, email: user.email };
+    const payload = { sub: user._id.toString(), email: user.email };
     const access_token = await this.jwtService.signAsync(payload, {
       expiresIn: '15m',
     });

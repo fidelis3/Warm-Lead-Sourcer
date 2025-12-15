@@ -58,6 +58,12 @@ export class Post {
   @Prop()
   processedAt?: Date;
 
+  @Prop()
+  startedAt?: Date;
+
+  @Prop()
+  processingTime?: number; // in seconds
+
   @Prop({ default: 0 })
   totalEngagements!: number;
 

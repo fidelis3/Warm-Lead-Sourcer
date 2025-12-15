@@ -171,6 +171,23 @@ export class LinkedInProvider implements ScrapingProvider {
         );
       }
 
+      // Get contact info if location is not available
+      let contactInfo: any = {};
+      if (!fullProfile.location?.country && !fullProfile.location?.city) {
+        try {
+          const contactResponse = await axios.get(
+            `https://${this.rapidApiHost}/api/v1/profile/contact-info?username=${profileUrn}`,
+            { headers: this.getHeaders() },
+          );
+          contactInfo = contactResponse.data?.data || {};
+        } catch (error: unknown) {
+          this.logger.warn(
+            'Contact info extraction failed:',
+            (error as any).message,
+          );
+        }
+      }
+
       const education = educationResponse.data?.data?.education || [];
 
       // Map education data to our format
@@ -199,12 +216,20 @@ export class LinkedInProvider implements ScrapingProvider {
         name: '', // Name comes from engagement data
         headline: '', // Headline comes from engagement data
         location: {
-          country: fullProfile.location?.country || '',
-          city: fullProfile.location?.city || '',
+          country:
+            fullProfile.location?.country ||
+            contactInfo.location?.country ||
+            '',
+          city: fullProfile.location?.city || contactInfo.location?.city || '',
         },
         education: mappedEducation,
         experience: experience,
         profileUrl: `https://linkedin.com/in/${profileUrn}`,
+        contactInfo: {
+          email: contactInfo.email || '',
+          phone: contactInfo.phone || '',
+          website: contactInfo.website || '',
+        },
       };
     } catch (error: unknown) {
       if ((error as any).response?.status === 429) {

@@ -4,20 +4,7 @@
 
 Extract and enrich engagement data from LinkedIn posts to identify and qualify warm leads with proven interest in your content.
 
----
 
-## 📖 Table of Contents
-
-- [Overview](#overview)
-- [How the Scraper Works](#how-the-scraper-works)
-- [Quick Start](#quick-start)
-- [Operating the Scraper](#operating-the-scraper)
-- [Architecture](#architecture)
-- [Configuration](#configuration)
-- [API Endpoints](#api-endpoints)
-- [Troubleshooting](#troubleshooting)
-
----
 
 ## 🎯 Overview
 
@@ -171,11 +158,6 @@ cd frontend
 npm run dev
 ```
 
-### **5. Access Applications**
-
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:3001
-- **API Docs**: http://localhost:3001/api
 
 ---
 
@@ -185,7 +167,7 @@ npm run dev
 
 1. **Navigate to Input Page**
    ```
-   http://localhost:3000/input-url
+   https://warm-lead-sourcer-zsum.vercel.app//input-url
    ```
 
 2. **Paste LinkedIn Post URL**
@@ -281,65 +263,12 @@ curl "http://localhost:3001/api/leads/export?postId=507f1f77bcf86cd799439011&for
   --output leads.csv
 ```
 
-### **Method 3: Batch Processing**
 
-Create `batch.json`:
-```json
-{
-  "posts": [
-    "https://www.linkedin.com/posts/user1_activity-123...",
-    "https://www.linkedin.com/posts/user2_activity-456..."
-  ]
-}
-```
 
-Process multiple posts:
-```bash
-curl -X POST http://localhost:3001/api/posts/batch \
-  -H "Content-Type: application/json" \
-  -d @batch.json
-```
 
----
-
----
 
 ## 🏗️ Architecture
 
-### **System Flow**
-```
-User Input (LinkedIn URL)
-    ↓
-Frontend (Next.js)
-    ↓
-Backend API (NestJS)
-    ↓
-┌───────────────────────────────┐
-│  Scraping Service             │
-│  ├─ LinkedIn Provider         │
-│  ├─ Post Extraction           │
-│  ├─ Engagement Extraction     │
-│  └─ Profile Enrichment        │
-└───────────────────────────────┘
-    ↓
-┌───────────────────────────────┐
-│  RapidAPI         │
-│  ├─ /posts/comments           │
-│  ├─ /profile/education        │
-│  └─ /profile/experience       │
-└───────────────────────────────┘
-    ↓
-┌───────────────────────────────┐
-│  Lead Processing              │
-│  ├─ Match Scoring             │
-│  ├─ Email Guessing            │
-│  └─ Deduplication             │
-└───────────────────────────────┘
-    ↓
-MongoDB (leads collection)
-    ↓
-Export Service (CSV/XLSX)
-```
 
 ### **Directory Structure**
 ```
@@ -387,7 +316,7 @@ RAPIDAPI_HOST=your rapid api host
 # Authentication
 JWT_SECRET=your-super-secret-jwt-key-change-this
 
-# OAuth (Optional)
+# OAuth 
 GOOGLE_CLIENT_ID=your-google-oauth-client-id
 GOOGLE_CLIENT_SECRET=your-google-oauth-client-secret
 
@@ -400,19 +329,6 @@ NODE_ENV=development
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:3001
 ```
-
-### **Rate Limits & Quotas**
-
-| Resource | Limit | Notes |
-|----------|-------|-------|
-| **RapidAPI Free Tier** | 100 requests/month | Upgrade to Pro for 10,000/month |
-| **Comments per Post** | ~500 max | API limitation |
-| **Parallel Requests** | 5 concurrent | To avoid rate limiting |
-| **Profile Enrichment** | 2 sec/profile | Average response time |
-| **Processing Speed** | 3-5 profiles/min | With free tier limits |
-| **MongoDB Storage** | Unlimited | Local database |
-
----
 
 ## 📡 API Endpoints
 
@@ -481,42 +397,6 @@ Test with Postman or curl following the [Operating the Scraper](#operating-the-s
 
 ---
 
-## 🐛 Troubleshooting
-
-### **Problem: RapidAPI returns "URN not found"**
-**Solution:** 
-- Verify the post URL is public and accessible
-- Extract the activity ID correctly (e.g., `7402045266020794369`)
-- Check your RapidAPI subscription is active
-
-### **Problem: No leads created after processing**
-**Solution:**
-- Check if the post has any comments
-- Verify RapidAPI key has remaining quota
-- Check backend logs for API errors: `npm run start:dev`
-
-### **Problem: "Profile data not found"**
-**Solution:**
-- Some profiles may be private or restricted
-- The scraper continues with available data
-- Check `matchScore` - leads with lower scores have less data
-
-### **Problem: MongoDB connection failed**
-**Solution:**
-
-
-# Or use MongoDB Atlas cloud connection:
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/warm-lead-sourcer
-```
-
-### **Problem: Email guessing not working**
-**Solution:**
-- Add university domains to the mapping in `scraping.service.ts`:
-```typescript
-const domains: Record<string, string> = {
-  'your university': 'youruniversity.edu',
-  // Add more mappings
-};
 ```
 
 ### **Problem: Rate limit exceeded**
@@ -589,7 +469,7 @@ GOOGLE_CLIENT_SECRET=your-google-client-secret
 
 **Frontend (.env.local):**
 ```env
-NEXT_PUBLIC_API_URL= https://warm-lead-sourcer.onrender.com
+NEXT_PUBLIC_API_URL= https://warm-lead-sourcer-2.onrender.com
 ```
 
 ## 📊 API Endpoints
@@ -623,17 +503,6 @@ npm run test:cov
 - ✅ 40%+ code coverage
 - ✅ All core services tested
 
-### 2. Integration Test 
-```bash
-npm run test:integration
-```
-
-**Tests:**
-- ✅ LinkedIn API connectivity
-- ✅ Post data extraction
-- ✅ Profile enrichment
-- ✅ Lead generation pipeline
-- ✅ Email generation
 
 ### 3. Manual API Testing
 
@@ -658,26 +527,7 @@ curl -X POST http://localhost:5000/posts \
 - **Processing Speed**: 3-5 profiles/minute
 - **Recommended Batch**: 5-10 leads per test
 
-## 🔍 Troubleshooting
 
-### Common Issues
-
-**Database Connection Failed:**
-```bash
-
-npm run test:integration
-```
-
-**RapidAPI Rate Limit:**
-```bash
-
-npm run test:backend
-```
-
-**Environment Variables Missing:**
-```bash
-
-cp backend/.env.example backend/.env
 ```
 
 ## 📝 Development Workflow
@@ -708,16 +558,4 @@ cp backend/.env.example backend/.env
 npm run build:all     
 npm run test:all        
 ```
-
-
-## 🎯 Success Criteria
-
-### Minimum Viable Product
-- [x] LinkedIn URL processing
-- [x] Engagement extraction
-- [x] Profile enrichment
-- [x] Lead generation with scoring
-- [x] Basic filtering
-- [x] User authentication
-- [x] 40%+ test coverage
 

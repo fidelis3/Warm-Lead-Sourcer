@@ -65,7 +65,7 @@ export class AuthController {
       res.cookie('access_token', result.access_token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        sameSite: 'none',
         maxAge: 15 * 60 * 1000, // 15 minutes
       });
 
@@ -77,11 +77,11 @@ export class AuthController {
       });
 
       // Redirect to frontend (cookies already set)
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const frontendUrl = process.env.FRONTEND_URL || 'https://warm-lead-sourcer-zsum.vercel.app/';
       res.redirect(`${frontendUrl}/auth/success`);
     } catch (error) {
       this.logger.error('Google OAuth error:', error);
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const frontendUrl = process.env.FRONTEND_URL || 'https://warm-lead-sourcer-zsum.vercel.app/';
       const errorMessage = encodeURIComponent(
         (error as Error).message || 'Authentication failed',
       );

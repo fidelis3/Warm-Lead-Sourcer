@@ -7,12 +7,15 @@ import Navbar from "@/components/layout/Navbar"
 import { useAuth } from "@/contexts/AuthContext"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { api } from "@/lib/api"
 import toast from "react-hot-toast"
 
 export default function LandingPage() {
   const { user } = useAuth();
   const [linkedinUrl, setLinkedinUrl] = useState('');
   const [activeCardIndex, setActiveCardIndex] = useState(0);
+  const [isExtracting, setIsExtracting] = useState(false);
+  const [extractionStep, setExtractionStep] = useState(0);
   const router = useRouter();
 
   const useCaseCards = [
@@ -39,6 +42,15 @@ export default function LandingPage() {
     }
   ];
 
+  const steps = [
+    "Validating post",
+    "Reading interactions", 
+    "Collecting profiles",
+    "Enriching data",
+    "Scoring leads",
+    "Finalizing results",
+  ];
+
   const handleExtract = async () => {
     if (!linkedinUrl.trim()) {
       toast.error('Please enter a LinkedIn post URL');
@@ -52,9 +64,74 @@ export default function LandingPage() {
       return;
     }
 
-    // Redirect to input-url page with the URL pre-filled and auto-start processing
-    const encodedUrl = encodeURIComponent(linkedinUrl);
-    router.push(`/input-url?url=${encodedUrl}&autoStart=true`);
+    setIsExtracting(true);
+    setExtractionStep(0);
+
+    try {
+      // Create post entry (processing starts automatically)
+      const postResponse = await api.post('/posts', {
+        url: linkedinUrl
+      });
+      
+      const postId = postResponse._id;
+      
+      // Start progress animation
+      const progressInterval = setInterval(() => {
+        setExtractionStep((prev) => {
+          if (prev < steps.length - 1) {
+            return prev + 1;
+          }
+          return prev;
+        });
+      }, 2000);
+
+      // Poll for completion
+      const checkStatus = async () => {
+        try {
+          const response = await api.get(`/posts/${postId}`);
+          
+          if (response.status === 'completed') {
+            clearInterval(progressInterval);
+            setExtractionStep(steps.length - 1);
+            toast.success('Processing completed! Redirecting to results...');
+            setTimeout(() => {
+              router.push(`/dashboard/results?postId=${postId}`);
+            }, 1000);
+            return true;
+          }
+          
+          if (response.status === 'failed') {
+            clearInterval(progressInterval);
+            const errorMsg = response.errorMessage || 'Processing failed. Please try again.';
+            toast.error(errorMsg);
+            setIsExtracting(false);
+            return true;
+          }
+          
+          return false;
+        } catch (err) {
+          console.error('Failed to check status:', err);
+          return false;
+        }
+      };
+
+      // Check status every 3 seconds
+      const statusInterval = setInterval(async () => {
+        const completed = await checkStatus();
+        if (completed) {
+          clearInterval(statusInterval);
+        }
+      }, 3000);
+
+      // Initial check
+      await checkStatus();
+      
+    } catch (err) {
+      console.error('Failed to start extraction:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to start extraction';
+      toast.error(errorMessage);
+      setIsExtracting(false);
+    }
   };
 
   useEffect(() => {
@@ -64,13 +141,13 @@ export default function LandingPage() {
     return () => clearInterval(interval);
   }, [useCaseCards.length]);
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors">
       <Navbar />
       
 
      
       <section
-        className="relative h-[calc(100vh-4rem)] bg-cover bg-center overflow-hidden"
+        className="relative min-h-[calc(100vh-4rem)] h-[calc(100vh-4rem)] bg-cover bg-center overflow-hidden"
         style={{ backgroundImage: "url(/images/landing_page.png)" }}
       >
         <div className="absolute inset-0 bg-linear-to-b from-black/70 via-black/60 to-black/80 dark:from-black/85 dark:via-black/80 dark:to-black/90" />
@@ -79,9 +156,9 @@ export default function LandingPage() {
         <div className="absolute top-20 left-10 w-72 h-72 bg-purple-500/30 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-pink-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
         
-        <div className="relative h-full mx-auto flex max-w-4xl flex-col items-center justify-center px-4 sm:px-6 text-center">
+        <div className="relative h-full mx-auto flex max-w-4xl flex-col items-center justify-center px-4 sm:px-6 lg:px-8 text-center">
           <div className="space-y-4 sm:space-y-6">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight">
               <span className="block text-white drop-shadow-lg">
                 Turn Social Engagement Into
               </span>
@@ -91,11 +168,11 @@ export default function LandingPage() {
               <span className="text-white drop-shadow-lg"> Instantly</span>
             </h1>
             
-            <p className="text-base sm:text-lg text-gray-200 max-w-2xl mx-auto leading-relaxed opacity-90 px-4">
-              Extract engaged users from social posts and enrich their profiles with public data in seconds
+            <p className="text-sm sm:text-base lg:text-lg text-gray-200 max-w-2xl mx-auto leading-relaxed opacity-90 px-2 sm:px-4">
+              Extract engaged users from social posts and enrich their profiles with public data in seconds.
             </p>
             
-            <div className="flex gap-2 sm:gap-4 justify-center pt-2 sm:pt-4 w-full px-4">
+            <div className="flex gap-2 sm:gap-4 justify-center pt-2 sm:pt-4 w-full px-2 sm:px-4">
               {user ? (
                 <div className="flex flex-col sm:flex-row items-center gap-3 w-full max-w-2xl">
                   <div className="relative w-full">
@@ -104,19 +181,28 @@ export default function LandingPage() {
                       value={linkedinUrl}
                       onChange={(e) => setLinkedinUrl(e.target.value)}
                       placeholder="Paste LinkedIn post URL..."
-                      className="w-full px-4 sm:px-6 py-3 sm:py-3.5 rounded-full bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm border-2 border-purple-300 dark:border-purple-700 text-sm sm:text-base text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all shadow-lg"
+                      className="w-full px-3 sm:px-4 lg:px-6 py-2.5 sm:py-3 lg:py-3.5 rounded-full bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm border-2 border-purple-300 dark:border-purple-700 text-xs sm:text-sm lg:text-base text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all shadow-lg"
                     />
                   </div>
                   <Button 
                     onClick={handleExtract}
-                    disabled={!linkedinUrl.trim()}
-                    className="group relative rounded-full bg-linear-to-r from-purple-500 to-purple-700 px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-semibold text-white hover:from-purple-600 hover:to-purple-800 shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 transform hover:scale-105 whitespace-nowrap w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                    disabled={isExtracting}
+                    className="group relative rounded-full bg-linear-to-r from-purple-500 to-purple-700 px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-semibold text-white hover:from-purple-600 hover:to-purple-800 shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 transform hover:scale-105 whitespace-nowrap w-full sm:w-auto disabled:cursor-not-allowed disabled:transform-none"
                   >
                     <span className="flex items-center gap-2 justify-center">
-                      Extract
-                      <svg className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                      </svg>
+                      {isExtracting ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          {steps[extractionStep]}
+                        </>
+                      ) : (
+                        <>
+                          Extract
+                          <svg className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                          </svg>
+                        </>
+                      )}
                     </span>
                   </Button>
                 </div>

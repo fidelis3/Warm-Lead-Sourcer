@@ -5,120 +5,171 @@ import { usePathname } from "next/navigation"
 import { useSidebar } from "@/contexts/SidebarContext"
 import { useAuth } from "@/contexts/AuthContext"
 import ThemeToggle from "@/components/ThemeToggle"
+import { useEffect, useRef } from "react"
 
 export default function Sidebar() {
   const pathname = usePathname()
   const { isOpen, setIsOpen } = useSidebar()
   const { user, logout } = useAuth()
+  const sidebarRef = useRef<HTMLElement>(null)
+
+  // Close sidebar when clicking outside on mobile
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (window.innerWidth < 1024 && isOpen && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [isOpen, setIsOpen])
+
+  // Close sidebar on mobile when clicking links
+  const handleLinkClick = () => {
+    if (window.innerWidth < 1024) {
+      setIsOpen(false)
+    }
+  }
 
   return (
     <>
-      {isOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
-          onClick={() => setIsOpen(false)}
-        />
-      )}
-      
-      <aside className={`${isOpen ? 'w-60' : 'w-16'} bg-purple-100 dark:bg-gray-800 ${isOpen ? 'p-4' : 'p-2'} fixed h-full overflow-y-auto z-40 transition-all duration-300`}>
+      <aside ref={sidebarRef} className={`
+        ${isOpen ? 'w-64' : 'w-16'} 
+        bg-white dark:bg-gray-900 
+        border-r border-gray-200 dark:border-gray-700 
+        ${isOpen ? 'p-4' : 'p-2'} 
+        fixed inset-y-0 left-0 z-40 
+        transition-all duration-300 shadow-lg
+        ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        lg:translate-x-0 lg:overflow-y-auto lg:h-screen
+        overflow-y-hidden h-screen
+        lg:${isOpen ? 'w-64' : 'w-16'}
+      `}>
         <div className="flex justify-between items-center mb-8">
           <div className={`text-center ${isOpen ? 'block' : 'hidden'}`}>
-        <div className="w-20 h-20 rounded-full bg-purple-300 dark:bg-purple-600 mx-auto mb-2 overflow-hidden">
-          <svg viewBox="0 0 100 100" className="w-full h-full">
-            <circle cx="50" cy="35" r="18" fill="#8B5CF6"/>
-            <circle cx="50" cy="75" r="30" fill="#8B5CF6"/>
-          </svg>
-        </div>
-            <p className="font-semibold text-black dark:text-white">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-purple-700 mx-auto mb-3 flex items-center justify-center shadow-lg">
+              <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+              </svg>
+            </div>
+            <p className="font-semibold text-gray-900 dark:text-white text-sm">
               {user ? `${user.firstName} ${user.lastName}` : 'Loading...'}
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              {user?.email}
             </p>
           </div>
           <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="p-1 hover:bg-purple-200 dark:hover:bg-gray-700 rounded"
+            onClick={() => setIsOpen(false)}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors lg:hidden"
           >
-            <svg className="w-5 h-5 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className={`hidden lg:block p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors ${!isOpen ? 'mx-auto' : ''}`}
+          >
+            <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isOpen ? "M15 19l-7-7 7-7" : "M9 5l7 7-7 7"} />
             </svg>
           </button>
         </div>
 
-      <nav className="space-y-2">
+      <nav className="space-y-1">
         <Link 
           href="/dashboard" 
-          className={`flex items-center ${isOpen ? 'gap-3 px-4' : 'justify-center px-2'} py-2 rounded-lg font-bold transition-colors ${
+          onClick={handleLinkClick}
+          className={`flex items-center ${isOpen ? 'gap-3 px-3' : 'justify-center px-2'} py-3 rounded-xl font-medium transition-all duration-200 ${
             pathname === '/dashboard' 
-              ? 'bg-white dark:bg-gray-700 text-purple-600 dark:text-purple-400' 
-              : 'text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-700'
+              ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg' 
+              : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
           }`}
           title="Dashboard"
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="3" y="3" width="7" height="7" fill="currentColor"/>
-            <rect x="14" y="3" width="7" height="7" fill="currentColor"/>
-            <rect x="3" y="14" width="7" height="7" fill="currentColor"/>
-            <rect x="14" y="14" width="7" height="7" fill="currentColor"/>
+          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
           </svg>
-          {isOpen && <span>Dashboard</span>}
+          {isOpen && <span className="text-sm">Dashboard</span>}
         </Link>
 
         <Link 
           href="/dashboard/scrapes" 
-          className={`flex items-center ${isOpen ? 'gap-3 px-4' : 'justify-center px-2'} py-2 rounded-lg font-bold transition-colors ${
+          onClick={handleLinkClick}
+          className={`flex items-center ${isOpen ? 'gap-3 px-3' : 'justify-center px-2'} py-3 rounded-xl font-medium transition-all duration-200 ${
             pathname === '/dashboard/scrapes' 
-              ? 'bg-white dark:bg-gray-700 text-purple-600 dark:text-purple-400' 
-              : 'text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-700'
+              ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg' 
+              : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
           }`}
           title="My Scrapes"
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M9 3H5C3.89543 3 3 3.89543 3 5V9C3 10.1046 3.89543 11 5 11H9C10.1046 11 11 10.1046 11 9V5C11 3.89543 10.1046 3 9 3Z" stroke="currentColor" strokeWidth="2"/>
+          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
           </svg>
-          {isOpen && <span>My Scrapes</span>}
+          {isOpen && <span className="text-sm">My Scrapes</span>}
         </Link>
 
-        <Link href="/input-url" className={`flex items-center ${isOpen ? 'gap-3 px-4' : 'justify-center px-2'} py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-700 font-bold transition-colors`} title="New Scrape">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 4V20M20 12H4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+        <Link 
+          href="/input-url" 
+          onClick={handleLinkClick}
+          className={`flex items-center ${isOpen ? 'gap-3 px-3' : 'justify-center px-2'} py-3 rounded-xl font-medium transition-all duration-200 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800`} 
+          title="New Scrape"
+        >
+          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
           </svg>
-          {isOpen && <span>New Scrape</span>}
+          {isOpen && <span className="text-sm">New Scrape</span>}
         </Link>
 
-        <Link href="/" className={`flex items-center ${isOpen ? 'gap-3 px-4' : 'justify-center px-2'} py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-700 font-bold transition-colors`} title="Home">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="currentColor" strokeWidth="2"/>
+        <div className="border-t border-gray-200 dark:border-gray-700 my-4"></div>
+
+        <Link 
+          href="/" 
+          onClick={handleLinkClick}
+          className={`flex items-center ${isOpen ? 'gap-3 px-3' : 'justify-center px-2'} py-3 rounded-xl font-medium transition-all duration-200 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800`} 
+          title="Home"
+        >
+          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
           </svg>
-          {isOpen && <span>Home</span>}
+          {isOpen && <span className="text-sm">Home</span>}
         </Link>
 
-        <Link href="/privacy-policy" className={`flex items-center ${isOpen ? 'gap-3 px-4' : 'justify-center px-2'} py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-700 font-bold transition-colors`} title="Privacy Policy">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 22C12 22 20 18 20 12V5L12 2L4 5V12C4 18 12 22 12 22Z" stroke="currentColor" strokeWidth="2"/>
+        <Link 
+          href="/privacy-policy" 
+          onClick={handleLinkClick}
+          className={`flex items-center ${isOpen ? 'gap-3 px-3' : 'justify-center px-2'} py-3 rounded-xl font-medium transition-all duration-200 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800`} 
+          title="Privacy Policy"
+        >
+          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M10,17L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9L10,17Z"/>
           </svg>
-          {isOpen && <span>Privacy Policy</span>}
+          {isOpen && <span className="text-sm">Privacy Policy</span>}
         </Link>
       </nav>
 
-      {/* Theme Toggle */}
-      <div className={`mt-4 ${isOpen ? 'px-4' : 'flex justify-center'}`}>
-        <ThemeToggle />
-      </div>
+      <div className="mt-auto pt-4 border-t border-gray-200 dark:border-gray-700">
+        {/* Theme Toggle */}
+        <div className={`mb-3 ${isOpen ? 'px-3' : 'flex justify-center'}`}>
+          <ThemeToggle />
+        </div>
 
-      <button 
-        onClick={async () => {
-          await logout()
-          window.location.href = '/login'
-        }}
-        className={`flex items-center ${isOpen ? 'gap-3 px-4' : 'justify-center px-2'} py-2 mt-4 text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors`} 
-        title="Log Out"
-      >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-          <path d="M16 17L21 12L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M21 12H9" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-        </svg>
-        {isOpen && <span>Log Out</span>}
-      </button>
+        <button 
+          onClick={async () => {
+            await logout()
+            window.location.href = '/login'
+          }}
+          className={`flex items-center ${isOpen ? 'gap-3 px-3' : 'justify-center px-2'} py-3 w-full rounded-xl font-medium transition-all duration-200 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20`} 
+          title="Log Out"
+        >
+          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.59L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+          </svg>
+          {isOpen && <span className="text-sm">Log Out</span>}
+        </button>
+      </div>
     </aside>
     </>
   )
