@@ -4,6 +4,7 @@ import { Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { Loading } from "@/components/ui/loading"
 
 function AuthErrorContent() {
   const router = useRouter()
@@ -38,9 +39,10 @@ function AuthErrorContent() {
           title: 'Page Not Found',
           description: "The page you're looking for doesn't exist or hasn't been implemented yet.",
           icon: (
-            <div className="text-6xl font-bold text-purple-600 dark:text-purple-400">404</div>
-          ),
-          showImage: true
+            <svg className="w-16 h-16 text-purple-600 dark:text-purple-400" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+            </svg>
+          )
         }
       default:
         return {
@@ -61,20 +63,9 @@ function AuthErrorContent() {
     <div className="flex min-h-screen items-center justify-center bg-white dark:bg-gray-900 p-4">
       <div className="w-full max-w-md space-y-6 text-center">
         <div className="space-y-4">
-          {getErrorDetails().showImage ? (
-            <div className="w-48 h-48 mx-auto mb-6">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img 
-                src="/images/signup.png" 
-                alt="Error illustration" 
-                className="w-full h-full object-contain opacity-75"
-              />
-            </div>
-          ) : (
-            <div className="w-16 h-16 mx-auto bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center">
-              {icon}
-            </div>
-          )}
+          <div className="w-20 h-20 mx-auto bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
+            {icon}
+          </div>
           
           <div className="space-y-2">
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{title}</h1>
@@ -141,12 +132,7 @@ export default function AuthErrorPage() {
   return (
     <Suspense fallback={
       <div className="flex min-h-screen items-center justify-center bg-white dark:bg-gray-900">
-        <div className="text-center">
-          <div className="mb-4">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 dark:border-purple-400"></div>
-          </div>
-          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
-        </div>
+        <Loading text="Loading" size="md" />
       </div>
     }>
       <AuthErrorContent />

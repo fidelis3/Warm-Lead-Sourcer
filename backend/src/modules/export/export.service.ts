@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-// import * as XLSX from 'xlsx';
+
 import { Lead } from '../leads/schemas/lead.schema';
 
 interface ExportData {
@@ -10,17 +10,9 @@ interface ExportData {
   'Comment/Content': string;
   'Match Score (%)': number;
   'Guessed Email': string;
-  'Contact Email': string;
-  'Phone Number': string;
-  Website: string;
-  Country: string;
-  City: string;
   'University/Institution': string;
   Degree: string;
   'Field of Study': string;
-  'Current Company': string;
-  'Current Job Title': string;
-  'Years of Experience': string;
   'Export Date': string;
 }
 
@@ -59,41 +51,30 @@ export class ExportService {
   }
 
   exportToXLSX(leads: Lead[]): string {
-    // For now, return CSV format (can be opened in Excel)
+    // Return CSV format for Excel compatibility
     return this.exportToCSV(leads);
   }
 
   private formatLeadsForExport(leads: Lead[]): ExportData[] {
     return leads.map((lead) => {
-      // Calculate years of experience
-      const yearsOfExperience = this.calculateYearsOfExperience(
-        lead.experience || [],
-      );
-
       // Clean engagement content
       const engagementContent = this.cleanEngagementContent(
-        String((lead as any).engagementContent || ''),
+        lead.engagementContent || '',
       );
 
       return {
         'Full Name': lead.name || 'N/A',
         'Professional Headline': lead.headline || 'N/A',
         'LinkedIn Profile': lead.profileUrl || 'N/A',
-        'Engagement Type': this.formatEngagementType(lead.engagementType),
+        'Engagement Type': this.formatEngagementType(
+          lead.engagementType || 'unknown',
+        ),
         'Comment/Content': engagementContent,
         'Match Score (%)': lead.matchScore || 0,
         'Guessed Email': lead.guessedEmail || 'N/A',
-        'Contact Email': (lead as any).contactInfo?.email || 'N/A',
-        'Phone Number': (lead as any).contactInfo?.phone || 'N/A',
-        Website: (lead as any).contactInfo?.website || 'N/A',
-        Country: lead.location?.country || 'N/A',
-        City: lead.location?.city || 'N/A',
         'University/Institution': lead.education?.[0]?.institution || 'N/A',
         Degree: lead.education?.[0]?.degree || 'N/A',
         'Field of Study': lead.education?.[0]?.fieldOfStudy || 'N/A',
-        'Current Company': lead.experience?.[0]?.company || 'N/A',
-        'Current Job Title': lead.experience?.[0]?.title || 'N/A',
-        'Years of Experience': yearsOfExperience,
         'Export Date': new Date().toLocaleDateString('en-US', {
           year: 'numeric',
           month: 'long',

@@ -19,7 +19,7 @@ interface Lead {
   matchScore: number
   location?: { city?: string; country?: string }
   engagementType?: string
-  engagementText?: string
+  engagementContent?: string
 }
 
 interface Post {
@@ -70,13 +70,11 @@ function ResultsPageContent() {
 
 
 
-  const handleExport = async (format: string) => {
+  const handleExport = async () => {
     const toastId = toast.loading('Starting download...')
     
     try {
-      toast.loading('Preparing export data...', { id: toastId })
-      
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://warm-lead-sourcer-2.onrender.com'}/leads/export?postId=${postId}&format=${format}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://warm-lead-sourcer-2.onrender.com'}/leads/export?postId=${postId}&format=csv`, {
         credentials: 'include',
       })
       
@@ -84,31 +82,22 @@ function ResultsPageContent() {
         throw new Error('Export failed')
       }
       
-      toast.loading('Processing file...', { id: toastId })
-      
       const blob = await response.blob()
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `leads-${new Date().toISOString().split('T')[0]}.${format}`
+      a.download = `leads-${new Date().toISOString().split('T')[0]}.csv`
       document.body.appendChild(a)
-      
-      toast.loading('Download starting...', { id: toastId })
-      
       a.click()
       
-      // Clean up
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
       
-      // Show success after a short delay
-      setTimeout(() => {
-        toast.success('Download completed successfully!', { id: toastId })
-      }, 500)
+      toast.success('CSV downloaded successfully!', { id: toastId })
       
     } catch (error) {
       console.error('Export error:', error)
-      toast.error('Failed to export data', { id: toastId })
+      toast.error('Failed to export CSV', { id: toastId })
     }
   }
 
@@ -222,7 +211,7 @@ function ResultsPageContent() {
             </div>
 
             <button 
-              onClick={() => handleExport('csv')}
+              onClick={() => handleExport()}
               className="group bg-gradient-to-br from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white rounded-xl p-6 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
             >
               <div className="flex items-center">
@@ -249,11 +238,13 @@ function ResultsPageContent() {
               <table className="w-full table-auto">
                 <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
+                    <th className="px-3 sm:px-4 lg:px-6 py-3 lg:py-4 text-left text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">#</th>
                     <th className="px-3 sm:px-4 lg:px-6 py-3 lg:py-4 text-left text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Name</th>
                     <th className="hidden sm:table-cell px-3 sm:px-4 lg:px-6 py-3 lg:py-4 text-left text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">LinkedIn</th>
                     <th className="hidden md:table-cell px-3 sm:px-4 lg:px-6 py-3 lg:py-4 text-left text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Role</th>
                     <th className="hidden lg:table-cell px-3 sm:px-4 lg:px-6 py-3 lg:py-4 text-left text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">University</th>
                     <th className="hidden xl:table-cell px-3 sm:px-4 lg:px-6 py-3 lg:py-4 text-left text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Email</th>
+                    <th className="hidden 2xl:table-cell px-3 sm:px-4 lg:px-6 py-3 lg:py-4 text-left text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Engagement</th>
                     <th className="px-3 sm:px-4 lg:px-6 py-3 lg:py-4 text-left text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Score</th>
                     <th className="px-3 sm:px-4 lg:px-6 py-3 lg:py-4 text-left text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Details</th>
                   </tr>
@@ -261,6 +252,11 @@ function ResultsPageContent() {
                 <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                   {leads.map((lead: Lead, index: number) => (
                     <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                      <td className="px-2 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 text-center">
+                        <div className="w-6 h-6 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
+                          <span className="text-xs font-semibold text-purple-600 dark:text-purple-400">{index + 1}</span>
+                        </div>
+                      </td>
                       <td className="px-2 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 min-w-0">
                         <div className="flex items-center min-w-0">
                           <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
@@ -302,6 +298,17 @@ function ResultsPageContent() {
                       </td>
                       <td className="hidden xl:table-cell px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4 text-xs text-gray-900 dark:text-gray-300">
                         <div className="truncate max-w-[140px]">{lead.guessedEmail || 'N/A'}</div>
+                      </td>
+                      <td className="hidden 2xl:table-cell px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4 text-xs text-gray-900 dark:text-gray-300">
+                        <div className="truncate max-w-[120px]" title={lead.engagementContent || 'N/A'}>
+                          {lead.engagementContent ? 
+                            (lead.engagementContent.length > 30 ? 
+                              lead.engagementContent.substring(0, 30) + '...' : 
+                              lead.engagementContent
+                            ) : 
+                            'N/A'
+                          }
+                        </div>
                       </td>
                       <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:py-4">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full whitespace-nowrap ${
@@ -396,6 +403,18 @@ function ResultsPageContent() {
                     }`}>
                       {selectedLead.matchScore}/100
                     </span>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-2 text-sm sm:text-base">Engagement</h4>
+                  <div className="bg-gray-50 dark:bg-gray-700 p-2 sm:p-3 rounded">
+                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1">
+                      <span className="font-medium">Type:</span> {selectedLead.engagementType || 'N/A'}
+                    </p>
+                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                      <span className="font-medium">Content:</span> {selectedLead.engagementContent || 'No content available'}
+                    </p>
                   </div>
                 </div>
               </div>

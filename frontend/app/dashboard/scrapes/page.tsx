@@ -117,6 +117,7 @@ export default function ScrapesPage() {
                   <table className="w-full table-auto">
                     <thead className="bg-gray-50 dark:bg-gray-700">
                       <tr>
+                        <th className="px-2 sm:px-3 lg:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">#</th>
                         <th className="px-2 sm:px-3 lg:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Post URL</th>
                         <th className="px-2 sm:px-3 lg:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Status</th>
                         <th className="hidden sm:table-cell px-2 sm:px-3 lg:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Leads</th>
@@ -125,8 +126,15 @@ export default function ScrapesPage() {
                       </tr>
                     </thead>
                     <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                      {posts.map((post: Post) => (
+                      {posts.map((post: Post, index: number) => (
                         <tr key={post._id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                          <td className="px-2 sm:px-3 lg:px-6 py-2 sm:py-3 lg:py-4">
+                            <div className="w-6 h-6 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
+                              <span className="text-xs font-semibold text-purple-600 dark:text-purple-400">
+                                {(currentPage - 1) * postsPerPage + index + 1}
+                              </span>
+                            </div>
+                          </td>
                           <td className="px-2 sm:px-3 lg:px-6 py-2 sm:py-3 lg:py-4">
                             <div className="text-xs text-gray-900 dark:text-white max-w-[100px] sm:max-w-[200px] lg:max-w-[300px] truncate" title={post.url}>
                               {post.url}

@@ -85,6 +85,13 @@ export class ScrapingService {
       this.logger.log(
         `Successfully processed post ${postId}: ${processedCount}/${engagements.length} leads created`,
       );
+
+      // Log sample engagement content for debugging
+      if (engagements.length > 0) {
+        this.logger.log(
+          `Sample engagement: User=${engagements[0].user.name}, Content="${engagements[0].content}"`,
+        );
+      }
     } catch (error: unknown) {
       this.logger.error(
         `Failed to process post ${postId}:`,
