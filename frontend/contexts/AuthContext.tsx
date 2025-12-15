@@ -61,8 +61,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const checkAuth = async () => {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://warm-lead-sourcer-2.onrender.com';
-      console.log('Checking auth with:', apiUrl);
-      
       const response = await fetch(`${apiUrl}/users/me`, {
         credentials: 'include',
         headers: {
@@ -70,28 +68,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         },
       });
       
-      console.log('Auth check response:', response.status);
-      
       if (response.ok) {
         const data = await response.json();
-        console.log('Auth response data:', data);
         if (data.user && data.user._id) {
-          console.log('User authenticated:', data.user.email);
           setUser(data.user);
         } else {
-          console.error('Invalid user data structure:', data);
           setUser(null);
         }
       } else if (response.status === 401) {
         // Try to refresh token
-        console.log('Access token expired, trying refresh...');
         const refreshResponse = await fetch(`${apiUrl}/users/refresh`, {
           method: 'POST',
           credentials: 'include',
         });
         
         if (refreshResponse.ok) {
-          console.log('Token refreshed, retrying auth check...');
           // Retry auth check after refresh
           const retryResponse = await fetch(`${apiUrl}/users/me`, {
             credentials: 'include',
@@ -102,22 +93,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           
           if (retryResponse.ok) {
             const retryData = await retryResponse.json();
-            console.log('User authenticated after refresh:', retryData.user?.email);
             setUser(retryData.user);
           } else {
-            console.log('Auth failed after refresh');
             setUser(null);
           }
         } else {
-          console.log('Token refresh failed');
           setUser(null);
         }
       } else {
-        console.log('Auth check failed with status:', response.status);
         setUser(null);
       }
-    } catch (error) {
-      console.error('Auth check error:', error);
+    } catch {
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -126,7 +112,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://warm-lead-sourcer-2.onrender.com';
-    console.log('Attempting login with:', apiUrl);
     
     const response = await fetch(`${apiUrl}/users/login`, {
       method: 'POST',
@@ -135,21 +120,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       body: JSON.stringify({ email: email.toLowerCase().trim(), password }),
     });
 
-    console.log('Login response status:', response.status);
-
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error('Login failed:', errorData);
       throw new Error(errorData.message || 'Login failed');
     }
 
     const data = await response.json();
-    console.log('Login response data:', data);
     if (data.user && data.user._id) {
-      console.log('Login successful, user:', data.user.email);
       setUser(data.user);
     } else {
-      console.error('Invalid login response structure:', data);
       throw new Error('Invalid response from server');
     }
   };

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import Image from "next/image"
 import { useAuth } from "@/contexts/AuthContext"
 import toast from "react-hot-toast"
+import { Loading } from "@/components/ui/loading"
 
 function LoginForm() {
   const router = useRouter()
@@ -16,26 +17,24 @@ function LoginForm() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
-  const [error, setError] = useState("")
+
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
     // Check for error query parameter from OAuth redirects
     const errorParam = searchParams.get("error")
     if (errorParam) {
-      setError(
-        errorParam === "invalid_user_data"
-          ? "Invalid user data received. Please try again."
-          : errorParam === "no_user_data"
-          ? "No user data received. Please try again."
-          : "Authentication failed. Please try again."
-      )
+      const errorMessage = errorParam === "invalid_user_data"
+        ? "Invalid user data received. Please try again."
+        : errorParam === "no_user_data"
+        ? "No user data received. Please try again."
+        : "Authentication failed. Please try again."
+      toast.error(errorMessage)
     }
   }, [searchParams])
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    setError("")
     setIsLoading(true)
 
     try {
@@ -45,7 +44,6 @@ function LoginForm() {
       router.push(redirectTo)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Login failed. Please try again."
-      setError(errorMessage)
       toast.error(errorMessage)
     } finally {
       setIsLoading(false)
@@ -72,11 +70,7 @@ function LoginForm() {
             </p>
           </div>
 
-          {error && (
-            <div className="rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-4 py-3 text-sm text-red-800 dark:text-red-400">
-              {error}
-            </div>
-          )}
+
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
@@ -160,14 +154,7 @@ function LoginForm() {
               className="w-full rounded-xl bg-gradient-to-r from-purple-600 to-purple-700 py-4 text-base font-semibold text-white hover:from-purple-700 hover:to-purple-800 shadow-lg hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-[1.02] disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-lg"
               suppressHydrationWarning
             >
-              {isLoading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  Signing in...
-                </span>
-              ) : (
-                "Sign In"
-              )}
+              {isLoading ? "Signing in..." : "Sign In"}
             </Button>
           </form>
 
@@ -241,9 +228,7 @@ export default function LoginPage() {
   return (
     <Suspense fallback={
       <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="text-lg font-semibold">Loading...</div>
-        </div>
+        <Loading text="Loading" size="md" />
       </div>
     }>
       <LoginForm />

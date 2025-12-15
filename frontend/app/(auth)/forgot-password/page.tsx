@@ -17,7 +17,6 @@ export default function ForgotPasswordPage() {
   const [confirmPassword, setConfirmPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
 
@@ -29,7 +28,6 @@ export default function ForgotPasswordPage() {
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError("")
     setIsLoading(true)
 
     try {
@@ -38,7 +36,6 @@ export default function ForgotPasswordPage() {
       setStep(2)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to send reset code"
-      setError(errorMessage)
       toast.error(errorMessage)
     } finally {
       setIsLoading(false)
@@ -76,7 +73,7 @@ export default function ForgotPasswordPage() {
     const fullCode = code.join("")
     
     if (fullCode.length !== 6) {
-      setError("Please enter all 6 digits")
+      toast.error("Please enter all 6 digits")
       return
     }
 
@@ -87,17 +84,16 @@ export default function ForgotPasswordPage() {
     e.preventDefault()
     
     if (newPassword !== confirmPassword) {
-      setError("Passwords do not match")
+      toast.error("Passwords do not match")
       return
     }
 
     if (newPassword.length < 8) {
-      setError("Password must be at least 8 characters")
+      toast.error("Password must be at least 8 characters")
       return
     }
 
     const fullCode = code.join("")
-    setError("")
     setIsLoading(true)
 
     try {
@@ -106,7 +102,6 @@ export default function ForgotPasswordPage() {
       setTimeout(() => router.push("/login"), 1500)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to reset password"
-      setError(errorMessage)
       toast.error(errorMessage)
     } finally {
       setIsLoading(false)
@@ -125,12 +120,6 @@ export default function ForgotPasswordPage() {
                   Enter your email to receive a verification code
                 </p>
               </div>
-
-              {error && (
-                <div className="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-4 py-3 text-sm text-red-800 dark:text-red-400">
-                  {error}
-                </div>
-              )}
 
               <form onSubmit={handleEmailSubmit} className="space-y-4" suppressHydrationWarning>
                 <div className="space-y-2">
@@ -178,12 +167,6 @@ export default function ForgotPasswordPage() {
                   We've sent a 6-digit code to <span className="font-medium text-gray-900 dark:text-white">{email}</span>
                 </p>
               </div>
-
-              {error && (
-                <div className="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-4 py-3 text-sm text-red-800 dark:text-red-400">
-                  {error}
-                </div>
-              )}
 
               <form onSubmit={handleCodeSubmit} className="space-y-4">
                 <div className="space-y-2">
@@ -238,12 +221,6 @@ export default function ForgotPasswordPage() {
                   Enter your new password
                 </p>
               </div>
-
-              {error && (
-                <div className="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-4 py-3 text-sm text-red-800 dark:text-red-400">
-                  {error}
-                </div>
-              )}
 
               <form onSubmit={handlePasswordSubmit} className="space-y-4">
                 <div className="space-y-2">
