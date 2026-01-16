@@ -5,7 +5,7 @@ from enum import Enum
 
 class PostInput(BaseModel):
     post_url: str
-    keywords: Optional[list[str]] = "How credible is this lead?"
+    keywords: Optional[list[str]] = None
 class EngagementSource(str, Enum):
     '''type of engagement'''
     reaction = "reaction"
@@ -23,7 +23,7 @@ class EmailPattern(BaseModel):
         json_schema_extra = {
             "example": {
                 "pattern": "johndoe@students.uonbi.ac.ke",
-                "confidence": 0.7,
+                "confiwdence": 0.7,
                 "verified": False
             }
         }
@@ -109,5 +109,15 @@ class LeadScoreOutput(BaseModel):
         }
 
 
+class IGComment(BaseModel):
+    username: str
+    text: str
+    timestamp: str
 
-                             
+class IGPostScrape(BaseModel):
+    url: str
+    owner_username: str
+    likes_count: int
+    comments_count: int
+    top_comments: List[IGComment]
+    image_description: Optional[str] = None

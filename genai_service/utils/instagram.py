@@ -1,0 +1,63 @@
+from apify_client import ApifyClient
+from dotenv import load_dotenv
+from ..models.schemas import IGPostScrape, IGComment
+import logging
+import os
+
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
+
+load_dotenv()
+
+try:
+    client = ApifyClient(token=os.getenv("APIFY_CLIENT_TOKEN"))
+    logging.info("ApifyClient initialized successfully.")
+except Exception as e:
+    logging.error(f"Error initializing ApifyClient: {e}")
+    raise
+
+# Prepare the Actor input
+run_input = {
+    "directUrls": ["https://www.instagram.com/p/DTVsrSHDp9i/?utm_source=ig_web_copy_link&igsh=NTc4MTIwNjQ2YQ=="],
+    "resultsType": "posts",
+    "resultsLimit": 200,
+    "searchType": "hashtag",
+    "searchLimit": 1,
+}
+
+# Run the Actor and wait for it to finish
+run = client.actor("apify/instagram-scraper").call(run_input=run_input)
+
+# Fetch and print Actor results from the run's dataset (if there are any)
+print("💾 Check your data here: https://console.apify.com/storage/datasets/" + run["defaultDatasetId"])
+def scraper():
+    for item in client.dataset(run["defaultDatasetId"]).iterate_items():
+        print(f'Link: {run_input["directUrls"]}\n     Comment count: {item["commentsCount"]}\n\n All content: {item}\n\n')
+        return item
+
+# 📚 Want to learn more 📖? Go to → https://docs.apify.com/api/client/python/docs/quick-start
+
+
+def format_ig_output(raw_data: dict) -> IGPostScrape:
+    parsed_comments = [
+        IGComment(
+            username = comment["ownerUsername"],
+            text = comment["text"],
+            timestamp = comment["timestamp"]) for comment in raw_data.get("topComments", []
+        )
+    ]
+    print("Test test data")
+    return IGPostScrape(
+        url=raw_data["url"],
+        owner_username=raw_data["ownerUsername"],
+        likes_count=raw_data["likesCount"],
+        comments_count=raw_data["commentsCount"],
+        top_comments=parsed_comments,
+        image_description=raw_data["alt"]
+    )
+    
+
+print(format_ig_output(scraper()))
