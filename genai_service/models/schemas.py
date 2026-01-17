@@ -121,3 +121,8 @@ class IGPostScrape(BaseModel):
     comments_count: int
     top_comments: List[IGComment]
     image_description: Optional[str] = None
+
+class SerperSearchResult(BaseModel):
+    keywords: str
+    country: str
+    pages: int
