@@ -12,8 +12,13 @@ logging.basicConfig(
 
 load_dotenv()
 
+apify_token = os.getenv("APIFY_CLIENT_TOKEN")
+if not apify_token:
+    logging.error("APIFY_CLIENT_TOKEN environment variable is not set")
+    raise ValueError("APIFY_CLIENT_TOKEN environment variable is required")
+
 try:
-    client = ApifyClient(token=os.getenv("APIFY_CLIENT_TOKEN"))
+    client = ApifyClient(token=apify_token)
     logging.info("ApifyClient initialized successfully.")
 except Exception as e:
     logging.error(f"Error initializing ApifyClient: {e}")
@@ -55,4 +60,7 @@ def format_ig_output(raw_data: dict) -> IGPostScrape:
     )
     
 
-print(format_ig_output(scraper()))
+if __name__ == "__main__":
+    result = scraper()
+    if result:
+        print(format_ig_output(result))
