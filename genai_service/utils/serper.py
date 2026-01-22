@@ -13,23 +13,10 @@ logging.basicConfig(
 
 load_dotenv()
 
-def get_user_parameters(
-    keywords: str = "latest technology trends",
-    country: str = "ke",
-    pages: int = 1
-) -> SerperSearchResult:
-    """
-    Get search parameters. Falls back to defaults if not provided.
-    """
-    return SerperSearchResult(
-        keywords=keywords,
-        country=country,
-        pages=pages
-    )
 
-def serper_search():
-    params = get_user_parameters()
-    def linkedin_query_builder(keywords: str, country: str) -> str:
+def serper_search(keywords: str = "latest technology trends", country: str = "ke", pages: int = 1) -> str:
+    params = SerperSearchResult(keywords=keywords, country=country, pages=pages)
+    def linkedin_query_builder() -> str:
         logger.info("Building LinkedIn-specific query for Serper search.")
         keyword_list = keywords.split()
         formatted_keywords = " AND ".join(keyword_list)
@@ -45,7 +32,7 @@ def serper_search():
             },
             # 2. The LinkedIn Targeted Search (People)
             {
-                "q": linkedin_query_builder(params.keywords, params.country), 
+                "q": linkedin_query_builder(), 
                 "gl": params.country,
                 "page": params.pages
             }
@@ -56,9 +43,8 @@ def serper_search():
         raise Exception(f"Failed to build combined payload query: {e}")
 
     try:
-        logger.info("Creating connection object for google.serper.dev.")
-        google = http.client.HTTPSConnection("google.serper.dev")
-        logger.info("Connected to google.serper.dev successfully.")
+        logger.debug("Creating connection object for google.serper.dev.")
+        google = http.client.HTTPSConnection("google.serper.dev", timeout=10)
     except Exception as e:
         logger.error("Error creating connection object: %s", e)
         raise  Exception(f"Failed to connect to Serper API: {e}") 
@@ -95,13 +81,40 @@ def serper_search():
             raise Exception(f"Serper API returned {res.status}: {raw_data}")
 
         logger.info("Serper search request executed successfully.")
-        return raw_data
+        json_data = json.loads(raw_data)
+        warm_data = json_data[1].get("organic", [])
+        return serper_formatter(warm_data)
+        # return warm_data
     except Exception as e:
         logger.error("Error executing Serper search request: %s", e)
         raise Exception(f"Failed to execute Serper search request: {e}")
     finally:
         google.close()
 
+def serper_formatter(raw_data):
+    formatted_results = []
+    def name_formatter(complex_str):
+        complex_str = complex_str.replace("-", "*", 1)
+        name = complex_str.split("*")[0].strip()
+        role = complex_str.split("*")[1].strip() if "*" in complex_str else "Not specified"
+        return {"name": name, "role": role}
+
+    for profile in raw_data:
+        try:
+            name_role = name_formatter(profile.get("title", ""))
+            formatted_profile = {
+                "name": name_role["name"],
+                "current_role": name_role["role"],
+                "linkedin_url": profile.get("link", ""),
+                "snippet": profile.get("snippet", ""),
+            }
+            formatted_results.append(formatted_profile)
+        except Exception as e:
+            logger.error("Error formatting profile data: %s", e)
+            continue
+    return formatted_results
+
+    
 
 if __name__ == "__main__":
-    print(serper_search())
+    print(serper_search(keywords="Moringa school fullstack cybersecurity JKUAT Kenyatta University Nairobi", country="ke", pages=2))

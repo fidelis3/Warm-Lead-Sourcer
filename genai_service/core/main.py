@@ -1,4 +1,4 @@
-from extraction import MainPipeline
+from .extraction import MainPipeline
 from ..models.schemas import GeneralProfile
 from fastapi import FastAPI, HTTPException
 import logging
@@ -24,19 +24,28 @@ async def check_service():
     """
     return {"status": "Service is running"}
 
-@app.get("/source_leads", response_model=GeneralProfile)
+@app.get("/source_leads", response_model=List[GeneralProfile])
 async def source_leads(link: str) -> List[Dict]:
     try:
         logger.info("Setting up MainPipeline for lead sourcing.")
         lead_pipeline = MainPipeline(link=link)
         logger.info("MainPipeline set up successfully.")
     except Exception as e:
-        logger.error(f"Failed to set up MainPipeline: {e}")
-        raise
+        # Log full exception internally, but raise a sanitized HTTP error to callers
+        logger.exception("Failed to set up MainPipeline")
+        raise HTTPException(status_code=500, detail="Internal error setting up pipeline.")
+
     try:
         logger.info("Running lead sourcing pipeline.")
         leads = lead_pipeline.run_pipeline()
-        return GeneralProfile(linkedin_url=link)
+        if leads is None:
+            logger.warning("Pipeline returned no leads for link=%s", link)
+            return []
+        # Expecting `leads` to be a list of dict-like profiles that match GeneralProfile shape
+        return leads
+    except HTTPException:
+        # Re-raise HTTPExceptions unchanged
+        raise
     except Exception as e:
-        logger.error(f"Failed to run pipeline: {e}")
+        logger.exception("Failed to run pipeline")
         raise HTTPException(status_code=500, detail="Error processing the lead sourcing pipeline.")

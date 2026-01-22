@@ -28,5 +28,4 @@ build/
 .next/
 
 __pycache__/
-*.pyc
 *.pyo

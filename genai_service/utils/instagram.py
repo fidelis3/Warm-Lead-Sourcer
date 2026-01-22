@@ -1,5 +1,6 @@
 from apify_client import ApifyClient
 from dotenv import load_dotenv
+from typing import List
 from ..models.schemas import IGPostScrape, IGComment
 import logging
 import os
@@ -26,30 +27,31 @@ except Exception as e:
 
 
 
-def scraper():
-    run_input = {
-    "directUrls": ["https://www.instagram.com/p/DTVsrSHDp9i/?utm_source=ig_web_copy_link&igsh=NTc4MTIwNjQ2YQ=="],
-    "resultsType": "posts",
-    "resultsLimit": 200,
-    "searchType": "hashtag",
-    "searchLimit": 1,
-    }
-    run = client.actor("apify/instagram-scraper").call(run_input=run_input)
-    print("💾 Check your data here: https://console.apify.com/storage/datasets/" + run["defaultDatasetId"])
-
-    for item in client.dataset(run["defaultDatasetId"]).iterate_items():
-        print(f'Link: {run_input["directUrls"]}\n     Comment count: {item["commentsCount"]}\n\n All content: {item}\n\n')
-        return item
 
 
 
-def instagram_output() -> IGPostScrape:
+
+def instagram_output(url: List[str]) -> IGPostScrape:
+    def scraper() -> dict:  
+        run_input = {
+        "directUrls": url,
+        "resultsType": "posts",
+        "resultsLimit": 200,
+        "searchType": "hashtag",
+        "searchLimit": 1,
+        }
+        run = client.actor("apify/instagram-scraper").call(run_input=run_input)
+        logging.info("💾 Check your data here: https://console.apify.com/storage/datasets/" + run["defaultDatasetId"])
+
+        for item in client.dataset(run["defaultDatasetId"]).iterate_items():
+            logging.info(f'Link: {run_input["directUrls"]}\n     Comment count: {item["commentsCount"]}\n\n All content: {item}\n\n')
+            return item
     raw_data = scraper()
     parsed_comments = [
         IGComment(
             username = comment["ownerUsername"],
             text = comment["text"],
-            timestamp = comment["timestamp"]) for comment in raw_data.get("topComments", []
+            timestamp = comment["timestamp"]) for comment in raw_data.get("latestComments", []
         )
     ]
     return IGPostScrape(
@@ -63,6 +65,6 @@ def instagram_output() -> IGPostScrape:
     
 
 if __name__ == "__main__":
-    result = scraper()
+    result = instagram_output(["https://www.instagram.com/p/DTVsrSHDp9i/?utm_source=ig_web_copy_link"])
     if result:
-        print(instagram_output())
+        print(result)
