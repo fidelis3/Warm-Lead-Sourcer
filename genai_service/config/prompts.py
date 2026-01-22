@@ -21,17 +21,3 @@ score_prompt = ChatPromptTemplate.from_template(
 
    Return the result as a single integer score ONLY. for example: 7"""
 )
-
-EXTRACTION_PROMPT = """Extract from this LinkedIn profile:
-
-{profile_text}
-
-Return ONLY JSON:
-{{
-  "role": "job title or null",
-  "university": "university name or null",
-  "country": "country or null",
-  "raw_location": "location or null"
-}}
-
-Rules: Use only visible info, return null if not found, expand abbreviations (MIT → Massachusetts Institute of Technology)."""

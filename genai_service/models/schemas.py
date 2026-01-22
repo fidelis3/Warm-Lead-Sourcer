@@ -29,18 +29,6 @@ class EmailPattern(BaseModel):
         }
 
 
-class ExtractedFields(BaseModel):
-    '''fields extracted by LLM from raw profile text'''
-    role: Optional[str] = None
-    university: Optional[str] = None
-    country: Optional[str] = None
-    raw_location: Optional[str] = None
-
-    @field_validator('role', 'university', 'country')
-    @classmethod
-    def strip_whitespace(cls, v):
-        return v.strip() if v else None
-
 #output schema to backend
 class EnrichedProfile(BaseModel):
     '''Enriched profile data after LLM processing'''
@@ -78,12 +66,6 @@ class EnrichedProfile(BaseModel):
             }
         }
 
-
-class ValidationResult(BaseModel):
-    '''Result of validation checks'''
-    is_valid: bool
-    errors: List[str] = Field(default_factory=list)
-    warnings: List[str] = Field(default_factory=list)
 
 class GeneralProfile(BaseModel):
     """General profile structure for existing code"""
