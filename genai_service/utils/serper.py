@@ -14,7 +14,7 @@ logging.basicConfig(
 load_dotenv()
 
 
-def serper_search(keywords: str = "latest technology trends", country: str = "ke", pages: int = 1) -> str:
+def serper_search(keywords: str = "latest technology trends", country: str = "ke", pages: int = 1) -> list[dict]:
     params = SerperSearchResult(keywords=keywords, country=country, pages=pages)
     def linkedin_query_builder() -> str:
         logger.info("Building LinkedIn-specific query for Serper search.")

@@ -11,9 +11,9 @@ class FieldExtractor:
         self.link = link
         logger.info("FieldExtractor initialized")
 
-    def serper_extractor(self,keywords):
+    async def serper_extractor(self,keywords):
         from ..utils.serper import serper_search
-        serper_results = serper_search(keywords=keywords, country="ke", pages=1)
+        serper_results = await serper_search(keywords=keywords, country="ke", pages=1)
         return serper_results
     
     def instagram_extractor(self):
