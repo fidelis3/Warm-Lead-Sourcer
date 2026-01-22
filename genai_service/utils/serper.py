@@ -14,15 +14,15 @@ logging.basicConfig(
 load_dotenv()
 
 def get_user_parameters(
-    keywords: str | None = None,
-    country: str = "us",
+    keywords: str = "latest technology trends",
+    country: str = "ke",
     pages: int = 1
 ) -> SerperSearchResult:
     """
     Get search parameters. Falls back to defaults if not provided.
     """
     return SerperSearchResult(
-        keywords=keywords or "latest technology trends",
+        keywords=keywords,
         country=country,
         pages=pages
     )

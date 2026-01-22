@@ -24,25 +24,27 @@ except Exception as e:
     logging.error(f"Error initializing ApifyClient: {e}")
     raise
 
-run_input = {
+
+
+def scraper():
+    run_input = {
     "directUrls": ["https://www.instagram.com/p/DTVsrSHDp9i/?utm_source=ig_web_copy_link&igsh=NTc4MTIwNjQ2YQ=="],
     "resultsType": "posts",
     "resultsLimit": 200,
     "searchType": "hashtag",
     "searchLimit": 1,
-}
+    }
+    run = client.actor("apify/instagram-scraper").call(run_input=run_input)
+    print("💾 Check your data here: https://console.apify.com/storage/datasets/" + run["defaultDatasetId"])
 
-run = client.actor("apify/instagram-scraper").call(run_input=run_input)
-
-print("💾 Check your data here: https://console.apify.com/storage/datasets/" + run["defaultDatasetId"])
-def scraper():
     for item in client.dataset(run["defaultDatasetId"]).iterate_items():
         print(f'Link: {run_input["directUrls"]}\n     Comment count: {item["commentsCount"]}\n\n All content: {item}\n\n')
         return item
 
 
 
-def format_ig_output(raw_data: dict) -> IGPostScrape:
+def instagram_output() -> IGPostScrape:
+    raw_data = scraper()
     parsed_comments = [
         IGComment(
             username = comment["ownerUsername"],
@@ -63,4 +65,4 @@ def format_ig_output(raw_data: dict) -> IGPostScrape:
 if __name__ == "__main__":
     result = scraper()
     if result:
-        print(format_ig_output(result))
+        print(instagram_output())
