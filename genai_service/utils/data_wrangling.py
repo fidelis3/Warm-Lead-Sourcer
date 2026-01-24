@@ -38,7 +38,7 @@ async def filter_profiles(profiles, keywords: list[str]):
     try:
         logger.info("Starting profile filtering process.")
         for profile in profiles:
-            calculated_score = await calculate_score(profile=profile, criteria=keywords)
+            calculated_score = await calculate_score(profile=profile, criteria=f" Keywords: {keywords}. Snippet: {profile.get('snippet', '')}")
             calculated_score = int(calculated_score)
             logger.info("Profile: %s, Score: %d", profile.get("name", ""), calculated_score)
             profile["score"] = calculated_score

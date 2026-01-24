@@ -19,7 +19,7 @@ def serper_search(keywords: str = "latest technology trends", country: str = "ke
     def linkedin_query_builder() -> str:
         logger.info("Building LinkedIn-specific query for Serper search.")
         keyword_list = keywords.split()
-        formatted_keywords = " AND ".join(keyword_list)
+        formatted_keywords = " AND ".join([f'"{k}"' for k in keyword_list])
         return f'site:linkedin.com/in/ {formatted_keywords} {country}'
     try:
         logger.info("Building combined payload query.")
@@ -117,4 +117,4 @@ def serper_formatter(raw_data):
     
 
 if __name__ == "__main__":
-    print(serper_search(keywords="Moringa school fullstack cybersecurity JKUAT Kenyatta University Nairobi", country="ke", pages=2))
+    print(serper_search(keywords="Jkuat Mechanical Engineering", country="ke", pages=2))

@@ -13,7 +13,8 @@ score_prompt = ChatPromptTemplate.from_template(
     Consider factors such as relevance to the specified keywords, timeliness, completeness of information, and alignment with the filter parameters.
     Ensure you deeply and thoroughly analyze the provided raw data against the requirements and give a very accurate score.
     Lead information: {lead_information}
-    keywords and filters: {keywords}
+    keywords and filters(Can also include a brief summary of the lead generated): {keywords}
+    You are to be very critical and strict in your scoring. Really analyze the lead as per technology human resource sourcing standards. Select a very thorough score that reflects the lead quality. Not all leads should get high scores. Be very thorough and analyze the best of the best.
 
    Return the result as a single integer score ONLY. For example: 7"""
 )
