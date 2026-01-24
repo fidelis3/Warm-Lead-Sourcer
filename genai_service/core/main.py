@@ -1,5 +1,5 @@
 from .extraction import MainPipeline
-from ..models.schemas import GeneralProfile
+from ..models.schemas import GeneralProfile, UserInput
 from fastapi import FastAPI, HTTPException
 import logging
 from typing import List, Dict
@@ -25,26 +25,25 @@ async def check_service():
     return {"status": "Service is running"}
 
 @app.get("/source_leads", response_model=List[GeneralProfile])
-async def source_leads(link: str) -> List[Dict]:
+async def source_leads(user_input: UserInput) -> List[Dict]:
+
+
     try:
         logger.info("Setting up MainPipeline for lead sourcing.")
-        lead_pipeline = MainPipeline(link=link)
+        lead_pipeline = MainPipeline()
         logger.info("MainPipeline set up successfully.")
     except Exception as e:
-        # Log full exception internally, but raise a sanitized HTTP error to callers
         logger.exception("Failed to set up MainPipeline")
         raise HTTPException(status_code=500, detail="Internal error setting up pipeline.")
 
     try:
         logger.info("Running lead sourcing pipeline.")
-        leads = lead_pipeline.run_pipeline()
+        leads = lead_pipeline.run_pipeline(link=user_input.post_url, keywords=user_input.keywords, country=user_input.country, pages=user_input.pages)
         if leads is None:
-            logger.warning("Pipeline returned no leads for link=%s", link)
+            logger.warning("Pipeline returned no leads for link=%s", user_input.post_url)
             return []
-        # Expecting `leads` to be a list of dict-like profiles that match GeneralProfile shape
         return leads
     except HTTPException:
-        # Re-raise HTTPExceptions unchanged
         raise
     except Exception as e:
         logger.exception("Failed to run pipeline")

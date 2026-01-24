@@ -1,6 +1,8 @@
 from llm_client import calculate_score
 import logging
+import asyncio
 import csv
+
 
 
 logger = logging.getLogger(__name__)
@@ -14,11 +16,15 @@ if __name__ == "__main__":
 def email_generator(profile_data):
         try:
             logger.info("Generating email for profile: %s", profile_data["name"])
-            first_name, last_name = profile_data["name"].lower().split(" ", 1)  # FIX: Handle names with more than 2 parts
-            if " " in last_name:  # If last_name has spaces, take the last word
-                last_name = last_name.split()[-1]
-            university = profile_data["education"].replace(" ", "").lower()
-            email = f"{first_name}.{last_name}@{university}.edu"
+            for profile in profile_data:
+                first_name, last_name = profile["name"].lower().split(" ", 1)
+                if " " in last_name:  
+                    last_name = last_name.split()[-1]
+                if profile["education"]:
+                    university = profile["education"].replace(" ", "").lower()
+                    email = f"{first_name}.{last_name}@{university}.edu"
+                else:
+                    email = f"{first_name}.{last_name}@systemgenerated.edu"
             logger.info("Email generated successfully.")
             return email
         except Exception as e:
@@ -55,6 +61,22 @@ def lead_presentation(profiles_with_scores):
     except Exception as e:
         logger.exception("Error formatting leads: %s", e)
         return final_leads
+
+def data_pipeline(raw_data):
+    logger.info("Starting data pipeline")
+    logger.info("Scoring the extracted profiles")
+    try:
+        scored_profiles = asyncio.run(filter_profiles(raw_data, keywords=["technology", "innovation", "software"]))
+        logger.info(f"Number of profiles after filtering: {len(scored_profiles)}")
+        logger.info("Formatting leads for presentation")
+        processed_data = lead_presentation(scored_profiles)
+        logger.info("Data pipeline completed")
+        return processed_data
+    except Exception as e:
+        logger.exception("Error during processing of profiles: %s", e)
+        raise
+    
+    
 
     
 async def export(profile_list):
