@@ -1,4 +1,4 @@
-from llm_client import calculate_score
+from .llm_client import calculate_score
 import logging
 import asyncio
 import csv
@@ -13,18 +13,18 @@ if __name__ == "__main__":
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
 
-def email_generator(profile_data):
+def email_generator(profile):
         try:
-            logger.info("Generating email for profile: %s", profile_data["name"])
-            for profile in profile_data:
-                first_name, last_name = profile["name"].lower().split(" ", 1)
-                if " " in last_name:  
-                    last_name = last_name.split()[-1]
-                if profile["education"]:
-                    university = profile["education"].replace(" ", "").lower()
-                    email = f"{first_name}.{last_name}@{university}.edu"
-                else:
-                    email = f"{first_name}.{last_name}@systemgenerated.edu"
+            logger.info("Generating email for profile: %s", profile["name"])
+            first_name, last_name = profile["name"].lower().split(" ", 1)
+            if " " in last_name:  
+                last_name = last_name.split()[-1]
+            education = profile.get("education", "")
+            if education:
+                university = str(education).replace(" ", "").lower()
+                email = f"{first_name}.{last_name}@{university}.edu"
+            else:
+                email = f"{first_name}.{last_name}@systemgenerated.edu"
             logger.info("Email generated successfully.")
             return email
         except Exception as e:
@@ -39,6 +39,7 @@ async def filter_profiles(profiles, keywords: list[str]):
         logger.info("Starting profile filtering process.")
         for profile in profiles:
             calculated_score = await calculate_score(profile=profile, criteria=keywords)
+            calculated_score = int(calculated_score)
             logger.info("Profile: %s, Score: %d", profile.get("name", ""), calculated_score)
             profile["score"] = calculated_score
             if calculated_score >= threshold:
@@ -62,12 +63,14 @@ def lead_presentation(profiles_with_scores):
         logger.exception("Error formatting leads: %s", e)
         return final_leads
 
-def data_pipeline(raw_data):
+async def data_pipeline(raw_data, keywords=None):
+    if keywords is None:
+        keywords = ["No keywords provided. Evaluate the profile generally."]
     logger.info("Starting data pipeline")
     logger.info("Scoring the extracted profiles")
     try:
-        scored_profiles = asyncio.run(filter_profiles(raw_data, keywords=["technology", "innovation", "software"]))
-        logger.info(f"Number of profiles after filtering: {len(scored_profiles)}")
+        scored_profiles = await filter_profiles(raw_data, keywords=keywords)
+        logger.info("Number of profiles after filtering: %d", len(scored_profiles))
         logger.info("Formatting leads for presentation")
         processed_data = lead_presentation(scored_profiles)
         logger.info("Data pipeline completed")

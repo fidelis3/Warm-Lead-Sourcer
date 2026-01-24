@@ -24,7 +24,7 @@ async def check_service():
     """
     return {"status": "Service is running"}
 
-@app.get("/source_leads", response_model=List[GeneralProfile])
+@app.post("/source_leads", response_model=List[GeneralProfile])
 async def source_leads(user_input: UserInput) -> List[Dict]:
 
 
@@ -38,7 +38,7 @@ async def source_leads(user_input: UserInput) -> List[Dict]:
 
     try:
         logger.info("Running lead sourcing pipeline.")
-        leads = lead_pipeline.run_pipeline(link=user_input.post_url, keywords=user_input.keywords, country=user_input.country, pages=user_input.pages)
+        leads = await lead_pipeline.run_pipeline(link=user_input.post_url, keywords=user_input.keywords, country=user_input.country, pages=user_input.pages)
         if leads is None:
             logger.warning("Pipeline returned no leads for link=%s", user_input.post_url)
             return []
