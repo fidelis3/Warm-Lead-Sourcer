@@ -42,7 +42,7 @@ YOU ARE ONLY REQUIRED TO RETURN JSON OUTPUT IN THE FOLLOWING FORMAT:
 {{
     "name": "Full Name without extra tags",
     "raw_name": "Full Name inclusives of tags and titles",
-    "current_role": "Clean, non-truncated professional title. Company name if possible but separated from role using '|'. If the person is a student or recent graduate, indicate the institution in the role. Any mention of an institution should be included here.",
+    "current_role": "Clean, non-truncated professional title. Company name if possible but separated from role using '|'. If the person is a student or recent graduate, indicate the institution in the role.",
     "linkedin_url": "Full LinkedIn URL"
 }},
 ] 

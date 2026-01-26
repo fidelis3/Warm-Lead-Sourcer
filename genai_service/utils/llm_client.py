@@ -14,9 +14,9 @@ if __name__ == "__main__":
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
 
-DEFAULT_GENERAL_MODEL = "llama-3.1-8b-instant"
+DEFAULT_GENERAL_MODEL = "llama-3.3-70b-versatile"
 DEFAULT_CORE_MODEL = "llama-3.3-70b-versatile"
-DEFAULT_FALLBACK_MODEL = "llama-3.3-70b-versatile"
+DEFAULT_FALLBACK_MODEL ="llama-3.1-8b-instant"
 
 try:
     logger.info("Setting up main Groq LLM model.")

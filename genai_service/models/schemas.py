@@ -44,7 +44,7 @@ class UserInput(BaseModel):
     post_url: Optional[str] = None
     keywords: Optional[str] = None
     country: Optional[str] = None
-    pages: Optional[int] = 1
+    page: Optional[int] = 1
 
 class ErrorHandling(BaseModel):
     error_code: int

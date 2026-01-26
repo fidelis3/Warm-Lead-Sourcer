@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
     
 class MainPipeline():
-    async def run_pipeline(self, link : Optional[str], keywords: Optional[str], country: Optional[str], pages: Optional[int]):
+    async def run_pipeline(self, link : Optional[str], keywords: Optional[str], country: Optional[str], page: Optional[int]):
         logger.info("Running main pipeline")
 
         if link:
@@ -21,7 +21,7 @@ class MainPipeline():
                 logger.info("Running LinkedIn extraction pipeline")
                 try:
                     logger.info(f"Extracting data from LinkedIn link: {link}")
-                    extraction_results =  serper_search(keywords=link, country=country, pages=pages)
+                    extraction_results =  await serper_search(keywords=link, country=country, page=page)
                     logger.info("LinkedIn data extraction completed")
                 except Exception as e:
                     logger.error(f"Error during LinkedIn data extraction: {e}")
@@ -43,7 +43,7 @@ class MainPipeline():
             logger.info("No link provided. Running general search based on keywords.")
             try:
                 logger.info(f"Searching for profiles with keywords: {keywords}")
-                extraction_results =  serper_search(keywords=keywords, country=country, pages=pages)
+                extraction_results =  await serper_search(keywords=keywords, country=country, page=page)
                 logger.info("General profile extraction completed")
             except Exception as e:
                 logger.error(f"Error during general profile extraction: {e}")

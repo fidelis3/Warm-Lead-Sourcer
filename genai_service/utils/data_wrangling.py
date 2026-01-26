@@ -1,6 +1,6 @@
 from .llm_client import calculate_score
 import logging
-import asyncio
+import re
 import csv
 
 
@@ -38,8 +38,13 @@ async def filter_profiles(profiles, keywords: list[str]):
     try:
         logger.info("Starting profile filtering process.")
         for profile in profiles:
-            calculated_score = await calculate_score(profile=profile, criteria=f" Keywords: {keywords}. Snippet: {profile.get('snippet', '')}")
-            calculated_score = int(calculated_score)
+            raw_score = await calculate_score(profile=profile, criteria=f" Keywords: {keywords}. Snippet: {profile.get('snippet', '')}")
+            score_match = re.search(r'\b([1-9]|10)\b', str(raw_score))
+            if score_match:
+                calculated_score = int(score_match.group(0))
+            else:
+                logger.warning("No valid score found in response: %s. Defaulting to 5.", raw_score)
+                calculated_score = 5
             logger.info("Profile: %s, Score: %d", profile.get("name", ""), calculated_score)
             profile["score"] = calculated_score
             if calculated_score >= threshold:
