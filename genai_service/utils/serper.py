@@ -1,4 +1,5 @@
 from ..models.schemas import SerperSearchResult
+from ..utils.llm_client import profile_discovery
 from dotenv import load_dotenv
 import http.client
 import json
@@ -14,29 +15,21 @@ logging.basicConfig(
 load_dotenv()
 
 
-def serper_search(keywords: str = "latest technology trends", country: str = "ke", pages: int = 1) -> list[dict]:
-    params = SerperSearchResult(keywords=keywords, country=country, pages=pages)
+async def serper_search(keywords: str = "latest technology trends", country: str = "ke", page: int = 1) -> list[dict]:
+    params = SerperSearchResult(keywords=keywords, country=country, page=page)
     def linkedin_query_builder() -> str:
         logger.info("Building LinkedIn-specific query for Serper search.")
-        keyword_list = keywords.split()
+        keyword_list = params.keywords.split()
         formatted_keywords = " AND ".join([f'"{k}"' for k in keyword_list])
-        return f'site:linkedin.com/in/ {formatted_keywords} {country}'
+        return f'site:linkedin.com/in/ {formatted_keywords} {params.country}'
     try:
         logger.info("Building combined payload query.")
-        queries = [
-            # General query
-            {
-            "q": params.keywords, 
-            "gl": params.country, 
-            "page": params.pages
-            },
-            # 2. The LinkedIn Targeted Search (People)
-            {
+        query = {
+
                 "q": linkedin_query_builder(), 
                 "gl": params.country,
-                "page": params.pages
-            }
-        ]
+                "page": params.page
+            } 
         logger.info("Combined payload query built successfully.")
     except Exception as e:
         logger.error("Error building combined payload query: %s", e)
@@ -51,7 +44,7 @@ def serper_search(keywords: str = "latest technology trends", country: str = "ke
     
     try:
         logger.info("Preparing Serper search payload.")
-        payload = json.dumps(queries)
+        payload = json.dumps(query)
         logger.info("Serper search payload prepared: %s", payload)
     except Exception as e:
         logger.error("Error preparing Serper search payload: %s", e)
@@ -82,39 +75,24 @@ def serper_search(keywords: str = "latest technology trends", country: str = "ke
 
         logger.info("Serper search request executed successfully.")
         json_data = json.loads(raw_data)
-        warm_data = json_data[1].get("organic", [])
-        return serper_formatter(warm_data)
-        # return warm_data
+        warm_data = json_data.get("organic", [])
+        try:
+            logger.info("Generating roles and responsibilities for retrieved profiles.")
+            discovered_roles = await profile_discovery(profile_snippets=warm_data)
+
+            logger.info("Successfully discovered roles and responsibilities.")
+        except Exception as e:
+            logger.error("Error during profile discovery: %s", e)
+            raise Exception(f"Failed to discover roles for generated leads: {e}")        
+
+        return discovered_roles
     except Exception as e:
         logger.error("Error executing Serper search request: %s", e)
         raise Exception(f"Failed to execute Serper search request: {e}")
     finally:
         google.close()
-
-def serper_formatter(raw_data):
-    formatted_results = []
-    def name_formatter(complex_str):
-        complex_str = complex_str.replace("-", "*", 1)
-        name = complex_str.split("*")[0].strip()
-        role = complex_str.split("*")[1].strip() if "*" in complex_str else "Not specified"
-        return {"name": name, "role": role}
-
-    for profile in raw_data:
-        try:
-            name_role = name_formatter(profile.get("title", ""))
-            formatted_profile = {
-                "name": name_role["name"],
-                "current_role": name_role["role"],
-                "linkedin_url": profile.get("link", ""),
-                "snippet": profile.get("snippet", ""),
-            }
-            formatted_results.append(formatted_profile)
-        except Exception as e:
-            logger.error("Error formatting profile data: %s", e)
-            continue
-    return formatted_results
-
     
 
 if __name__ == "__main__":
-    print(serper_search(keywords="Jkuat Mechanical Engineering", country="ke", pages=2))
+    import asyncio
+    print(asyncio.run(serper_search(keywords="Jkuat Mechanical Engineering", country="ke", page=2)))

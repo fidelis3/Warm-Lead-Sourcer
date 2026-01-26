@@ -37,7 +37,7 @@ class IGPostScrape(BaseModel):
 class SerperSearchResult(BaseModel):
     keywords: str
     country: str
-    pages: int
+    page: int
 
 
 class UserInput(BaseModel):
@@ -45,4 +45,8 @@ class UserInput(BaseModel):
     keywords: Optional[str] = None
     country: Optional[str] = None
     pages: Optional[int] = 1
+
+class ErrorHandling(BaseModel):
+    error_code: int
+    error_message: str
 

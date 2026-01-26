@@ -18,3 +18,33 @@ score_prompt = ChatPromptTemplate.from_template(
 
    Return the result as a single integer score ONLY. For example: 7"""
 )
+
+role_extraction_prompt = ChatPromptTemplate.from_template("""
+You are a highly precise Data Extraction Assistant. Your task is to process a list of LinkedIn search results and extract structured, clean profile data.
+
+
+1. **Name Normalization**: Remove prefixes (Dr., Eng.) or suffixes (| LinkedIn, - Kenya).
+2. **Current Role Reconstruction**: Many roles are truncated (ending in "..."). Use the "Snippet" field to find the full job title or current employer.
+3. **Role vs. Education**: If the snippet describes a student or recent graduate, the role should reflect that (e.g., "Mechanical Engineering Student").
+4. **Clean Output**: Return only valid JSON.
+
+### INPUT DATA
+{profile_snippet}
+
+### JSON FORMAT
+Return a JSON array of objects with these keys:
+- "name": Normal full name that existed earlier
+- "raw_name": Full name without extra tags.
+- "current_role": Clean, non-truncated professional title.
+
+YOU ARE ONLY REQUIRED TO RETURN JSON OUTPUT IN THE FOLLOWING FORMAT:
+[
+{{
+    "name": "Full Name without extra tags",
+    "raw_name": "Full Name inclusives of tags and titles",
+    "current_role": "Clean, non-truncated professional title. Company name if possible but separated from role using '|'. If the person is a student or recent graduate, indicate the institution in the role. Any mention of an institution should be included here.",
+    "linkedin_url": "Full LinkedIn URL"
+}},
+] 
+ENSURE THE OUTPUT IS VALID JSON.
+DO NOT RETURN ANYTHING ELSE OTHER THAN THE JSON OUTPUT.""")
