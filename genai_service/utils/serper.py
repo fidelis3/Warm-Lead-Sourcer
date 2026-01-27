@@ -76,14 +76,10 @@ async def serper_search(keywords: str = "latest technology trends", country: str
         logger.info("Serper search request executed successfully.")
         json_data = json.loads(raw_data)
         warm_data = json_data.get("organic", [])
-        try:
-            logger.info("Generating roles and responsibilities for retrieved profiles.")
-            discovered_roles = await profile_discovery(profile_snippets=warm_data)
+        logger.info("Generating roles and responsibilities for retrieved profiles.")
+        discovered_roles = await profile_discovery(profile_snippets=warm_data)
 
-            logger.info("Successfully discovered roles and responsibilities.")
-        except Exception as e:
-            logger.error("Error during profile discovery: %s", e)
-            raise Exception(f"Failed to discover roles for generated leads: {e}")        
+        logger.info("Successfully discovered roles and responsibilities.")
 
         return discovered_roles
     except Exception as e:
