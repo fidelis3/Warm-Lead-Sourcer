@@ -43,8 +43,14 @@ async def source_leads(user_input: UserInput) -> List[Dict]:
             logger.warning("Pipeline returned no leads for link=%s", user_input.post_url)
             return []
         return leads
-    except HTTPException:
-        raise
+    except ValueError as ve:
+        logger.warning(f"Validation Error: {ve}")
+        raise HTTPException(status_code=400, detail=str(ve))
+    
+    except NotImplementedError as nie:
+        logger.info(f"Feature Error: {nie}")
+        raise HTTPException(status_code=501, detail=str(nie)) 
+
     except Exception as e:
-        logger.exception("Failed to run pipeline")
-        raise HTTPException(status_code=500, detail="Error processing the lead sourcing pipeline.")
+        logger.exception("Unexpected error during lead sourcing")
+        raise HTTPException(status_code=500, detail="An unexpected error occurred.")
