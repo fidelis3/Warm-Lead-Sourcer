@@ -77,7 +77,9 @@ Description: Converts a list of JSON profiles into a downloadable CSV fiole.
 Description: Verify the server is running
 
 ## Project Structure
-.
+
+```text
+genai_service
 ├── config/                 # AI System Instructions
 │   └── prompts.py          # Prompts for Scoring, Sourcing, and Cleaning
 ├── core/                   # Core Application Logic
