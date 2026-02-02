@@ -67,6 +67,7 @@ Request Body:
   "country": "Kenya"
   "page": "1"
 }
+```
 
 2. Export to CSV(POST)
 Endpoint: /export/csv
