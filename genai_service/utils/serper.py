@@ -20,7 +20,7 @@ class SerperAPIError(Exception):
 
 async def serper_search(keywords: str = "latest technology trends", country: str = "ke", page: int = 1) -> list[dict]:
     # Input Validation
-    if not keywords:
+    if not keywords or not keywords.strip():
         logger.warning("Search attempted with empty keywords.")
         return []
 
@@ -110,7 +110,7 @@ async def serper_search(keywords: str = "latest technology trends", country: str
         raise
     except Exception as e:
         logger.error("Error executing Serper search request: %s", e)
-        raise Exception(f"Failed to execute Serper search request: {e}")
+        raise SerperAPIError(f"Failed to execute Serper search request: {e}") from e
     finally:
         if conn:
             conn.close()
