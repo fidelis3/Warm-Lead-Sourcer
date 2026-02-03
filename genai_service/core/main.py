@@ -3,13 +3,21 @@ from ..models.schemas import GeneralProfile, UserInput
 from fastapi import FastAPI, HTTPException
 import logging
 from typing import List, Dict
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+import csv
+import io
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO,
                     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+Limiter = Limiter(key_func=get_remote_address)
 
 try:
     app = FastAPI(title="Warm Lead Sourcer", version="2.0", description="A service for sourcing warm leads.")
+    app.state.limiter = Limiter
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
     logger.info("FastAPI application initialized successfully.")
 except Exception as e:
     logger.error(f"Failed to initialize FastAPI application: {e}")
@@ -54,3 +62,23 @@ async def source_leads(user_input: UserInput) -> List[Dict]:
     except Exception as e:
         logger.exception("Unexpected error during lead sourcing")
         raise HTTPException(status_code=500, detail="An unexpected error occurred.")
+    
+    #csv export logic
+    @app.post("/export/csv")
+    async def export_leads(profiles: List[GeneralProfile]):
+        if not profiles:
+            raise HTTPException(status_code=400, detail="No profiles provided for export")
+        output = io.StringIO()
+        headers = profiles[0].model_dump().keys()
+        writer = csv.DictWriter(output, fieldnames=headers)
+        writer.writeheader()
+        for profile in profiles:
+            row = profile.model_dump()
+            for key, value in row.items():
+                if isinstance(value, (list,dict)):
+                    row[key] = str(value)
+                    writer.writerow(row)
+                    output.seek(0)
+                    return StreamingResponse(iter([output.getvalue()]),
+                                             media_type="text/csv",
+                                             headers={"Content-Disposition": "attachment; filename=leads.csv"})
