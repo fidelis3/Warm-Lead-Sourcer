@@ -3,6 +3,8 @@ from langchain_groq import ChatGroq
 from dotenv import load_dotenv
 import logging
 import os
+import asyncio
+import re  
 from ..config.prompts import platform_prompt, score_prompt, role_extraction_prompt
 
 load_dotenv()
@@ -46,41 +48,84 @@ except Exception as e:
 
 
 async def platform_detection(link: str) -> str:
-    """Detect platform from URL"""
+    """Detect platform from URL with error safety."""
     try:
+        if not link:
+            return "unknown"
         platform_chain = platform_prompt | core_model | StrOutputParser()
         platform = await platform_chain.ainvoke({"link": link})
         logger.info("Detected platform: %s", platform)
         return platform.lower().strip()
     except Exception as e:
-        logger.exception("Error detecting platform: %s", e)
+        logger.error("Error detecting platform: %s", e)
         return "unknown"
 
 
 async def calculate_score(profile: dict, criteria: list) -> int:
-    """Calculate lead score (1-10) using LangChain chain"""
+    """Calculate lead score (1-10) using bounded regex extraction."""
     try:        
         score_chain = score_prompt | core_model | StrOutputParser()
         result = await score_chain.ainvoke({
             "lead_information": str(profile),
             "keywords": criteria
         })
-        return result.strip()
+        
+        # Regex to capture "10" or single digit 1-9 surrounded by word boundaries
+        match = re.search(r"\b(10|[1-9])\b", result)
+
+        if match:
+            score = int(match.group(1))
+        else:
+            logger.warning(f"Could not parse valid score token from AI response: '{result}'. Defaulting to 5.")
+            score = 5
+        
+        return max(1, min(10, score))
+        
     except Exception as e:
         logger.exception(f"Error calculating score: {e}")
         return 5
 
-async def profile_discovery(profile_snippets: list[dict]) -> dict | str:
-    """Extract roles and responsibilities from profile snippet"""
-    try:
-        role_chain = role_extraction_prompt | core_model | JsonOutputParser()
-        logger.info(f"Extracting roles from {len(profile_snippets)} profile snippets...")
-        result = await role_chain.ainvoke({
-            "profile_snippet": profile_snippets
-        })
-        return result
-    except Exception as e:
-        logger.exception(f"Error extracting roles: {e}")
-        return "Role not found"
+async def profile_discovery(profile_snippets: list[dict]) -> list[dict]:
+    """
+    Extract roles from profile snippets using batch processing.
+    Now processes safely in chunks to avoid Token Limit errors.
+    """
+    if not profile_snippets:
+        return []
 
+    batch_size = 5  # Process 5 profiles at a time 
+    all_results = []
     
+    # Create batches
+    batches = [profile_snippets[i:i + batch_size] for i in range(0, len(profile_snippets), batch_size)]
+    
+    logger.info(f"Processing {len(profile_snippets)} profiles in {len(batches)} batches.")
+
+    async def process_batch(batch, batch_index):
+        """Helper to process a single batch"""
+        try:
+            role_chain = role_extraction_prompt | core_model | JsonOutputParser()
+            result = await role_chain.ainvoke({"profile_snippet": batch})
+            
+            # Ensure result is a list
+            if isinstance(result, list):
+                return result
+            elif isinstance(result, dict):
+                return [result]
+            else:
+                logger.warning(f"Batch {batch_index}: Unexpected return type from AI.")
+                return []
+                
+        except Exception as e:
+            logger.error(f"Error processing batch {batch_index}: {e}")
+            return [] # Return empty list on failure so other batches survive
+
+    # Run all batches concurrently
+    tasks = [process_batch(batch, idx) for idx, batch in enumerate(batches)]
+    batch_results = await asyncio.gather(*tasks)
+
+    # Flatten the list of lists
+    for batch_result in batch_results:
+        all_results.extend(batch_result)
+
+    return all_results
