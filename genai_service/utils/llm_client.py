@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 import logging
 import os
 import asyncio
+import re  
 from ..config.prompts import platform_prompt, score_prompt, role_extraction_prompt
 
 load_dotenv()
@@ -61,21 +62,25 @@ async def platform_detection(link: str) -> str:
 
 
 async def calculate_score(profile: dict, criteria: list) -> int:
-    """Calculate lead score (1-10) with type safety."""
+    """Calculate lead score (1-10) using bounded regex extraction."""
     try:        
         score_chain = score_prompt | core_model | StrOutputParser()
         result = await score_chain.ainvoke({
             "lead_information": str(profile),
             "keywords": criteria
         })
-        clean_result = ''.join(filter(str.isdigit, result.strip()))
-        score = int(clean_result) if clean_result else 5
+        
+        # Regex to capture "10" or single digit 1-9 surrounded by word boundaries
+        match = re.search(r"\b(10|[1-9])\b", result)
+
+        if match:
+            score = int(match.group(1))
+        else:
+            logger.warning(f"Could not parse valid score token from AI response: '{result}'. Defaulting to 5.")
+            score = 5
         
         return max(1, min(10, score))
         
-    except ValueError:
-        logger.warning(f"Could not parse score integer from AI response. Defaulting to 5.")
-        return 5
     except Exception as e:
         logger.exception(f"Error calculating score: {e}")
         return 5
@@ -88,7 +93,7 @@ async def profile_discovery(profile_snippets: list[dict]) -> list[dict]:
     if not profile_snippets:
         return []
 
-    batch_size = 5  # Process 5 profiles at a time to keep prompts small
+    batch_size = 5  # Process 5 profiles at a time 
     all_results = []
     
     # Create batches
@@ -113,7 +118,7 @@ async def profile_discovery(profile_snippets: list[dict]) -> list[dict]:
                 
         except Exception as e:
             logger.error(f"Error processing batch {batch_index}: {e}")
-            return [] 
+            return [] # Return empty list on failure so other batches survive
 
     # Run all batches concurrently
     tasks = [process_batch(batch, idx) for idx, batch in enumerate(batches)]
