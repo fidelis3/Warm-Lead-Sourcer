@@ -22,7 +22,7 @@ export default function ExtractPage() {
   })
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
   const [postId, setPostId] = useState<string | null>(null)
-  const [error, setError] = useState("")
+
   const router = useRouter()
 
   // Handle auto-start from URL parameters
@@ -45,14 +45,14 @@ export default function ExtractPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError("")
+
 
     // Simple URL validation - checks if it's a valid URL format
     const urlPattern = /^https?:\/\/.+\..+/
     const isValidUrl = urlPattern.test(url)
 
     if (!isValidUrl) {
-      setStep("error")
+      toast.error("Please enter a valid LinkedIn post URL")
       return
     }
 
@@ -72,7 +72,6 @@ export default function ExtractPage() {
       console.error('Failed to start extraction:', err)
       const errorMessage = err instanceof Error ? err.message : 'Failed to start extraction'
       toast.error(errorMessage)
-      setError(errorMessage)
       setStep("error")
     }
   }
@@ -107,7 +106,6 @@ export default function ExtractPage() {
           if (response.status === 'failed') {
             const errorMsg = response.errorMessage || 'Processing failed. Please try again.'
             toast.error(errorMsg)
-            setError(errorMsg)
             setStep('error')
             return
           }
@@ -157,11 +155,7 @@ export default function ExtractPage() {
                   Please enter a valid public post URL.
                 </h1>
 
-                {error && (
-                  <div className="p-4 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg">
-                    <p className="text-red-700 dark:text-red-400 text-center text-sm sm:text-base">{error}</p>
-                  </div>
-                )}
+
 
                 <Input
                   type="text"
@@ -267,11 +261,7 @@ export default function ExtractPage() {
         <div className="text-center max-w-lg mx-auto">
           <h1 className="text-4xl sm:text-6xl lg:text-8xl font-bold text-black dark:text-white mb-8 sm:mb-12">Error</h1>
           
-          {error && (
-            <div className="mb-6 sm:mb-8 p-4 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg">
-              <p className="text-red-700 dark:text-red-400 text-sm sm:text-base">{error}</p>
-            </div>
-          )}
+
 
           {/* Sad Face */}
           <div className="mb-6 sm:mb-8">
@@ -297,7 +287,7 @@ export default function ExtractPage() {
           </div>
 
           <p className="text-lg sm:text-xl text-gray-800 dark:text-gray-200 mb-6 sm:mb-8 px-4 leading-relaxed">
-            {error || "Hmm, that doesn't look like a public post url link."}
+            Hmm, that doesn't look like a public post url link.
           </p>
 
           <button

@@ -2,7 +2,6 @@
 import '@testing-library/jest-dom'
 
 // Extend Jest matchers
-// eslint-disable-next-line @typescript-eslint/no-namespace
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace jest {

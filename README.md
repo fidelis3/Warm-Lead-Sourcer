@@ -4,558 +4,218 @@
 
 Extract and enrich engagement data from LinkedIn posts to identify and qualify warm leads with proven interest in your content.
 
-
-
 ## 🎯 Overview
 
 Warm Lead Sourcer automates the process of:
 1. **Extracting** comments and reactions from LinkedIn posts
 2. **Enriching** user profiles with education, experience, and contact data
 3. **Scoring** leads based on relevance and data completeness
-4. **Exporting** qualified leads as CSV/XLSX files
+4. **Exporting** qualified leads as CSV files
 
----
+## ✨ Key Features
 
-## 🔄 How the Scraper Works
-
-### **Step-by-Step Process:**
-
-#### **1. Post Submission**
-- User submits a LinkedIn post URL via frontend (`/input-url`)
-- URL is validated and saved to MongoDB with status `pending`
-- Post URN (activity ID) is extracted: `7402045266020794369`
-
-#### **2. Post Processing**
-```
-POST /api/posts/:postId/process
-```
-- **Status**: `pending` → `processing`
-- Calls LinkedIn RapidAPI to extract:
-  - Post content and author info
-  - Metrics (likes, comments, shares count)
-
-#### **3. Engagement Extraction**
-```
-GET https://linkdapi-best-unofficial-linkedin-api.p.rapidapi.com/api/v1/posts/comments?urn={postUrn}
-```
-- Fetches all **commenters** from the post
-- Each commenter provides:
-  - Name, URN, profile URL, headline
-- **Parallel processing**: All engagements processed simultaneously
-
-#### **4. Profile Enrichment**
-For each commenter/reactor:
-```
-GET /api/v1/profile/education?urn={userUrn}
-GET /api/v1/profile/experience?urn={userUrn}
-```
-- Fetches detailed profile data:
-  - **Education**: University, degree, field of study
-  - **Experience**: Company, role, duration
-  - **Location**: City, country
-
-#### **5. Lead Scoring**
-```typescript
-calculateMatchScore(profile):
-  Base: 10 points
-  + 15 if headline exists
-  + 30 if education exists
-  + 10 if degree specified
-  + 25 if experience exists
-  + 10 if country exists
-  + 10 if city exists
-  = Max 100 points
-```
-
-#### **6. Email Generation**
-```typescript
-generateEmailGuess(profile):
-  firstName.lastName@universityDomain
-  Example: john.doe@stanford.edu
-```
-- Maps universities to email domains
-- Only generates if university is in database
-
-#### **7. Data Storage**
-- Each lead saved to MongoDB `leads` collection
-- Deduplicated by URN per post
-- Status updated: `processing` → `completed`
-
-#### **8. Export**
-```
-GET /api/leads/export?postId={postId}&format=csv
-```
-- Filters leads by criteria (score, location, etc.)
-- Generates CSV/XLSX with all lead data
-- Downloads instantly
+- **Automated Lead Generation** - Extract engaged users from LinkedIn posts
+- **Profile Enrichment** - Gather education, experience, and contact information
+- **Smart Scoring** - Rate leads based on profile completeness and relevance
+- **Email Generation** - Generate university-based email addresses
+- **Advanced Filtering** - Filter by location, university, company, and score
+- **Secure Authentication** - JWT-based auth with Google OAuth integration
+- **Real-time Processing** - Live status updates during extraction
 
 ---
 
 ## 🚀 Quick Start
 
-### **Prerequisites**
+### Prerequisites
 - Node.js 18+ and npm
-- MongoDB running locally or connection URI
+- MongoDB (local or cloud)
 - RapidAPI account with LinkdAPI subscription
-- LinkedIn post URLs to test
 
-### **1. Clone Repository**
+### Installation
 
+1. **Clone the repository**
 ```bash
 git clone https://github.com/DirectEd-Development/Warm-Lead-Sourcer.git
 cd Warm-Lead-Sourcer
 ```
 
-### **2. Install All Dependencies**
-
+2. **Install dependencies**
 ```bash
 npm install
 ```
 
-This installs dependencies for both frontend and backend.
+3. **Configure environment variables**
 
-### **3. Environment Setup**
-
-Create `.env` file in `backend/` directory:
-
+Backend `.env` file:
 ```env
-# MongoDB
 MONGODB_URI=mongodb://localhost:27017/warm-lead-sourcer
-
-# RapidAPI LinkedIn
 RAPIDAPI_KEY=your-rapidapi-key-here
 RAPIDAPI_HOST=linkdapi-best-unofficial-linkedin-api.p.rapidapi.com
-
-# JWT Authentication
 JWT_SECRET=your-super-secret-jwt-key
-
-# Google OAuth (optional)
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-```
-
-Create `.env.local` file in `frontend/` directory:
-
-```env
-NEXT_PUBLIC_API_URL=http://localhost:3001
-```
-
-### **4. Start Development Servers**
-
-**Option A: Start All Services**
-```bash
-npm run dev
-```
-
-**Option B: Start Individually**
-```bash
-# Terminal 1 - Backend
-cd backend
-npm run start:dev
-
-# Terminal 2 - Frontend
-cd frontend
-npm run dev
-```
-
-
----
-
-## 🎮 Operating the Scraper
-
-### **Method 1: Via Frontend UI**
-
-1. **Navigate to Input Page**
-   ```
-   https://warm-lead-sourcer-zsum.vercel.app//input-url
-   ```
-
-2. **Paste LinkedIn Post URL**
-   ```
-   https://www.linkedin.com/posts/username_activity-.......
-   ```
-
-3. **Click "START EXTRACTION"**
-   - Status will show: Validating → Reading interactions → Collecting profiles → Enriching data
-
-4. **View Results**
-   - Leads displayed in table
-   - Filter by score, location, university
-   - Export to CSV/XLSX
-
-### **Method 2: Via API Directly**
-
-#### **Step 1: Create Post Entry**
-```bash
-curl -X POST http://localhost:3001/api/posts \
-  -H "Content-Type: application/json" \
-  -d '{
-    "url": "https://www.linkedin.com/posts/username_activity-7402045266020794369-Hb47",
-    "platform": "linkedin"
-  }'
-```
-
-**Response:**
-```json
-{
-  "_id": "507f1f77bcf86cd799439011",
-  "url": "https://www.linkedin.com/posts/...",
-  "status": "pending"
-}
-```
-
-#### **Step 2: Process the Post**
-```bash
-curl -X POST http://localhost:3001/api/posts/507f1f77bcf86cd799439011/process
-```
-
-**Response:**
-```json
-{
-  "message": "Post processing started",
-  "postId": "507f1f77bcf86cd799439011"
-}
-```
-
-#### **Step 3: Check Processing Status**
-```bash
-curl http://localhost:3001/api/posts/507f1f77bcf86cd799439011
-```
-
-**Response:**
-```json
-{
-  "_id": "507f1f77bcf86cd799439011",
-  "status": "completed",
-  "totalEngagements": 45,
-  "processedEngagements": 42,
-  "processedAt": "2025-12-08T10:30:00Z"
-}
-```
-
-#### **Step 4: Get Leads**
-```bash
-curl "http://localhost:3001/api/leads?postId=507f1f77bcf86cd799439011&minScore=50"
-```
-
-**Response:**
-```json
-{
-  "leads": [
-    {
-      "name": "John Doe",
-      "headline": "Data Scientist at Google",
-      "education": [{
-        "institution": "Stanford University",
-        "degree": "MS Computer Science"
-      }],
-      "matchScore": 85,
-      "guessedEmail": "john.doe@stanford.edu"
-    }
-  ],
-  "total": 42
-}
-```
-
-#### **Step 5: Export Leads**
-```bash
-curl "http://localhost:3001/api/leads/export?postId=507f1f77bcf86cd799439011&format=csv" \
-  --output leads.csv
-```
-
-
-
-
-
-## 🏗️ Architecture
-
-
-### **Directory Structure**
-```
-├── backend/              # NestJS API server
-│   ├── src/modules/
-│   │   ├── auth/        # JWT + Google OAuth
-│   │   ├── users/       # User management
-│   │   ├── posts/       # Post CRUD operations
-│   │   ├── scraping/    # LinkedIn scraping logic
-│   │   │   ├── scraping.service.ts       # Main orchestration
-│   │   │   └── providers/
-│   │   │       └── linkedin.provider.ts  # RapidAPI integration
-│   │   ├── leads/       # Lead filtering & management
-│   │   └── export/      # CSV/XLSX generation
-│   └── test/            # Unit & integration tests
-├── frontend/            # Next.js web application
-│   ├── app/
-│   │   ├── page.tsx            # Landing page
-│   │   ├── input-url/          # URL input page
-│   │   ├── signup/             # User registration
-│   │   └── login/              # User login
-│   └── components/      # Reusable UI components
-└── genai_service/       # Python AI service 
-    |-api
-    |-config/
-    |-core
-    
-- ```
-
----
-
-## ⚙️ Configuration
-
-### **Required Environment Variables**
-
-**Backend (`backend/.env`):**
-```env
-# Database
-MONGODB_URI=mongodb://localhost:27017/warm-lead-sourcer
-
-# RapidAPI Configuration
-RAPIDAPI_KEY=your rapid api key
-RAPIDAPI_HOST=your rapid api host
-
-# Authentication
-JWT_SECRET=your-super-secret-jwt-key-change-this
-
-# OAuth 
-GOOGLE_CLIENT_ID=your-google-oauth-client-id
-GOOGLE_CLIENT_SECRET=your-google-oauth-client-secret
-
-# Server Configuration
 PORT=3001
-NODE_ENV=development
 ```
 
-**Frontend (`frontend/.env.local`):**
+Frontend `.env.local` file:
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:3001
 ```
 
-## 📡 API Endpoints
-
-### **Posts**
-```
-POST   /api/posts                    Create new post entry
-GET    /api/posts/:id                Get post details
-POST   /api/posts/:id/process        Start processing
-DELETE /api/posts/:id                Delete post
-POST   /api/posts/batch              Batch create posts
-```
-
-### **Leads**
-```
-GET    /api/leads                    Get all leads (with filters)
-GET    /api/leads/:id                Get lead by ID
-GET    /api/leads/export             Export leads to CSV/XLSX
-DELETE /api/leads/:id                Delete lead
-```
-
-**Query Parameters for `/api/leads`:**
-- `postId` - Filter by post ID
-- `minScore` - Minimum match score (0-100)
-- `maxScore` - Maximum match score
-- `country` - Filter by country
-- `city` - Filter by city
-- `university` - Filter by university name
-- `company` - Filter by current company
-
-### **Authentication**
-```
-POST   /api/auth/register            Create new user account
-POST   /api/auth/login               Login with email/password
-POST   /api/auth/google              Google OAuth login
-GET    /api/auth/me                  Get current user info
+4. **Start the application**
+```bash
+npm run dev
 ```
 
 ---
 
-## 🧪 Testing
+## 🎮 How to Use
 
-### **Unit Tests**
-```bash
-cd backend
-npm run test
-```
+### Web Interface
 
-### **Test Coverage**
-```bash
-npm run test:cov
-```
+1. **Sign up** at the application homepage
+2. **Navigate to** the input page
+3. **Paste a LinkedIn post URL**
+   ```
+   https://www.linkedin.com/posts/username_activity-123456789
+   ```
+4. **Click "START EXTRACTION"** and wait for processing
+5. **View results** in the dashboard with filtering options
+6. **Export leads** as CSV for your CRM
 
-### **Integration Tests**
-```bash
-npm run test:e2e
-```
-
-### **Manual API Testing**
-
-Use the example LinkedIn post:
+### Sample LinkedIn Post
 ```
 https://www.linkedin.com/posts/munashe-masomeke-803475217_dataabrscience-dataabranalytics-activity-7402045266020794369-Hb47
 ```
 
-Test with Postman or curl following the [Operating the Scraper](#operating-the-scraper) section.
-
 ---
-
-```
-
-### **Problem: Rate limit exceeded**
-**Solution:**
-- Upgrade RapidAPI plan
-- Process posts in smaller batches
-- Add delays between requests
-
----
-
-### Full Test Suite
-```bash
-npm run test:all         
-npm run test:coverage    
-```
-
-### Manual Testing
-```bash
-npm run test:backend      
-```
-
-## 📋 Features Implemented
-
-### ✅ Core Functionality
-- **LinkedIn Post Processing** - Extract post content and metrics
-- **Engagement Extraction** - Get comments and reactions from posts
-- **Profile Enrichment** - Fetch education, experience, and skills data
-- **Lead Generation** - Create qualified leads with match scoring
-- **Email Guessing** - Generate university-based email addresses
-- **Filtering System** - Filter leads by location, university, role
-- **User Authentication** - JWT-based auth with Google OAuth
-
-### ✅ Technical Implementation
-- **Modular Architecture** - Clean separation of concerns
-- **TypeScript** - Full type safety throughout
-- **Test Coverage** - 40%+ unit test coverage
-- **Error Handling** - Comprehensive error management
-- **Rate Limiting** - API request throttling
-- **Data Validation** - Input validation with class-validator
 
 ## 🏗️ Architecture
 
+### Tech Stack
+- **Frontend**: Next.js 14, TypeScript, Tailwind CSS
+- **Backend**: NestJS, TypeScript, MongoDB
+- **Authentication**: JWT, Google OAuth
+- **APIs**: LinkedIn RapidAPI integration
+
+### Project Structure
 ```
 ├── backend/              # NestJS API server
 │   ├── src/modules/
 │   │   ├── auth/        # Authentication & authorization
 │   │   ├── users/       # User management
 │   │   ├── posts/       # Post processing
-│   │   ├── scraping/    # LinkedIn API integration
+│   │   ├── scraping/    # LinkedIn data extraction
 │   │   ├── leads/       # Lead management & filtering
-│   │   └── export/      # CSV/XLSX export (ready)
+│   │   └── export/      # CSV export functionality
 │   └── test/            # Unit & integration tests
 ├── frontend/            # Next.js web application
-├── genai_service/       # Python AI service (future)
-└── docs/               # Documentation
+│   ├── app/             # App router pages
+│   ├── components/      # Reusable UI components
+│   └── contexts/        # React contexts
+└── genai_service/       # Future AI enhancements
 ```
 
-## 🔧 Configuration
+---
 
-### Required Environment Variables
+## 📡 API Reference
 
-**Backend (.env):**
-```env
-MONGODB_URI=mongodb://localhost:27017/warm-lead-sourcer
-RAPIDAPI_KEY=your-rapidapi-key
-JWT_SECRET=your-jwt-secret
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-```
+### Core Endpoints
 
-**Frontend (.env.local):**
-```env
-NEXT_PUBLIC_API_URL= https://warm-lead-sourcer-2.onrender.com
-```
+**Posts**
+- `POST /api/posts` - Submit LinkedIn URL for processing
+- `GET /api/posts/:id` - Get processing status
 
-## 📊 API Endpoints
+**Leads**
+- `GET /api/leads` - Retrieve leads with filtering
+- `GET /api/leads/export` - Export leads as CSV
 
-### Authentication
-- `POST /users/register` - User registration
-- `POST /users/login` - User login
-- `GET /auth/google` - Google OAuth login
+**Authentication**
+- `POST /api/auth/register` - User registration
+- `POST /api/auth/login` - User login
+- `GET /api/auth/google` - Google OAuth
 
-### Core Features
-- `POST /posts` - Submit LinkedIn URL for processing
-- `GET /posts` - List user's posts
-- `GET /posts/:id` - Get post details
-- `GET /leads/post/:postId` - Get generated leads
-- `GET /leads/post/:postId/stats` - Get lead statistics
+### Query Parameters
+- `postId` - Filter by specific post
+- `minScore` - Minimum match score (0-100)
+- `country` - Filter by country
+- `university` - Filter by university
+- `company` - Filter by company
 
-### Filtering
-- `GET /leads/post/:postId?country=US&university=Stanford&role=Engineer`
+---
 
-## 🧪 Testing Guide
+## 🧪 Testing
 
-### 1. Unit Test
+### Run Tests
 ```bash
-cd backend
-npm test               
-npm run test:cov        
+# Backend unit tests
+cd backend && npm test
+
+# Test coverage
+npm run test:cov
+
+# Integration tests
+npm run test:e2e
 ```
 
-**Expected Results:**
-- ✅ 20+ tests passing
-- ✅ 40%+ code coverage
-- ✅ All core services tested
-
-
-### 3. Manual API Testing
-
-**Sample Request:**
+### Build for Production
 ```bash
-curl -X POST http://localhost:5000/posts \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -d '{"url": "https://www.linkedin.com/feed/update/urn:li:activity:......"}'
+npm run build:all
 ```
 
-## 📈 Performance
-
-### Benchmarks
-- **Post Processing**: 2-5 seconds
-- **Profile Enrichment**: 2 seconds per profile
-- **Lead Generation**: 20-30 seconds for 5 leads
-- **API Response**: <500ms average
-
-### Rate Limits
-- **RapidAPI Free**: 100 requests/month
-- **Processing Speed**: 3-5 profiles/minute
-- **Recommended Batch**: 5-10 leads per test
-
-
-```
-
-## 📝 Development Workflow
-
-### Adding New Features
-1. Write unit tests first
-2. Implement feature
-3. Run integration tests
-4. Update documentation
-
-### Code Quality
-- TypeScript strict mode
-- ESLint + Prettier
-- 40%+ test coverage required
-- All tests must pass
+---
 
 ## 🚀 Deployment
 
-### Production Checklist
-- [ ] Environment variables configured
-- [ ] Database connection tested
-- [ ] All tests passing
-- [ ] Build successful
-- [ ] Rate limits configured
+### Environment Setup
+Ensure all environment variables are configured for production:
+- Database connection string
+- RapidAPI credentials
+- JWT secret
+- OAuth credentials (if using Google login)
 
 ### Build Commands
 ```bash
-npm run build:all     
-npm run test:all        
+# Build all services
+npm run build:all
+
+# Run tests
+npm run test:all
 ```
 
+---
+
+## 📊 CSV Export Fields
+
+The exported CSV includes:
+- Full Name
+- Professional Headline  
+- LinkedIn Profile URL
+- Engagement Type & Content
+- Match Score (0-100)
+- Guessed Email Address
+- University/Institution
+- Degree & Field of Study
+- Export Date
+
+---
+
+## 🔒 Privacy & Compliance
+
+- Only processes publicly available LinkedIn data
+- Respects platform Terms of Service
+- Secure data handling with automatic cleanup
+- GDPR-compliant data processing
+
+---
+
+## 📞 Support
+
+For questions or issues:
+- Create an issue on GitHub
+- Check the documentation
+- Review the API reference
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License.

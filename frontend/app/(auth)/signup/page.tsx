@@ -17,16 +17,14 @@ export default function SignupPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
-  const [error, setError] = useState("")
+
   const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    setError("")
 
-   
     if (password !== confirmPassword) {
-      setError("Passwords do not match")
+      toast.error("Passwords do not match")
       return
     }
 
@@ -48,7 +46,6 @@ export default function SignupPage() {
       router.push(`/verify-email?email=${encodeURIComponent(email)}`)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Registration failed. Please try again."
-      setError(errorMessage)
       toast.error(errorMessage)
     } finally {
       setIsLoading(false)
@@ -75,11 +72,7 @@ export default function SignupPage() {
               </p>
             </div>
 
-            {error && (
-              <div className="rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-4 py-3 text-sm text-red-800 dark:text-red-400">
-                {error}
-              </div>
-            )}
+
 
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* First Name Field */}
@@ -209,14 +202,7 @@ export default function SignupPage() {
                 disabled={isLoading}
                 className="w-full rounded-xl bg-gradient-to-r from-purple-600 to-purple-700 py-4 text-base font-semibold text-white hover:from-purple-700 hover:to-purple-800 shadow-lg hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-[1.02] disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-lg"
               >
-                {isLoading ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    Creating account...
-                  </span>
-                ) : (
-                  "Create Account"
-                )}
+                {isLoading ? "Creating account..." : "Create Account"}
               </Button>
             </form>
 
