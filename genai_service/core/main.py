@@ -1,5 +1,5 @@
-from .extraction import MainPipeline
-from ..models.schemas import GeneralProfile, UserInput
+from core.extraction import MainPipeline
+from models.schemas import GeneralProfile, UserInput
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import logging
