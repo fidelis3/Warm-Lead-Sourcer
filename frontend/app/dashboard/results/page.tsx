@@ -29,6 +29,7 @@ interface Post {
   createdAt?: string
   processedAt?: string
   processingTime?: number
+  status?: string
 }
 
 function ResultsPageContent() {
@@ -42,29 +43,61 @@ function ResultsPageContent() {
 
 
   useEffect(() => {
-    const fetchData = async () => {
+    let intervalId: ReturnType<typeof setInterval> | undefined
+    let isMounted = true
+    let attempts = 0
+    const maxAttempts = 40
+    const pollIntervalMs = 3000
+
+    const fetchData = async (isPolling = false) => {
       try {
         const [postData, leadsData] = await Promise.all([
           api.get(`/posts/${postId}`),
           api.get(`/leads?postId=${postId}`)
         ])
+
+        if (!isMounted) return
+
         setPost(postData)
         setLeads(Array.isArray(leadsData) ? leadsData : [])
-        console.log('Post data:', postData)
-        console.log('Leads data:', leadsData)
-        console.log('Sample lead with all fields:', leadsData[0])
+
+        if (postData?.status && (postData.status === 'completed' || postData.status === 'failed')) {
+          if (intervalId) {
+            clearInterval(intervalId)
+            intervalId = undefined
+          }
+        }
       } catch (error) {
         console.error('Error loading results:', error)
-        toast.error('Failed to load results')
+        if (!isPolling) {
+          toast.error('Failed to load results')
+        }
       } finally {
-        setLoading(false)
+        if (!isPolling && isMounted) {
+          setLoading(false)
+        }
       }
     }
 
     if (postId) {
       void fetchData()
+
+      intervalId = setInterval(() => {
+        attempts += 1
+        if (attempts > maxAttempts) {
+          if (intervalId) clearInterval(intervalId)
+          intervalId = undefined
+          return
+        }
+        void fetchData(true)
+      }, pollIntervalMs)
     } else {
       setLoading(false)
+    }
+
+    return () => {
+      isMounted = false
+      if (intervalId) clearInterval(intervalId)
     }
   }, [postId])
 
