@@ -5,7 +5,7 @@ import logging
 import os
 import asyncio
 import re  
-from ..config.prompts import platform_prompt, score_prompt, role_extraction_prompt
+from config.prompts import platform_prompt, score_prompt, role_extraction_prompt
 
 load_dotenv()
 logger = logging.getLogger(__name__)
