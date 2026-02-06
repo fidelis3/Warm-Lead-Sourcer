@@ -31,6 +31,7 @@ async def apify_search(keywords: str, max_items: int = 10, locations: list = Non
         logger.warning("No keywords provided for Apify search")
         return
     
+    # Correction: Initialize locations list
     if locations is None:
         locations = []
     
@@ -38,14 +39,14 @@ async def apify_search(keywords: str, max_items: int = 10, locations: list = Non
         "profileScraperMode": "Full",
         "search": keywords,
         "maxItems": max_items,
-        "locations": locations,
+        "locations": locations, # Correction: Pass locations list strictly
         "startPage": 1,
     }
     
     apify_client = ApifyClientAsync(APIFY_TOKEN)
     
     try:
-        logger.info(f"Starting Async Apify actor for: '{keywords}'")
+        logger.info(f"Starting Async Apify actor for: '{keywords}' with locations: {locations}")
         
         run = await apify_client.actor("qXMa8kADnUQdmz18G").call(run_input=run_input)
         
@@ -124,13 +125,14 @@ def warm_lead_extractor(profiles: list) -> list[dict]:
     return cleaned_profiles
 
 
-async def search_and_extract(keywords: str, max_items: int = 10) -> list[dict]:
+async def search_and_extract(keywords: str, max_items: int = 10, locations: list = None) -> list[dict]:
     """
     Combined search and extraction function for the pipeline.
     """
     try:
         profiles = []
-        async for profile in apify_search(keywords, max_items):
+        # Correction: Pass locations down to apify_search
+        async for profile in apify_search(keywords, max_items, locations=locations):
             profiles.append(profile)
         return warm_lead_extractor(profiles)
     except ApifyError as e:
