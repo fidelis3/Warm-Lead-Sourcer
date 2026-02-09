@@ -28,6 +28,7 @@ try:
     if not groq_api_key:
         raise ValueError("GROQ_API_KEY is not set in environment variables")
     
+    
     general_model = ChatGroq(model=general_model_name, api_key=groq_api_key)
     logger.info(f"Successfully set up general model: {general_model_name}")
 except Exception as e:

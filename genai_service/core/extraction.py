@@ -2,6 +2,7 @@ import logging
 import re
 from typing import Optional, List
 from utils.caching import get_cached_results, save_to_cache
+from fastapi import HTTPException
 
 from models.schemas import GeneralProfile
 from utils.llm_client import platform_detection, calculate_score 
@@ -65,33 +66,38 @@ class MainPipeline():
                 logger.info(f"Apify returned {len(rich_profiles)} profiles. Processing & Scoring...")
 
                 processed_results = []
-                
-                for profile in rich_profiles:
-                    email = email_generator(profile)
-                    
-                    score = await calculate_score(profile, keywords.split())
-                    
-                    final_profile = GeneralProfile(
-                        name=profile.get("name"),
-                        linkedin_url=profile.get("linkedin_url"),
-                        current_role=profile.get("current_role"),
-                        company=profile.get("company"),
-                        education=profile.get("education"),
-                        country=profile.get("country"),
-                        email=email,
-                        score=score
-                    )
-                    processed_results.append(final_profile)
-                    # save results to cache
-
-                logger.info(" Saving results to cache.")
-                save_to_cache(keywords, country, page, processed_results)
-                logger.info("Data processing complete.")
-                return processed_results
-
             except Exception as e:
-                logger.error(f"Error during Apify extraction/processing: {e}")
-                raise
+                error_str = str(e)
+                logger.error(f"Pipeline Error: {error_str}")
+                if "Daily search limit reached" in error_str:
+                    raise HTTPException(status_code=429, detail="Daily search limit reached, Please upgrade.")
+                if "Too many requests" in error_str:
+                    raise HTTPException(status_code=429, detail="Too many requests to apify,please retry after some time.")
+                #default to 500 for unknown errors
+                raise HTTPException(status_code=500, detail=f"Internal Server Error: {error_str}")
+            
+            for profile in rich_profiles:
+                email = email_generator(profile)
+                
+                score = await calculate_score(profile, keywords.split())
+                
+                final_profile = GeneralProfile(
+                    name=profile.get("name"),
+                    linkedin_url=profile.get("linkedin_url"),
+                    current_role=profile.get("current_role"),
+                    company=profile.get("company"),
+                    education=profile.get("education"),
+                    country=profile.get("country"),
+                    email=email,
+                    score=score
+                )
+                processed_results.append(final_profile)
+                # save results to cache
+
+            logger.info(" Saving results to cache.")
+            save_to_cache(keywords, country, page, processed_results)
+            logger.info("Data processing complete.")
+            return processed_results
 
         else:
             logger.warning("No valid input provided for lead sourcing.")

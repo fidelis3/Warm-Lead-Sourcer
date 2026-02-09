@@ -3,8 +3,6 @@ import logging
 import re
 import csv
 
-
-
 logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":
@@ -13,23 +11,108 @@ if __name__ == "__main__":
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
 
+def clean_company_name(company: str) -> str:
+    """
+    Turns 'Tesla Motors, Inc.' into 'tesla'.
+    Removes legal suffixes and spaces to create a domain stub.
+    """
+    if not company or company.lower() in ["not available", "unknown", "self-employed"]:
+        return "" 
+    
+    # 1. Lowercase and strip
+    clean = company.lower().strip()
+    
+    # 2. Remove common legal suffixes
+    suffixes = [
+        r"\s+inc\.?$", r"\s+llc\.?$", r"\s+ltd\.?$", r"\s+pvt\.?$", 
+        r"\s+corp\.?$", r"\s+corporation$", r"\s+company$", r"\s+co\.?$",
+        r"\s+group$"
+    ]
+    
+    for suffix in suffixes:
+        clean = re.sub(suffix, "", clean)
+        
+    # 3. Remove generic terms/spaces for the domain part
+    clean = re.sub(r"[^a-z0-9]", "", clean)
+    
+    return clean
+
+def clean_university_name(university: str) -> str:
+    """
+    Turns 'Harvard University' into 'harvard'.
+    """
+    if not university:
+        return ""
+    
+    clean = university.lower().strip()
+    # Remove common edu words to shorten the domain
+    clean = re.sub(r"university|college|institute|of|technology", "", clean)
+    clean = re.sub(r"[^a-z0-9]", "", clean)
+    return clean
+
 def email_generator(profile):
-        try:
-            logger.info("Generating email for profile: %s", profile["name"])
-            first_name, last_name = profile["name"].lower().split(" ", 1)
-            if " " in last_name:  
-                last_name = last_name.split()[-1]
-            education = profile.get("education", "")
-            if education:
-                university = str(education).replace(" ", "").lower()
-                email = f"{first_name}.{last_name}@{university}.edu"
-            else:
-                email = f"{first_name}.{last_name}@systemgenerated.edu"
-            logger.info("Email generated successfully.")
+    """
+    Generates an email with the following priority:
+    1. Company Email (firstname.lastname@company.com)
+    2. University Email (firstname.lastname@university.edu)
+    3. Fallback (firstname.lastname@gmail.com)
+    """
+    try:
+        logger.info("Generating email for profile: %s", profile.get("name", "Unknown"))
+        
+        # --- 1. Setup Name Parts ---
+        full_name = profile.get("name", "").strip()
+        if not full_name:
+            return "unknown@unknown.com"
+            
+        parts = full_name.split()
+        first_name = parts[0].lower()
+        last_name = parts[-1].lower() if len(parts) > 1 else ""
+        
+        # Clean names (remove non-alpha chars like O'Connor -> oconnor)
+        first_name = re.sub(r"[^a-z]", "", first_name)
+        last_name = re.sub(r"[^a-z]", "", last_name)
+        
+        # Construct user part (e.g. "john.doe")
+        if last_name:
+            user_part = f"{first_name}.{last_name}"
+        else:
+            user_part = first_name
+
+        # --- 2. Try Company Email ---
+        company = profile.get("company", "")
+        # Fallback to current role if company key is missing
+        if not company:
+            current_role = profile.get("current_role", "")
+            if " at " in current_role:
+                company = current_role.split(" at ")[-1]
+            elif "@" in current_role:
+                company = current_role.split("@")[-1]
+        
+        domain_stub = clean_company_name(company)
+        
+        if domain_stub and len(domain_stub) > 1:
+            email = f"{user_part}@{domain_stub}.com"
+            logger.info(f"Generated Company Email: {email}")
             return email
-        except Exception as e:
-            logger.exception("Error generating email: %s", e)
-            return "noemail@generated.edu"
+
+        # --- 3. Try University Email ---
+        education = profile.get("education", "")
+        uni_stub = clean_university_name(str(education))
+        
+        if uni_stub and len(uni_stub) > 1:
+            email = f"{user_part}@{uni_stub}.edu"
+            logger.info(f"Generated University Email: {email}")
+            return email
+
+        # --- 4. Fallback ---
+        email = f"{user_part}@gmail.com"
+        logger.info(f"Generated Fallback Email: {email}")
+        return email
+
+    except Exception as e:
+        logger.exception("Error generating email: %s", e)
+        return "error@generation.com"
         
     
 async def filter_profiles(profiles, keywords: list[str]):
@@ -38,15 +121,24 @@ async def filter_profiles(profiles, keywords: list[str]):
     try:
         logger.info("Starting profile filtering process.")
         for profile in profiles:
-            raw_score = await calculate_score(profile=profile, criteria=f" Keywords: {keywords}. Snippet: {profile.get('snippet', '')}")
+            # We pass the snippet if available, or construct a simple text representation
+            snippet_text = profile.get('snippet', '') or f"{profile.get('current_role', '')} {profile.get('about', '')}"
+            
+            raw_score = await calculate_score(
+                profile=profile, 
+                criteria=f" Keywords: {keywords}. Snippet: {snippet_text}"
+            )
+            
             score_match = re.search(r'\b([1-9]|10)\b', str(raw_score))
             if score_match:
                 calculated_score = int(score_match.group(0))
             else:
                 logger.warning("No valid score found in response: %s. Defaulting to 5.", raw_score)
                 calculated_score = 5
+            
             logger.info("Profile: %s, Score: %d", profile.get("name", ""), calculated_score)
             profile["score"] = calculated_score
+            
             if calculated_score >= threshold:
                 filtered_profiles.append(profile)
         logger.info("Profile filtering completed successfully.")
@@ -85,8 +177,6 @@ async def data_pipeline(raw_data, keywords=None):
         raise
     
     
-
-    
 async def export(profile_list):
     file_name = "leads.csv"
     try:
@@ -108,4 +198,4 @@ async def export(profile_list):
          return file_name
     except Exception as e:
             logger.exception("Error creating CSV file: %s", e)
-            return None  
+            return None

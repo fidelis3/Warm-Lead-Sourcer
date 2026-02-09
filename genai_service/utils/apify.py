@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 import logging
 import os
 import asyncio
-
+from apify_client.errors import ApifyApiError
 load_dotenv()
 
 logger = logging.getLogger(__name__)
@@ -39,7 +39,7 @@ async def apify_search(keywords: str, max_items: int = 10, locations: list = Non
         "profileScraperMode": "Full",
         "search": keywords,
         "maxItems": max_items,
-        "locations": locations, # Correction: Pass locations list strictly
+        "locations": locations, 
         "startPage": 1,
     }
     
@@ -64,8 +64,16 @@ async def apify_search(keywords: str, max_items: int = 10, locations: list = Non
         logger.info(f"Retrieved {profile_count} profiles")
             
     except Exception as e:
-        logger.error(f"Apify search failed: {e}")
-        raise ApifyError(f"Failed to search LinkedIn profiles: {e}")
+        error_msg = str(e).lower()
+        if "quota" in error_msg or "memory limit" in error_msg:
+            logger.critical("APIFY QUOTA EXCEEDED")
+            raise ApifyError("Apify quota exceeded. Please check your usage and limits.")
+        elif "rate limit" in error_msg:
+            logger.warning("APIFY RATE LIMIT HIT.")
+            raise ApifyError("Too many requests to Apify, Please retry after some time.")
+        else: 
+            logger.error(f"Apify search failed: {e}")
+            raise ApifyError(f"Failed to search LinkedIn profiles: {e}")
     
 
 def warm_lead_extractor(profiles: list) -> list[dict]:
