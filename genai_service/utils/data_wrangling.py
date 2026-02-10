@@ -19,10 +19,8 @@ def clean_company_name(company: str) -> str:
     if not company or company.lower() in ["not available", "unknown", "self-employed"]:
         return "" 
     
-    # 1. Lowercase and strip
     clean = company.lower().strip()
     
-    # 2. Remove common legal suffixes
     suffixes = [
         r"\s+inc\.?$", r"\s+llc\.?$", r"\s+ltd\.?$", r"\s+pvt\.?$", 
         r"\s+corp\.?$", r"\s+corporation$", r"\s+company$", r"\s+co\.?$",
@@ -32,7 +30,7 @@ def clean_company_name(company: str) -> str:
     for suffix in suffixes:
         clean = re.sub(suffix, "", clean)
         
-    # 3. Remove generic terms/spaces for the domain part
+    #  Remove generic terms/spaces for the domain part
     clean = re.sub(r"[^a-z0-9]", "", clean)
     
     return clean
@@ -45,8 +43,8 @@ def clean_university_name(university: str) -> str:
         return ""
     
     clean = university.lower().strip()
-    # Remove common edu words to shorten the domain
-    clean = re.sub(r"university|college|institute|of|technology", "", clean)
+    clean = re.sub(r"\b(?:university|college|institute|of|technology)\b", "", clean)
+    clean = re.sub(r"\s+", " ", clean).strip()
     clean = re.sub(r"[^a-z0-9]", "", clean)
     return clean
 
@@ -60,7 +58,6 @@ def email_generator(profile):
     try:
         logger.info("Generating email for profile: %s", profile.get("name", "Unknown"))
         
-        # --- 1. Setup Name Parts ---
         full_name = profile.get("name", "").strip()
         if not full_name:
             return "unknown@unknown.com"
@@ -69,19 +66,15 @@ def email_generator(profile):
         first_name = parts[0].lower()
         last_name = parts[-1].lower() if len(parts) > 1 else ""
         
-        # Clean names (remove non-alpha chars like O'Connor -> oconnor)
         first_name = re.sub(r"[^a-z]", "", first_name)
         last_name = re.sub(r"[^a-z]", "", last_name)
         
-        # Construct user part (e.g. "john.doe")
         if last_name:
             user_part = f"{first_name}.{last_name}"
         else:
             user_part = first_name
 
-        # --- 2. Try Company Email ---
         company = profile.get("company", "")
-        # Fallback to current role if company key is missing
         if not company:
             current_role = profile.get("current_role", "")
             if " at " in current_role:
@@ -96,7 +89,6 @@ def email_generator(profile):
             logger.info(f"Generated Company Email: {email}")
             return email
 
-        # --- 3. Try University Email ---
         education = profile.get("education", "")
         uni_stub = clean_university_name(str(education))
         
@@ -105,7 +97,6 @@ def email_generator(profile):
             logger.info(f"Generated University Email: {email}")
             return email
 
-        # --- 4. Fallback ---
         email = f"{user_part}@gmail.com"
         logger.info(f"Generated Fallback Email: {email}")
         return email
@@ -121,7 +112,6 @@ async def filter_profiles(profiles, keywords: list[str]):
     try:
         logger.info("Starting profile filtering process.")
         for profile in profiles:
-            # We pass the snippet if available, or construct a simple text representation
             snippet_text = profile.get('snippet', '') or f"{profile.get('current_role', '')} {profile.get('about', '')}"
             
             raw_score = await calculate_score(
