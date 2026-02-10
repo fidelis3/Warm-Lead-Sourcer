@@ -20,21 +20,6 @@ class GeneratedExtractorProfile(BaseModel):
     profiles: List[GeneralProfile]
 
 
-class IGComment(BaseModel):
-    username: str
-    text: str
-    timestamp: str
-
-
-class IGPostScrape(BaseModel):
-    url: str
-    owner_username: str
-    likes_count: int
-    comments_count: int
-    top_comments: List[IGComment]
-    image_description: Optional[str] = None
-
-
 class SerperSearchResult(BaseModel):
     keywords: str
     country: str

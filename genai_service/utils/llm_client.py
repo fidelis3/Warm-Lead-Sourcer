@@ -5,7 +5,7 @@ import logging
 import os
 import asyncio
 import re  
-from config.prompts import platform_prompt, score_prompt, role_extraction_prompt
+from ..config.prompts import platform_prompt, score_prompt, role_extraction_prompt
 
 load_dotenv()
 logger = logging.getLogger(__name__)
@@ -21,38 +21,33 @@ DEFAULT_CORE_MODEL = "llama-3.3-70b-versatile"
 DEFAULT_FALLBACK_MODEL ="llama-3.1-8b-instant"
 
 try:
-    logger.info("Setting up main Groq LLM model.")
+    logger.info("Setting up main Groq LLM models.")
     general_model_name = os.getenv("GENERAL_MODEL", DEFAULT_GENERAL_MODEL)
+    core_model_name = os.getenv("CORE_MODEL", DEFAULT_CORE_MODEL)
     groq_api_key = os.getenv("GROQ_API_KEY")
     
     if not groq_api_key:
         raise ValueError("GROQ_API_KEY is not set in environment variables")
     
-    
     general_model = ChatGroq(model=general_model_name, api_key=groq_api_key)
+    core_model = ChatGroq(model=core_model_name, api_key=groq_api_key)
+    logger.info(f"Successfully set up core logic model: {core_model_name}")
     logger.info(f"Successfully set up general model: {general_model_name}")
 except Exception as e:
-    logger.exception("Failed to set up general model. Switching to Fallback model")
+    logger.exception("Failed to set up general models. Switching to Fallback model")
     fallback_model_name = os.getenv("FALLBACK_MODEL", DEFAULT_FALLBACK_MODEL)
     general_model = ChatGroq(model=fallback_model_name, api_key=os.getenv("GROQ_API_KEY"))
     logger.info(f"Using fallback model: {fallback_model_name}")
 
-try:
-    logger.info("Setting up Groq LLM models.")
-    core_model_name = os.getenv("CORE_MODEL", DEFAULT_CORE_MODEL)
-    core_model = ChatGroq(model=core_model_name, api_key=os.getenv("GROQ_API_KEY"))
-    logger.info(f"Successfully set up core logic model: {core_model_name}")
-except Exception as e:
-    logger.exception("Failed to set up core logic model. Switching to general model")
-    core_model = general_model
-    logger.info("Using general model as core model")
 
+class LLMError(Exception):
+    pass
 
-async def platform_detection(link: str) -> str:
+async def platform_detection(link: str) -> str: # To determine whether it will remain or be done away with
     """Detect platform from URL with error safety."""
     try:
         if not link:
-            return "unknown"
+            raise LLMError("No link provided for platform detection.")
         platform_chain = platform_prompt | core_model | StrOutputParser()
         platform = await platform_chain.ainvoke({"link": link})
         logger.info("Detected platform: %s", platform)
@@ -70,8 +65,6 @@ async def calculate_score(profile: dict, criteria: list) -> int:
             "lead_information": str(profile),
             "keywords": criteria
         })
-        
-        # Regex to capture "10" or single digit 1-9 surrounded by word boundaries
         match = re.search(r"\b(10|[1-9])\b", result)
 
         if match:

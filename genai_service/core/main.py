@@ -1,5 +1,5 @@
-from core.extraction import MainPipeline
-from models.schemas import GeneralProfile, UserInput, EnrichmentRequest
+from .extraction import MainPipeline
+from ..models.schemas import GeneralProfile, UserInput, EnrichmentRequest
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -74,7 +74,7 @@ async def enrich_leads(request: EnrichmentRequest):
         return result
     except Exception as e:
         logger.error(f"Enrichment error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="An unexpected error occurred during enrichment.")
 
 @app.post("/export/csv")
 async def export_leads(profiles: List[GeneralProfile]):

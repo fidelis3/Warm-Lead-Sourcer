@@ -1,4 +1,4 @@
-from utils.llm_client import calculate_score
+from ..utils.llm_client import calculate_score
 import logging
 import re
 import csv
@@ -11,100 +11,117 @@ if __name__ == "__main__":
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
 
-def clean_company_name(company: str) -> str:
-    """
-    Turns 'Tesla Motors, Inc.' into 'tesla'.
-    Removes legal suffixes and spaces to create a domain stub.
-    """
-    if not company or company.lower() in ["not available", "unknown", "self-employed"]:
-        return "" 
+# def clean_company_name(company: str) -> str:
+#     """
+#     Turns 'Tesla Motors, Inc.' into 'tesla'.
+#     Removes legal suffixes and spaces to create a domain stub.
+#     """
+#     if not company or company.lower() in ["not available", "unknown", "self-employed"]:
+#         return "" 
     
-    clean = company.lower().strip()
+#     clean = company.lower().strip()
     
-    suffixes = [
-        r"\s+inc\.?$", r"\s+llc\.?$", r"\s+ltd\.?$", r"\s+pvt\.?$", 
-        r"\s+corp\.?$", r"\s+corporation$", r"\s+company$", r"\s+co\.?$",
-        r"\s+group$"
-    ]
+#     suffixes = [
+#         r"\s+inc\.?$", r"\s+llc\.?$", r"\s+ltd\.?$", r"\s+pvt\.?$", 
+#         r"\s+corp\.?$", r"\s+corporation$", r"\s+company$", r"\s+co\.?$",
+#         r"\s+group$"
+#     ]
     
-    for suffix in suffixes:
-        clean = re.sub(suffix, "", clean)
+#     for suffix in suffixes:
+#         clean = re.sub(suffix, "", clean)
         
-    #  Remove generic terms/spaces for the domain part
-    clean = re.sub(r"[^a-z0-9]", "", clean)
+#     #  Remove generic terms/spaces for the domain part
+#     clean = re.sub(r"[^a-z0-9]", "", clean)
     
-    return clean
+#     return clean
 
-def clean_university_name(university: str) -> str:
-    """
-    Turns 'Harvard University' into 'harvard'.
-    """
-    if not university:
-        return ""
+# def clean_university_name(university: str) -> str:
+#     """
+#     Turns 'Harvard University' into 'harvard'.
+#     """
+#     if not university:
+#         return ""
     
-    clean = university.lower().strip()
-    clean = re.sub(r"\b(?:university|college|institute|of|technology)\b", "", clean)
-    clean = re.sub(r"\s+", " ", clean).strip()
-    clean = re.sub(r"[^a-z0-9]", "", clean)
-    return clean
+#     clean = university.lower().strip()
+#     clean = re.sub(r"\b(?:university|college|institute|of|technology)\b", "", clean)
+#     clean = re.sub(r"\s+", " ", clean).strip()
+#     clean = re.sub(r"[^a-z0-9]", "", clean)
+#     return clean
 
-def email_generator(profile):
-    """
-    Generates an email with the following priority:
-    1. Company Email (firstname.lastname@company.com)
-    2. University Email (firstname.lastname@university.edu)
-    3. Fallback (firstname.lastname@gmail.com)
-    """
-    try:
-        logger.info("Generating email for profile: %s", profile.get("name", "Unknown"))
+# def email_generator(profile):
+#     """
+#     Generates an email with the following priority:
+#     1. Company Email (firstname.lastname@company.com)
+#     2. University Email (firstname.lastname@university.edu)
+#     3. Fallback (firstname.lastname@gmail.com)
+#     """
+#     try:
+#         logger.info("Generating email for profile: %s", profile.get("name", "Unknown"))
         
-        full_name = profile.get("name", "").strip()
-        if not full_name:
-            return "unknown@unknown.com"
+#         full_name = profile.get("name", "").strip()
+#         if not full_name:
+#             return "unknown@unknown.com"
             
-        parts = full_name.split()
-        first_name = parts[0].lower()
-        last_name = parts[-1].lower() if len(parts) > 1 else ""
+#         parts = full_name.split()
+#         first_name = parts[0].lower()
+#         last_name = parts[-1].lower() if len(parts) > 1 else ""
         
-        first_name = re.sub(r"[^a-z]", "", first_name)
-        last_name = re.sub(r"[^a-z]", "", last_name)
+#         first_name = re.sub(r"[^a-z]", "", first_name)
+#         last_name = re.sub(r"[^a-z]", "", last_name)
         
-        if last_name:
-            user_part = f"{first_name}.{last_name}"
-        else:
-            user_part = first_name
+#         if last_name:
+#             user_part = f"{first_name}.{last_name}"
+#         else:
+#             user_part = first_name
 
-        company = profile.get("company", "")
-        if not company:
-            current_role = profile.get("current_role", "")
-            if " at " in current_role:
-                company = current_role.split(" at ")[-1]
-            elif "@" in current_role:
-                company = current_role.split("@")[-1]
+#         company = profile.get("company", "")
+#         if not company:
+#             current_role = profile.get("current_role", "")
+#             if " at " in current_role:
+#                 company = current_role.split(" at ")[-1]
+#             elif "@" in current_role:
+#                 company = current_role.split("@")[-1]
         
-        domain_stub = clean_company_name(company)
+#         domain_stub = clean_company_name(company)
         
-        if domain_stub and len(domain_stub) > 1:
-            email = f"{user_part}@{domain_stub}.com"
-            logger.info(f"Generated Company Email: {email}")
-            return email
+#         if domain_stub and len(domain_stub) > 1:
+#             email = f"{user_part}@{domain_stub}.com"
+#             logger.info(f"Generated Company Email: {email}")
+#             return email
 
+#         education = profile.get("education", "")
+#         uni_stub = clean_university_name(str(education))
+        
+#         if uni_stub and len(uni_stub) > 1:
+#             email = f"{user_part}@{uni_stub}.edu"
+#             logger.info(f"Generated University Email: {email}")
+#             return email
+
+#         email = f"{user_part}@gmail.com"
+#         logger.info(f"Generated Fallback Email: {email}")
+#         return email
+
+#     except Exception as e:
+#         logger.exception("Error generating email: %s", e)
+#         return "error@generation.com"
+# 
+def email_generator(profile):
+    try:
+        logger.info("Generating email for profile: %s", profile["name"])
+        first_name, last_name = profile["name"].lower().split(" ", 1)
+        if " " in last_name:  
+            last_name = last_name.split()[-1]
         education = profile.get("education", "")
-        uni_stub = clean_university_name(str(education))
-        
-        if uni_stub and len(uni_stub) > 1:
-            email = f"{user_part}@{uni_stub}.edu"
-            logger.info(f"Generated University Email: {email}")
-            return email
-
-        email = f"{user_part}@gmail.com"
-        logger.info(f"Generated Fallback Email: {email}")
+        if education:
+            university = str(education).replace(" ", "").lower()
+            email = f"{first_name}.{last_name}@{university}.edu"
+        else:
+            email = f"{first_name}.{last_name}@systemgenerated.edu"
+        logger.info("Email generated successfully.")
         return email
-
     except Exception as e:
         logger.exception("Error generating email: %s", e)
-        return "error@generation.com"
-        
+        return "noemail@generated.edu"
     
 async def filter_profiles(profiles, keywords: list[str]):
     filtered_profiles = []
@@ -112,7 +129,7 @@ async def filter_profiles(profiles, keywords: list[str]):
     try:
         logger.info("Starting profile filtering process.")
         for profile in profiles:
-            snippet_text = profile.get('snippet', '') or f"{profile.get('current_role', '')} {profile.get('about', '')}"
+            snippet_text = profile.get('summary_profile', '') or f"{profile.get('current_role', '')} {profile.get('about', '')}"
             
             raw_score = await calculate_score(
                 profile=profile, 

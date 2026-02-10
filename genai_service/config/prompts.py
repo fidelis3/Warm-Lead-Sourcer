@@ -38,6 +38,7 @@ Return a JSON array of objects with these keys:
 - "current_role": Clean, non-truncated professional title.
 - "company": Extract the company name if available (e.g. "Safaricom"). Return null if not found.
 - "education": Extract the university or school name. Return null if not found.
+- "degree": Extract the degree name if available (e.g. "Bachelor of Science in Computer Science"). Return null if not found.                                               
 - "country": Infer the country based on the location (e.g. "Kenya"). Return null if not found.
 - "linkedin_url": The provided LinkedIn URL.
 
@@ -49,6 +50,7 @@ YOU ARE ONLY REQUIRED TO RETURN JSON OUTPUT IN THE FOLLOWING FORMAT:
     "current_role": "Software Engineer",
     "company": "Company Name",
     "education": "University Name",
+    "degree": "Degree name"
     "country": "Kenya",
     "linkedin_url": "https://www.linkedin.com/in/..."
 }}
