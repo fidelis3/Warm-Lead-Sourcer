@@ -1,6 +1,10 @@
 from typing import Optional, List
 from pydantic import BaseModel
 
+class EnrichmentRequest(BaseModel):
+    links: List[str]
+
+
 class GeneralProfile(BaseModel):
     """General profile structure for existing code"""
     name: str

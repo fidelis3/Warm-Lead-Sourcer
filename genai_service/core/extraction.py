@@ -4,8 +4,8 @@ from typing import Optional, List
 
 from models.schemas import GeneralProfile
 from utils.llm_client import platform_detection, calculate_score 
-from utils.apify import search_and_extract
-from utils.data_wrangling import email_generator
+from utils.apify import search_and_extract, enrich_profiles, warm_lead_extractor
+from utils.data_wrangling import email_generator, export
 from utils.caching import get_cached_results, save_to_cache
 
 logger = logging.getLogger(__name__)
@@ -44,11 +44,9 @@ class MainPipeline():
         elif keywords and not link:
             logger.info("No link provided. Running Apify search based on keywords.")
             
-            # CORRECTION: Check cache explicitly for None instead of using truthiness
             logger.info("Checking cache for existing results...")
             cached_data = get_cached_results(keywords, country, page)
             
-            # Explicitly check for None - empty list [] is a valid cache hit!
             if cached_data is not None:
                 logger.info(f"Cache HIT! Found {len(cached_data)} cached profiles.")
                 return [GeneralProfile(**p) for p in cached_data]
@@ -72,12 +70,15 @@ class MainPipeline():
                 for profile in rich_profiles:
                     email = email_generator(profile)
                     
-                    score = await calculate_score(profile, keywords.split())
+                    # Ensure keywords is a list
+                    kw_list = keywords.split() if isinstance(keywords, str) else keywords
+                    score = await calculate_score(profile, kw_list)
                     
                     final_profile = GeneralProfile(
                         name=profile.get("name"),
                         linkedin_url=profile.get("linkedin_url"),
                         current_role=profile.get("current_role"),
+                        company=profile.get("company"),
                         education=profile.get("education"),
                         country=profile.get("country"),
                         email=email,
@@ -86,6 +87,10 @@ class MainPipeline():
                     processed_results.append(final_profile)
 
                 logger.info("Data processing completed")
+                
+                # Cache the results before returning
+                save_to_cache(keywords, country, page, [p.model_dump() for p in processed_results])
+                
                 return processed_results
 
             except Exception as e:
@@ -95,3 +100,49 @@ class MainPipeline():
         else:
             logger.warning("No valid input provided for lead sourcing.")
             raise ValueError("Either a link or keywords must be provided for lead sourcing.")
+
+    # --- NEW METHOD FOR INTEGRATION ---
+    async def run_enrichment(self, links: List[str]):
+        """
+        Takes specific LinkedIn URLs (from Partner), scrapes details, adds emails.
+        """
+        logger.info(f"Starting Enrichment Pipeline for {len(links)} links")
+        
+        # 1. Fetch Raw Data
+        raw_profiles_generator = []
+        async for profile in enrich_profiles(links):
+            raw_profiles_generator.append(profile)
+            
+        # 2. Clean Data using existing extractor
+        cleaned_profiles = warm_lead_extractor(raw_profiles_generator)
+        
+        if not cleaned_profiles:
+            return {"error": "Could not scrape details."}
+
+        # 3. Add Value (Email & CSV)
+        processed_results = []
+        for profile in cleaned_profiles:
+            email = email_generator(profile)
+            
+            final_profile = GeneralProfile(
+                name=profile.get("name"),
+                linkedin_url=profile.get("linkedin_url"),
+                current_role=profile.get("current_role"),
+                company=profile.get("company"),
+                education=profile.get("education"),
+                country=profile.get("country"),
+                email=email,
+                score=10 # Default score for warm leads
+            )
+            processed_results.append(final_profile)
+
+        # 4. Generate CSV
+        # Assuming export() is async and returns a filename or buffer
+        # You might need to adjust based on your utils/data_wrangling.py
+        csv_file = await export([p.model_dump() for p in processed_results])
+        
+        return {
+            "count": len(processed_results),
+            "data": processed_results,
+            "csv_file": csv_file
+        }
