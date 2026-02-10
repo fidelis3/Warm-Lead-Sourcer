@@ -78,7 +78,6 @@ class MainPipeline():
                         name=profile.get("name"),
                         linkedin_url=profile.get("linkedin_url"),
                         current_role=profile.get("current_role"),
-                        company=profile.get("company"),
                         education=profile.get("education"),
                         country=profile.get("country"),
                         email=email,
