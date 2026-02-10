@@ -1,6 +1,8 @@
 import logging
 import re
 from typing import Optional, List
+from utils.caching import get_cached_results, save_to_cache
+from fastapi import HTTPException
 
 from models.schemas import GeneralProfile
 from utils.llm_client import platform_detection, calculate_score 
@@ -41,12 +43,21 @@ class MainPipeline():
                 raise ValueError("The provided link does not belong to a supported platform.")
             
         elif keywords and not link:
-            logger.info("No link provided. Running Apify search based on keywords.")
+            logger.info("No link provided. Checking cache.")
+            cached_data = get_cached_results(keywords, country, page)
+            if cached_data:
+                #if found in cache, convert JSON back to GeneralProfile objects and return!
+                logger.info("Cache hit. Returning cached results.")
+                return [GeneralProfile(**p) for p in cached_data]
+            #if no cache, run apify
+            logger.info("cache miss. Running Apify search ...")
             try:
-                search_query = f"{keywords} {country}" if country else keywords
-                logger.info(f"Searching Apify for: {search_query}")
+                search_keywords = keywords
+                search_locations = [country] if country else []
                 
-                rich_profiles = await search_and_extract(keywords=search_query, max_items=5)
+                logger.info(f"Searching Apify for: {search_keywords} in {search_locations}")
+                
+                rich_profiles = await search_and_extract(keywords=search_keywords, locations=search_locations, max_items=5)
                 
                 if not rich_profiles:
                     logger.warning("Apify found 0 profiles.")
@@ -55,30 +66,38 @@ class MainPipeline():
                 logger.info(f"Apify returned {len(rich_profiles)} profiles. Processing & Scoring...")
 
                 processed_results = []
-                
-                for profile in rich_profiles:
-                    email = email_generator(profile)
-                    
-                    score = await calculate_score(profile, keywords.split())
-                    
-                    final_profile = GeneralProfile(
-                        name=profile.get("name"),
-                        linkedin_url=profile.get("linkedin_url"),
-                        current_role=profile.get("current_role"),
-                        company=profile.get("company"),
-                        education=profile.get("education"),
-                        country=profile.get("country"),
-                        email=email,
-                        score=score
-                    )
-                    processed_results.append(final_profile)
-
-                logger.info("Data processing completed")
-                return processed_results
-
             except Exception as e:
-                logger.error(f"Error during Apify extraction/processing: {e}")
-                raise
+                error_str = str(e)
+                logger.error(f"Pipeline Error: {error_str}")
+                if "Daily search limit reached" in error_str:
+                    raise HTTPException(status_code=429, detail="Daily search limit reached, Please upgrade.")
+                if "Too many requests" in error_str:
+                    raise HTTPException(status_code=429, detail="Too many requests to apify,please retry after some time.")
+                #default to 500 for unknown errors
+                raise HTTPException(status_code=500, detail=f"Internal Server Error: {error_str}")
+            
+            for profile in rich_profiles:
+                email = email_generator(profile)
+                
+                score = await calculate_score(profile, keywords.split())
+                
+                final_profile = GeneralProfile(
+                    name=profile.get("name"),
+                    linkedin_url=profile.get("linkedin_url"),
+                    current_role=profile.get("current_role"),
+                    company=profile.get("company"),
+                    education=profile.get("education"),
+                    country=profile.get("country"),
+                    email=email,
+                    score=score
+                )
+                processed_results.append(final_profile)
+                # save results to cache
+
+            logger.info(" Saving results to cache.")
+            save_to_cache(keywords, country, page, processed_results)
+            logger.info("Data processing complete.")
+            return processed_results
 
         else:
             logger.warning("No valid input provided for lead sourcing.")

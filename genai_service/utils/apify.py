@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 import logging
 import os
 import asyncio
-
+from apify_client.errors import ApifyApiError
 load_dotenv()
 
 logger = logging.getLogger(__name__)
@@ -31,6 +31,7 @@ async def apify_search(keywords: str, max_items: int = 10, locations: list = Non
         logger.warning("No keywords provided for Apify search")
         return
     
+    # Correction: Initialize locations list
     if locations is None:
         locations = []
     
@@ -38,14 +39,14 @@ async def apify_search(keywords: str, max_items: int = 10, locations: list = Non
         "profileScraperMode": "Full",
         "search": keywords,
         "maxItems": max_items,
-        "locations": locations,
+        "locations": locations, 
         "startPage": 1,
     }
     
     apify_client = ApifyClientAsync(APIFY_TOKEN)
     
     try:
-        logger.info(f"Starting Async Apify actor for: '{keywords}'")
+        logger.info(f"Starting Async Apify actor for: '{keywords}' with locations: {locations}")
         
         run = await apify_client.actor("qXMa8kADnUQdmz18G").call(run_input=run_input)
         
@@ -63,8 +64,16 @@ async def apify_search(keywords: str, max_items: int = 10, locations: list = Non
         logger.info(f"Retrieved {profile_count} profiles")
             
     except Exception as e:
-        logger.error(f"Apify search failed: {e}")
-        raise ApifyError(f"Failed to search LinkedIn profiles: {e}")
+        error_msg = str(e).lower()
+        if "quota" in error_msg or "memory limit" in error_msg:
+            logger.critical("APIFY QUOTA EXCEEDED")
+            raise ApifyError("Apify quota exceeded. Please check your usage and limits.")
+        elif "rate limit" in error_msg:
+            logger.warning("APIFY RATE LIMIT HIT.")
+            raise ApifyError("Too many requests to Apify, Please retry after some time.")
+        else: 
+            logger.error(f"Apify search failed: {e}")
+            raise ApifyError(f"Failed to search LinkedIn profiles: {e}")
     
 
 def warm_lead_extractor(profiles: list) -> list[dict]:
@@ -124,13 +133,14 @@ def warm_lead_extractor(profiles: list) -> list[dict]:
     return cleaned_profiles
 
 
-async def search_and_extract(keywords: str, max_items: int = 10) -> list[dict]:
+async def search_and_extract(keywords: str, max_items: int = 10, locations: list = None) -> list[dict]:
     """
     Combined search and extraction function for the pipeline.
     """
     try:
         profiles = []
-        async for profile in apify_search(keywords, max_items):
+        # Correction: Pass locations down to apify_search
+        async for profile in apify_search(keywords, max_items, locations=locations):
             profiles.append(profile)
         return warm_lead_extractor(profiles)
     except ApifyError as e:
