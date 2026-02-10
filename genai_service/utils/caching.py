@@ -32,7 +32,7 @@ def generate_cache_key(keywords: str, country: str, page: int) -> str:
     p = str(page)
     
     raw_string = f"{k}|{c}|{p}"
-    return hashlib.md5(raw_string.encode()).hexdigest()
+    return hashlib.sha256(raw_string.encode()).hexdigest()
 
 def get_cached_results(keywords: str, country: str, page: int):
     """
@@ -52,13 +52,13 @@ def get_cached_results(keywords: str, country: str, page: int):
         saved_time = datetime.fromisoformat(timestamp_str)
         
         if datetime.now() - saved_time < timedelta(hours=CACHE_EXPIRY_HOURS):
-            logger.info(" CACHE HIT: Serving saved results from DB.")
+            logger.info("✓ CACHE HIT: Serving saved results from DB.")
             return json.loads(results_json)
         else:
             logger.info(" CACHE EXPIRED: Found data but it's too old.")
             return None
             
-    logger.info(" CACHE MISS: No saved data found.")
+    logger.info("✗ CACHE MISS: No saved data found.")
     return None
 
 def save_to_cache(keywords: str, country: str, page: int, profiles: list):
