@@ -51,9 +51,11 @@ Backend `.env` file:
 MONGODB_URI=mongodb://localhost:27017/warm-lead-sourcer
 RAPIDAPI_KEY=your-rapidapi-key-here
 RAPIDAPI_HOST=linkdapi-best-unofficial-linkedin-api.p.rapidapi.com
+APIFY_TOKEN=your-apify-token-here
 JWT_SECRET=your-super-secret-jwt-key
 PORT=3001
 ```
+`APIFY_TOKEN` is optional; when set, the Apify LinkedIn Post Comments Scraper (`harvestapi/linkedin-post-comments`) is used as a fallback for post comments when RapidAPI fails.
 
 Frontend `.env.local` file:
 ```env

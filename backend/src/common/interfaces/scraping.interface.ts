@@ -1,7 +1,7 @@
 export interface ScrapingProvider {
   name: string;
   extractPostData(url: string): Promise<PostData>;
-  extractEngagements(postId: string): Promise<EngagementData[]>;
+  extractEngagements(postId: string, postUrl?: string): Promise<EngagementData[]>;
   extractProfile(profileId: string): Promise<ProfileData>;
 }
 

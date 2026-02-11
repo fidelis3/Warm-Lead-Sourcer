@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
+import { ConfigService } from '@nestjs/config';
 import { ScrapingService } from './scraping.service';
 import { Post } from '../posts/schemas/post.schema';
 import { Lead } from '../leads/schemas/lead.schema';
@@ -44,6 +45,10 @@ describe('ScrapingService', () => {
         {
           provide: LinkedInProvider,
           useValue: mockLinkedInProvider,
+        },
+        {
+          provide: ConfigService,
+          useValue: { get: jest.fn() },
         },
       ],
     }).compile();

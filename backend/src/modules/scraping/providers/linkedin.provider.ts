@@ -10,22 +10,39 @@ import {
   EngagementType,
 } from '../../../common/interfaces/scraping.interface';
 
+const APIFY_ACTOR_ID = 'harvestapi~linkedin-post-comments';
+const APIFY_RUN_SYNC_TIMEOUT_MS = 120_000; // 2 minutes for sync run
+
 @Injectable()
 export class LinkedInProvider implements ScrapingProvider {
   private readonly logger = new Logger(LinkedInProvider.name);
   readonly name = 'LinkedIn';
   private readonly rapidApiKey: string;
   private readonly rapidApiHost: string;
+  private readonly apifyToken: string;
 
   constructor(private configService: ConfigService) {
     this.rapidApiKey = this.configService.get('RAPIDAPI_KEY') || '';
     this.rapidApiHost = this.configService.get('RAPIDAPI_HOST') || '';
+    this.apifyToken = this.configService.get('APIFY_TOKEN') || '';
   }
 
   private getHeaders() {
     return {
       'x-rapidapi-host': this.rapidApiHost,
       'x-rapidapi-key': this.rapidApiKey,
+    };
+  }
+
+  private buildMinimalPostData(url: string, postUrn: string): PostData {
+    return {
+      id: postUrn,
+      url,
+      platform: Platform.LINKEDIN,
+      content: '',
+      author: { name: '', profileUrl: '', urn: '' },
+      metrics: { likesCount: 0, commentsCount: 0, sharesCount: 0 },
+      createdAt: new Date(),
     };
   }
 
@@ -62,95 +79,199 @@ export class LinkedInProvider implements ScrapingProvider {
         createdAt: new Date(),
       };
     } catch (error: unknown) {
-      if ((error as any).response?.status === 429) {
-        this.logger.error('Rate limit exceeded for post data extraction');
-        throw new Error(
-          'Rate limit exceeded. Please wait before trying again or upgrade your RapidAPI plan.',
-        );
-      }
-      if ((error as any).response?.status === 403) {
-        this.logger.error(
-          'API access forbidden - check your RapidAPI key and subscription',
-        );
-        throw new Error(
-          'API access denied. Please check your RapidAPI key and subscription status.',
-        );
-      }
-      this.logger.error('Failed to extract post data:', (error as any).message);
-      throw new Error(`Failed to extract post data: ${(error as any).message}`);
+      this.logger.warn(
+        'Post data extraction failed, using minimal post data so comments can still be fetched:',
+        (error as any).message,
+      );
+      return this.buildMinimalPostData(url, postUrn);
     }
   }
 
-  async extractEngagements(postId: string): Promise<EngagementData[]> {
+  async extractEngagements(
+    postId: string,
+    postUrl?: string,
+  ): Promise<EngagementData[]> {
+    try {
+      return await this.extractEngagementsViaRapidApi(postId);
+    } catch (rapidError: unknown) {
+      this.logger.warn(
+        'RapidAPI engagements failed, trying Apify fallback:',
+        (rapidError as any).message,
+      );
+      if (!this.apifyToken?.trim()) {
+        this.logger.error(
+          'APIFY_TOKEN is not set. Add APIFY_TOKEN to your .env to use Apify as fallback for comments.',
+        );
+        throw new Error(
+          'RapidAPI rate limit exceeded. Add APIFY_TOKEN to backend .env (from apify.com) to fetch comments via Apify fallback.',
+        );
+      }
+      try {
+        return await this.extractEngagementsViaApify(postId, postUrl);
+      } catch (apifyError: unknown) {
+        this.logger.error(
+          'Apify fallback also failed:',
+          (apifyError as any).message,
+        );
+        throw new Error(
+          `Both RapidAPI and Apify failed. RapidAPI: ${(rapidError as any).message}. Apify: ${(apifyError as any).message}`,
+        );
+      }
+    }
+  }
+
+  private async extractEngagementsViaRapidApi(
+    postId: string,
+  ): Promise<EngagementData[]> {
     const engagements: EngagementData[] = [];
 
+    const commentsResponse = await axios.get(
+      `https://${this.rapidApiHost}/api/v1/posts/comments?urn=${postId}`,
+      { headers: this.getHeaders() },
+    );
+
+    if (
+      commentsResponse.data?.success &&
+      commentsResponse.data?.data?.comments &&
+      Array.isArray(commentsResponse.data.data.comments)
+    ) {
+      commentsResponse.data.data.comments.forEach((comment: any) => {
+        if (comment?.author?.urn) {
+          const commentContent =
+            comment.text || comment.content || comment.message || '';
+          this.logger.debug(
+            `Comment content for ${comment.author.name}: ${commentContent}`,
+          );
+          engagements.push({
+            type: EngagementType.COMMENT,
+            user: {
+              name: comment.author?.name || '',
+              profileUrl: comment.author?.profileUrl || '',
+              urn: comment.author.urn,
+              headline: comment.author?.headline || '',
+            },
+            content: commentContent,
+          });
+        }
+      });
+    }
+
     try {
-      // Get comments
-      const commentsResponse = await axios.get(
-        `https://${this.rapidApiHost}/api/v1/posts/comments?urn=${postId}`,
+      const likesResponse = await axios.get(
+        `https://${this.rapidApiHost}/api/v1/posts/likes?urn=${postId}`,
         { headers: this.getHeaders() },
       );
-
-      if (
-        commentsResponse.data?.success &&
-        commentsResponse.data?.data?.comments &&
-        Array.isArray(commentsResponse.data.data.comments)
-      ) {
-        commentsResponse.data.data.comments.forEach((comment: any) => {
-          if (comment?.author?.urn) {
-            const commentContent =
-              comment.text || comment.content || comment.message || '';
-            this.logger.debug(
-              `Comment content for ${comment.author.name}: ${commentContent}`,
-            );
-            engagements.push({
-              type: EngagementType.COMMENT,
-              user: {
-                name: comment.author?.name || '',
-                profileUrl: comment.author?.profileUrl || '',
-                urn: comment.author.urn,
-                headline: comment.author?.headline || '',
-              },
-              content: commentContent,
-            });
-          }
-        });
+      if (likesResponse.data.success && likesResponse.data.data) {
+        this.logger.log('Likes data retrieved successfully');
       }
-
-      // Get likes (may need different URN format)
-      try {
-        const likesResponse = await axios.get(
-          `https://${this.rapidApiHost}/api/v1/posts/likes?urn=${postId}`,
-          { headers: this.getHeaders() },
-        );
-
-        if (likesResponse.data.success && likesResponse.data.data) {
-          // Process likes data if available
-          this.logger.log('Likes data retrieved successfully');
-        }
-      } catch (likesError: unknown) {
-        this.logger.warn(
-          'Likes extraction failed:',
-          (likesError as any).message,
-        );
-      }
-
-      return engagements;
-    } catch (error: unknown) {
-      if ((error as any).response?.status === 429) {
-        this.logger.error('Rate limit exceeded for engagements extraction');
-        throw new Error(
-          'Rate limit exceeded. Please wait before trying again or upgrade your RapidAPI plan.',
-        );
-      }
-      this.logger.error(
-        'Failed to extract engagements:',
-        (error as any).message,
-      );
-      throw new Error(
-        `Failed to extract engagements: ${(error as any).message}`,
+    } catch (likesError: unknown) {
+      this.logger.warn(
+        'Likes extraction failed:',
+        (likesError as any).message,
       );
     }
+
+    return engagements;
+  }
+
+  private buildLinkedInPostUrl(postId: string): string {
+    if (postId.startsWith('http')) return postId;
+    if (postId.startsWith('urn:')) {
+      return `https://www.linkedin.com/feed/update/${postId}/`;
+    }
+    return `https://www.linkedin.com/feed/update/urn:li:activity:${postId}/`;
+  }
+
+  private async extractEngagementsViaApify(
+    postId: string,
+    fullPostUrl?: string,
+  ): Promise<EngagementData[]> {
+    const postUrl =
+      fullPostUrl?.trim() || this.buildLinkedInPostUrl(postId);
+    if (fullPostUrl?.trim()) {
+      this.logger.debug(`Apify using full post URL: ${fullPostUrl.slice(0, 80)}...`);
+    }
+    const url = `https://api.apify.com/v2/acts/${APIFY_ACTOR_ID}/run-sync-get-dataset-items?token=${this.apifyToken}`;
+    const response = await axios.post(
+      url,
+      {
+        posts: [postUrl],
+        maxItems: 500,
+        scrapeReplies: false,
+      },
+      {
+        headers: { 'Content-Type': 'application/json' },
+        timeout: APIFY_RUN_SYNC_TIMEOUT_MS,
+      },
+    );
+
+    // Apify run-sync-get-dataset-items can return array directly or wrapped
+    const rawData = response.data;
+    const items = Array.isArray(rawData)
+      ? rawData
+      : Array.isArray((rawData as any)?.items)
+        ? (rawData as any).items
+        : Array.isArray((rawData as any)?.data)
+          ? (rawData as any).data
+          : [];
+
+    if (items.length === 0 && rawData != null && typeof rawData === 'object') {
+      this.logger.debug(
+        'Apify returned 0 items. Response keys: ' +
+          Object.keys(rawData as object).join(', '),
+      );
+    }
+
+    const engagements: EngagementData[] = [];
+
+    for (const item of items) {
+      // HarvestAPI actor uses "actor" and "commentary" (see their README)
+      const author = item.actor || item.author || item.commenter || item.user || {};
+      const urn =
+        author.urn ||
+        author.id ||
+        author.publicIdentifier ||
+        author.profileUrn ||
+        '';
+      const name =
+        author.name ||
+        [author.firstName, author.lastName].filter(Boolean).join(' ') ||
+        'Unknown';
+      const profileUrl =
+        author.linkedinUrl ||
+        author.profileUrl ||
+        author.url ||
+        (author.publicIdentifier
+          ? `https://www.linkedin.com/in/${author.publicIdentifier}`
+          : '');
+      const headline = author.position || author.headline || author.title || '';
+      const content =
+        item.commentary ||
+        item.text ||
+        item.content ||
+        item.comment ||
+        item.message ||
+        item.body ||
+        '';
+
+      if (urn || name !== 'Unknown') {
+        engagements.push({
+          type: EngagementType.COMMENT,
+          user: {
+            name,
+            profileUrl: profileUrl || '',
+            urn: urn || `apify-${name.replace(/\s/g, '-')}-${Date.now()}`,
+            headline,
+          },
+          content: typeof content === 'string' ? content : '',
+        });
+      }
+    }
+
+    this.logger.log(
+      `Apify fallback returned ${engagements.length} comment(s) for post ${postId}`,
+    );
+    return engagements;
   }
 
   async extractProfile(profileUrn: string): Promise<ProfileData> {
