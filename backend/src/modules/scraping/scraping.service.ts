@@ -1,6 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import axios from 'axios';
 import { Post, PostDocument } from '../posts/schemas/post.schema';
 import { Lead, LeadDocument } from '../leads/schemas/lead.schema';
 import { LinkedInProvider } from './providers/linkedin.provider';
@@ -8,6 +10,7 @@ import {
   Platform,
   EngagementData,
   ProfileData,
+  PostData,
 } from '../../common/interfaces/scraping.interface';
 
 @Injectable()
@@ -18,6 +21,7 @@ export class ScrapingService {
     @InjectModel(Post.name) private postModel: Model<PostDocument>,
     @InjectModel(Lead.name) private leadModel: Model<LeadDocument>,
     private linkedInProvider: LinkedInProvider,
+    private configService: ConfigService,
   ) {}
 
   async processPost(postId: string): Promise<void> {
@@ -39,7 +43,7 @@ export class ScrapingService {
       ).extractPostData(post.url);
       const engagements = await this.getProvider(
         post.platform as Platform,
-      ).extractEngagements(postData.id);
+      ).extractEngagements(postData.id, post.url);
 
       // Update post with extracted data
       await this.postModel.findByIdAndUpdate(postId, {
@@ -85,6 +89,9 @@ export class ScrapingService {
       this.logger.log(
         `Successfully processed post ${postId}: ${processedCount}/${engagements.length} leads created`,
       );
+
+      // Send scraped data to genai service /api/enrich
+      await this.sendToEnrichApi(postId, post.url, post.platform, postData, engagements);
 
       // Log sample engagement content for debugging
       if (engagements.length > 0) {
@@ -176,6 +183,51 @@ export class ScrapingService {
     });
 
     await lead.save();
+  }
+
+  private async sendToEnrichApi(
+    postId: string,
+    postUrl: string,
+    platform: string,
+    postData: PostData,
+    engagements: EngagementData[],
+  ): Promise<void> {
+    const baseUrl = this.configService.get<string>('GENAI_SERVICE_URL');
+    if (!baseUrl) {
+      this.logger.debug(
+        'GENAI_SERVICE_URL not set; skipping send to /api/enrich',
+      );
+      return;
+    }
+    const enrichUrl = `${baseUrl.replace(/\/$/, '')}/api/enrich`;
+    try {
+      await axios.post(
+        enrichUrl,
+        {
+          postId,
+          postUrl,
+          platform,
+          post: {
+            id: postData.id,
+            url: postData.url,
+            content: postData.content,
+            author: postData.author,
+            metrics: postData.metrics,
+            createdAt: postData.createdAt,
+          },
+          engagements,
+        },
+        {
+          timeout: 30000,
+          headers: { 'Content-Type': 'application/json' },
+        },
+      );
+      this.logger.log(`Sent scraped data to ${enrichUrl} for post ${postId}`);
+    } catch (error: unknown) {
+      this.logger.warn(
+        `Failed to send scraped data to enrich API for post ${postId}: ${(error as any)?.message ?? error}`,
+      );
+    }
   }
 
   private getProvider(platform: Platform) {
