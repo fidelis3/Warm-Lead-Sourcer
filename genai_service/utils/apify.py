@@ -24,9 +24,12 @@ async def _run_actor(run_input: dict, actor_id: str):
         
         run = await apify_client.actor(actor_id).call(run_input=run_input)
         
+        # Updated: Compute status safely before checking for failure
+        status = run.get('status') if run is not None else 'unknown'
+        
         if not run or "defaultDatasetId" not in run:
-            logger.error(f"Apify Run Failed: No Dataset ID. Status: {run.get('status')}")
-            raise ApifyError(f"Apify run failed: {run.get('status')}")
+            logger.error(f"Apify Run Failed: No Dataset ID. Status: {status}")
+            raise ApifyError(f"Apify run failed: {status}")
             
         logger.info(f"Apify Run ID: {run.get('id')} - Status: {run.get('status')}")
         
