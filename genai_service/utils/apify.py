@@ -3,35 +3,57 @@ from dotenv import load_dotenv
 import logging
 import os
 import asyncio
-from apify_client.errors import ApifyApiError
-load_dotenv()
+from typing import List, Dict
+import re 
 
+load_dotenv()
 logger = logging.getLogger(__name__)
-if __name__ == "__main__":
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    )
 
 class ApifyError(Exception):
-    """Base exception for Apify errors"""
     pass
 
 APIFY_TOKEN = os.getenv("APIFY_API_TOKEN")
 if not APIFY_TOKEN:
     logger.critical("APIFY_API_TOKEN is missing from environment variables.")
-    raise ApifyError("APIFY_API_TOKEN environment variable is not set")
 
-async def apify_search(keywords: str, max_items: int = 10, locations: list = None):
-    """
-    Async search for LinkedIn profiles.
-    Does NOT block the server while waiting for results.
-    """
+async def _run_actor(run_input: dict, actor_id: str):
+    apify_client = ApifyClientAsync(APIFY_TOKEN)
+    try:
+        logger.info(f"Starting Apify Actor: {actor_id}")
+        logger.info(f"Input: {run_input}")
+        
+        run = await apify_client.actor(actor_id).call(run_input=run_input)
+        
+        if not run or "defaultDatasetId" not in run:
+            logger.error(f"Apify Run Failed: No Dataset ID. Status: {run.get('status')}")
+            raise ApifyError(f"Apify run failed: {run.get('status')}")
+            
+        logger.info(f"Apify Run ID: {run.get('id')} - Status: {run.get('status')}")
+        
+        dataset = apify_client.dataset(run["defaultDatasetId"])
+        item_count = 0
+        async for item in dataset.iterate_items():
+            item_count += 1
+            yield item
+        logger.info(f"Total items fetched from Apify: {item_count}")
+
+    except Exception as e:
+        error_msg = str(e).lower()
+        if "quota" in error_msg:
+            logger.critical("APIFY QUOTA EXCEEDED")
+            raise ApifyError("Apify quota exceeded.")
+        elif "rate limit" in error_msg:
+            logger.warning("APIFY RATE LIMIT HIT.")
+            raise ApifyError("Too many requests to Apify.")
+        else: 
+            logger.error(f"Apify Actor {actor_id} failed: {e}")
+            raise ApifyError(f"Actor failed: {e}")
+
+async def apify_search(keywords: str, max_items: int = 10, locations: list = None, start_page: int = 1):
     if not keywords:
-        logger.warning("No keywords provided for Apify search")
-        return
+        logger.warning("Search attempted with empty keywords.")
+        raise ValueError("Keywords for apify search cannot be empty.")
     
-    # Correction: Initialize locations list
     if locations is None:
         locations = []
     
@@ -40,132 +62,67 @@ async def apify_search(keywords: str, max_items: int = 10, locations: list = Non
         "search": keywords,
         "maxItems": max_items,
         "locations": locations, 
-        "startPage": 1,
+        "startPage": start_page,
+    }
+
+    output = []
+    async for item in _run_actor(run_input, actor_id="qXMa8kADnUQdmz18G"):
+        output.append(item)
+    return output
+
+async def enrich_profiles(profile_urls: list):
+    if not profile_urls:
+        return
+
+    run_input = {
+        "urls": profile_urls,
+        "minDelay": 1,
+        "maxDelay": 5,
     }
     
-    apify_client = ApifyClientAsync(APIFY_TOKEN)
-    
-    try:
-        logger.info(f"Starting Async Apify actor for: '{keywords}' with locations: {locations}")
-        
-        run = await apify_client.actor("qXMa8kADnUQdmz18G").call(run_input=run_input)
-        
-        if not run or "defaultDatasetId" not in run:
-            raise ApifyError("Invalid response from Apify Actor")
-        
-        logger.info("Apify run finished. Fetching results...")
-        
-        dataset = apify_client.dataset(run["defaultDatasetId"])
-        profile_count = 0
-        async for item in dataset.iterate_items():
-            profile_count += 1
-            yield item
-        
-        logger.info(f"Retrieved {profile_count} profiles")
-            
-    except Exception as e:
-        error_msg = str(e).lower()
-        if "quota" in error_msg or "memory limit" in error_msg:
-            logger.critical("APIFY QUOTA EXCEEDED")
-            raise ApifyError("Apify quota exceeded. Please check your usage and limits.")
-        elif "rate limit" in error_msg:
-            logger.warning("APIFY RATE LIMIT HIT.")
-            raise ApifyError("Too many requests to Apify, Please retry after some time.")
-        else: 
-            logger.error(f"Apify search failed: {e}")
-            raise ApifyError(f"Failed to search LinkedIn profiles: {e}")
-    
+    async for item in _run_actor(run_input, actor_id="harvestapi/linkedin-profile-scraper"):
+        yield item
 
-def warm_lead_extractor(profiles: list) -> list[dict]:
-    """
-    Extracts cleaner data including COMPANY name for email generation.
-    """
-    if not profiles:
-        logger.warning("No profiles provided for extraction")
-        return []
-    
-    cleaned_profiles = []
-    logger.info(f"Processing {len(profiles)} profiles from Apify")
-    
-    for idx, profile in enumerate(profiles, 1):
-        try:
-            location = profile.get("location", {}) or {}
-            parsed_location = location.get("parsed", {}) or {}
-            
-            education_list = profile.get("education", []) or []
-            school_name = "Not available"
-            degree = "Not available"
-            
-            if isinstance(education_list, list) and education_list:
-                school_name = education_list[0].get("schoolName", "Not available")
-                degree = education_list[0].get("degree", "Not available")
-
-            company_name = "Not available"
-            job_title = profile.get("jobTitle") or profile.get("headline") or ""
-            
-            experience = profile.get("latestExperience", {}) or {}
-            if experience.get("companyName"):
-                company_name = experience.get("companyName")
-            elif " at " in job_title:
-                parts = job_title.split(" at ")
-                if len(parts) > 1:
-                    company_name = parts[-1].strip()
-
-            profile_data = {
-                "name": profile.get("fullName") or profile.get("name") or "Unknown",
-                "current_role": job_title,
-                "company": company_name,
-                "education": school_name,
-                "degree": degree,
-                "country": parsed_location.get("country", "Not available"),
-                "city": parsed_location.get("city", "Not available"),
-                "linkedin_url": profile.get("url") or profile.get("linkedinProfileUrl"),
-                "summary": profile.get("summary", "")[:200],  # Truncate long summaries
-            }
-            
-            cleaned_profiles.append(profile_data)
-            
-        except Exception as e:
-            logger.warning(f"Skipping corrupt profile {idx}: {e}")
-            continue
-    
-    logger.info(f"Successfully extracted {len(cleaned_profiles)} profiles")
-    return cleaned_profiles
-
-
-async def search_and_extract(keywords: str, max_items: int = 10, locations: list = None) -> list[dict]:
-    """
-    Combined search and extraction function for the pipeline.
-    """
-    try:
-        profiles = []
-        # Correction: Pass locations down to apify_search
-        async for profile in apify_search(keywords, max_items, locations=locations):
-            profiles.append(profile)
-        return warm_lead_extractor(profiles)
-    except ApifyError as e:
-        logger.error(f"Apify pipeline failed: {e}")
-        return []
-    except Exception as e:
-        logger.error(f"Unexpected error in pipeline: {e}")
-        return []
-#TESTING
-if __name__ == "__main__":
-    async def test_run():
-        print("\n" + "="*60)
-        print("TESTING ASYNC APIFY")
-        print("="*60 + "\n")
+def apify_lead_presentation(profiles: List[Dict]) -> List[Dict]:
+    presented_profiles = []
+    for profile in profiles:
+        experience = profile.get("experience", [])
         
-        results = await search_and_extract("python developer", max_items=3)
+        position = "Position Unavailable"
+        company = "Company unavailable"
+        current_job = "Current role unavailable"
         
-        print(f"\nFound {len(results)} profiles:\n")
-        for i, profile in enumerate(results, 1):
-            print(f"{i}. {profile['name']}")
-            print(f"   Role: {profile['current_role']}")
-            print(f"   Company: {profile['company']}")
-            print(f"   Location: {profile['city']}, {profile['country']}")
-            print(f"   Education: {profile['degree']} from {profile['education']}")
-            print(f"   LinkedIn: {profile['linkedin_url']}")
-            print()
+        if experience and isinstance(experience, list) and len(experience) > 0:
+            position = experience[0].get("position") or experience[0].get("title", "Position Unavailable")
+            company = experience[0].get("companyName") or experience[0].get("company", "Company unavailable")
+            current_job = f'{position} | {company}'
         
-    asyncio.run(test_run())
+        location = profile.get("location", {})
+        if isinstance(location, dict):
+            parsed_loc = location.get("parsed", {}) if "parsed" in location else location
+        else:
+            parsed_loc = {}
+
+        education_data = []
+        raw_edu = profile.get("education", [])
+        if isinstance(raw_edu, list):
+            for edu in raw_edu:
+                if isinstance(edu, dict):
+                    education_data.append({
+                        "school": edu.get("schoolName") or edu.get("school"),
+                        "degree": edu.get("degree") or edu.get("degreeName")
+                    })
+
+        lead = {
+            "name": f"{profile.get('firstName', 'LinkedIn')} {profile.get('lastName', 'User')}".strip(),
+            "title": position,
+            "company": company,  
+            "current_role": current_job,
+            "country": parsed_loc.get("country", "Country unavailable"),
+            "city": parsed_loc.get("city", "City unavailable"),
+            "education": education_data,
+            "linkedin_url": profile.get("linkedinUrl") or profile.get("url", "LinkedIn URL unavailable"),
+            "summary_profile": profile.get("about", "")[:200] if profile.get("about") else "No summary available", 
+        }
+        presented_profiles.append(lead)
+    return presented_profiles
