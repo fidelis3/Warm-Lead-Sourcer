@@ -40,7 +40,8 @@ class MainPipeline():
             try:
                 search_query = f"{keywords} {country}" if country else keywords
                 
-                raw_profiles = await apify_search(keywords=search_query, max_items=5)
+                # Updated: Passed start_page=page to handle pagination correctly
+                raw_profiles = await apify_search(keywords=search_query, max_items=5, start_page=page)
                 
                 if not raw_profiles:
                     logger.warning("Apify found 0 profiles.")
@@ -137,12 +138,13 @@ class MainPipeline():
                 )
                 processed_results.append(final_profile)
 
-            csv_file = await export([p.model_dump() for p in processed_results])
+            # Updated: export now returns in-memory content, not a filename
+            csv_content = await export([p.model_dump() for p in processed_results])
             
             return {
                 "count": len(processed_results),
                 "data": processed_results,
-                "csv_file": csv_file
+                "csv_content": csv_content # Updated to return the content directly
             }
             
         except Exception as e:
