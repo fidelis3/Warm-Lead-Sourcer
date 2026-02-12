@@ -54,7 +54,7 @@ jobs:
       run: npm run lint
     
     - name: Run type checking
-      run: npx tsc --noEmit
+      run: npx tsc --noEmit -p tsconfig.build.json
     
     - name: Build application
       run: npm run build
