@@ -1,13 +1,33 @@
+version: '3.8'
+
 services:
-  babynest-api:
-    build: .
-    container_name: Babynest-api
-    env_file:
-      - .env
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: warm-lead-sourcer
     ports:
       - "8000:8000"
+    environment:
+      - APIFY_API_TOKEN=${APIFY_API_TOKEN}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - SERPER_API_KEY=${SERPER_API_KEY}
+      - GENERAL_MODEL=${GENERAL_MODEL:-llama-3.3-70b-versatile}
+      - CORE_MODEL=${CORE_MODEL:-llama-3.3-70b-versatile}
+      - FALLBACK_MODEL=${FALLBACK_MODEL:-llama-3.1-8b-instant}
     volumes:
-      - ./db:/app/db
-      - ./knowledge:/app/knowledge
-    command: ["uvicorn", "src.babynest.app:app", "--host", "0.0.0.0", "--port", "8000"]
-    restart: always
+      - ./data:/app/data
+      - ./exports:/app/exports
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health', timeout=2)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+volumes:
+  data:
+    driver: local
+  exports:
+    driver: local

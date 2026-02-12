@@ -35,12 +35,20 @@ app.add_middleware(
 
 pipeline = MainPipeline()
 
+@app.get("/health")
+async def health_check():
+    return {
+        "status": "Healthy",
+        "service": "Warm Lead Sourcer",
+        "version": "2.0"
+    }
 @app.get("/")
 async def check_service():
     """
     Health check endpoint to verify the service is running.
     """
     return {"status": "Service is running"}
+
 
 @app.post("/source_leads", response_model=List[GeneralProfile])
 async def source_leads(user_input: UserInput) -> List[Dict]:
