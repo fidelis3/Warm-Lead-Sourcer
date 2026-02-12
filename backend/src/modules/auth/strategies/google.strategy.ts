@@ -7,7 +7,7 @@ import { ConfigService } from '@nestjs/config';
 interface GoogleProfile {
   name: {
     givenName: string;
-    familyName: string;
+    familyName?: string;
   };
   emails: Array<{ value: string }>;
   photos: Array<{ value: string }>;
@@ -16,7 +16,7 @@ interface GoogleProfile {
 interface GoogleUser {
   email: string;
   firstName: string;
-  lastName: string;
+  lastName?: string;
   picture?: string;
   accessToken: string;
 }
