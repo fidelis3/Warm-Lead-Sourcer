@@ -16,23 +16,19 @@ APIFY_TOKEN = os.getenv("APIFY_API_TOKEN")
 if not APIFY_TOKEN:
     logger.critical("APIFY_API_TOKEN is missing from environment variables.")
 
-keyword_actor_id = "qXMa8kADnUQdmz18G"
-
 async def _run_actor(run_input: dict, actor_id: str):
     apify_client = ApifyClientAsync(APIFY_TOKEN)
     try:
         logger.info(f"Starting Apify Actor: {actor_id}")
-        try:
-            logger.info("Calling actor with input: %s", run_input)
-            run = await apify_client.actor(actor_id).call(run_input=run_input)
-            if not run or "defaultDatasetId" not in run:
-                logger.error(f"Apify Run Failed: No Dataset ID. Status: {run.get('status')}")
-                raise ApifyError(f"Apify run failed: {run.get('status')}")
-        except Exception as e:
-            logger.error(f"Failed to start Apify Actor {actor_id}: {e}")
-            raise ApifyError(f"Failed to run actor: {e}")
-         
-        logger.info(f"Apify Run ID: {run.get('id')}\n - Status: {run.get('status')}")
+        logger.info(f"Input: {run_input}")
+        
+        run = await apify_client.actor(actor_id).call(run_input=run_input)
+        
+        if not run or "defaultDatasetId" not in run:
+            logger.error(f"Apify Run Failed: No Dataset ID. Status: {run.get('status')}")
+            raise ApifyError(f"Apify run failed: {run.get('status')}")
+            
+        logger.info(f"Apify Run ID: {run.get('id')} - Status: {run.get('status')}")
         
         dataset = apify_client.dataset(run["defaultDatasetId"])
         item_count = 0
@@ -53,7 +49,6 @@ async def _run_actor(run_input: dict, actor_id: str):
             logger.error(f"Apify Actor {actor_id} failed: {e}")
             raise ApifyError(f"Actor failed: {e}")
 
-
 async def apify_search(keywords: str, max_items: int = 10, locations: list = None, start_page: int = 1):
     if not keywords:
         logger.warning("Search attempted with empty keywords.")
@@ -71,41 +66,9 @@ async def apify_search(keywords: str, max_items: int = 10, locations: list = Non
     }
 
     output = []
-    
     async for item in _run_actor(run_input, actor_id="qXMa8kADnUQdmz18G"):
         output.append(item)
     return output
-
-def apify_lead_presentation(profiles: List[Dict]) -> List[Dict]:
-    presented_profiles = []
-    for profile in profiles:
-        experience = profile.get("experience", [])
-        current_job = "Current role unavailable"
-        if experience:
-            position = experience[0].get("position", "Position Unavailable")
-            company = experience[0].get("companyName", "Company unavailable")
-            current_job = f'{position} | {company}'
-        location = profile.get("location", {}).get("parsed", {})
-        education_data = [
-            {
-                "school": edu.get("schoolName"),
-                "degree": edu.get("degree")
-            }
-            for edu in profile.get("education", [])
-            if edu.get("degree")
-        ]
-        lead = {
-            "name": f"{profile.get('firstName', 'LinkedIn')} {profile.get('lastName', 'User')}".strip(),
-            "title": profile.get("position", "Title unavailable"),
-            "current_role": current_job,
-            "country": location.get("country", "Country unavailable"),
-            "city": location.get("city", "City unavailable"),
-            "education": education_data,
-            "linkedin_url": profile.get("linkedinUrl", "LinkedIn URL unavailable"),
-            "summary_profile": profile.get("about", "")[:200] if profile.get("about") else "No summary available", 
-        }
-        presented_profiles.append(lead)
-    return presented_profiles
 
 async def enrich_profiles(profile_urls: list):
     if not profile_urls:
@@ -120,8 +83,46 @@ async def enrich_profiles(profile_urls: list):
     async for item in _run_actor(run_input, actor_id="harvestapi/linkedin-profile-scraper"):
         yield item
 
-if __name__ == "__main__":
-    results = asyncio.run(apify_search("Medical officer", max_items=5, locations=["Kenya", "Tanzania"]))
-    # print(results)
-    cleaned_leads = apify_lead_presentation(profiles=results)
-    print(cleaned_leads)
+def apify_lead_presentation(profiles: List[Dict]) -> List[Dict]:
+    presented_profiles = []
+    for profile in profiles:
+        experience = profile.get("experience", [])
+        
+        position = "Position Unavailable"
+        company = "Company unavailable"
+        current_job = "Current role unavailable"
+        
+        if experience and isinstance(experience, list) and len(experience) > 0:
+            position = experience[0].get("position") or experience[0].get("title", "Position Unavailable")
+            company = experience[0].get("companyName") or experience[0].get("company", "Company unavailable")
+            current_job = f'{position} | {company}'
+        
+        location = profile.get("location", {})
+        if isinstance(location, dict):
+            parsed_loc = location.get("parsed", {}) if "parsed" in location else location
+        else:
+            parsed_loc = {}
+
+        education_data = []
+        raw_edu = profile.get("education", [])
+        if isinstance(raw_edu, list):
+            for edu in raw_edu:
+                if isinstance(edu, dict):
+                    education_data.append({
+                        "school": edu.get("schoolName") or edu.get("school"),
+                        "degree": edu.get("degree") or edu.get("degreeName")
+                    })
+
+        lead = {
+            "name": f"{profile.get('firstName', 'LinkedIn')} {profile.get('lastName', 'User')}".strip(),
+            "title": position,
+            "company": company,  
+            "current_role": current_job,
+            "country": parsed_loc.get("country", "Country unavailable"),
+            "city": parsed_loc.get("city", "City unavailable"),
+            "education": education_data,
+            "linkedin_url": profile.get("linkedinUrl") or profile.get("url", "LinkedIn URL unavailable"),
+            "summary_profile": profile.get("about", "")[:200] if profile.get("about") else "No summary available", 
+        }
+        presented_profiles.append(lead)
+    return presented_profiles
