@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 interface User {
   _id: string;
   firstName: string;
-  lastName: string;
+  lastName?: string;
   email: string;
   isEmailVerified?: boolean;
   provider?: string;
@@ -24,7 +24,7 @@ interface AuthContextType {
 
 interface RegisterData {
   firstName: string;
-  lastName: string;
+  lastName?: string;
   email: string;
   password: string;
   confirmPassword: string;
@@ -139,7 +139,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       ...data,
       email: data.email.toLowerCase().trim(),
       firstName: data.firstName.trim(),
-      lastName: data.lastName.trim(),
+      lastName: data.lastName?.trim(),
     };
     
     const response = await fetch(`${apiUrl}/users/register`, {
