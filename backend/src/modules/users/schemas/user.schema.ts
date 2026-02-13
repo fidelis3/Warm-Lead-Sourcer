@@ -49,3 +49,11 @@ export class User {
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
+
+// Ensure lastName is always set (OAuth profiles may omit family name)
+UserSchema.pre('save', function (next) {
+  if (this.lastName === undefined || this.lastName === null) {
+    this.lastName = '';
+  }
+  next();
+});
