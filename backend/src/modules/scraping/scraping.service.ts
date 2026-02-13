@@ -199,15 +199,18 @@ export class ScrapingService {
   ): Promise<void> {
     const baseUrl = this.configService.get<string>('GENAI_SERVICE_URL');
     if (!baseUrl) {
-      this.logger.debug(
-        'GENAI_SERVICE_URL not set; skipping send to /api/enrich',
+      this.logger.warn(
+        'GENAI_SERVICE_URL not set; enrichment skipped. Set GENAI_SERVICE_URL to enable lead enrichment (e.g. https://warm-lead-sourcer-ix9n.onrender.com)',
       );
       return;
     }
 
     const links = this.collectLinkedInProfileUrls(engagements);
     if (links.length === 0) {
-      this.logger.debug('No LinkedIn profile URLs to send to enrich API');
+      this.logger.warn(
+        'No LinkedIn profile URLs in engagements; enrichment skipped for post ' +
+          postId,
+      );
       return;
     }
 
@@ -233,14 +236,22 @@ export class ScrapingService {
         },
       );
       this.logger.log(
-        `Sent ${links.length} profile URL(s) to ${enrichUrl} for post ${postId}`,
+        `Enrich API responded for post ${postId}: ${response.data?.data?.length ?? 0} profile(s) returned`,
       );
       if (response.data?.data?.length) {
         await this.applyEnrichmentToLeads(postId, response.data.data);
+      } else if (response.data && 'error' in response.data) {
+        this.logger.warn(
+          `Enrich API returned error for post ${postId}: ${(response.data as { error?: string }).error}`,
+        );
       }
     } catch (error: unknown) {
-      this.logger.warn(
-        `Failed to send to enrich API for post ${postId}: ${(error as any)?.message ?? error}`,
+      const err = error as { message?: string; response?: { status?: number; data?: unknown } };
+      this.logger.error(
+        `Enrich API failed for post ${postId}: ${err?.message ?? error}. ` +
+          (err?.response
+            ? `Status ${err.response.status}; body: ${JSON.stringify(err.response.data)}`
+            : ''),
       );
     }
   }
@@ -281,6 +292,38 @@ export class ScrapingService {
     }
   }
 
+  /** Extract /in/username for robust matching (GenAI may return different URL variants). */
+  private getLinkedInPathname(url: string): string | null {
+    try {
+      const u = url.startsWith('http') ? url : `https://${url}`;
+      const parsed = new URL(u);
+      if (
+        parsed.hostname?.replace(/^www\./, '') === 'linkedin.com' &&
+        parsed.pathname?.startsWith('/in/')
+      ) {
+        return parsed.pathname.replace(/\/$/, '').toLowerCase();
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
+  private isPlaceholderValue(value: string | null | undefined): boolean {
+    if (value == null || typeof value !== 'string') return true;
+    const v = value.trim().toLowerCase();
+    return (
+      !v ||
+      v === 'n/a' ||
+      v === 'na' ||
+      v === 'not available' ||
+      v === 'unavailable' ||
+      v === 'email unavailable' ||
+      v === 'linkedin url unavailable' ||
+      v === 'country unavailable'
+    );
+  }
+
   /**
    * Updates leads for this post with enriched data (email, education, score, etc.) by matching profile URL.
    */
@@ -297,34 +340,58 @@ export class ScrapingService {
     }>,
   ): Promise<void> {
     const leads = await this.leadModel.find({ postId }).lean();
-    const leadByUrl = new Map<string, { _id: unknown }>();
+    const leadByNormalizedUrl = new Map<string, (typeof leads)[0]>();
+    const leadByPathname = new Map<string, (typeof leads)[0]>();
     for (const lead of leads) {
       if (lead.profileUrl) {
-        const n = this.normalizeLinkedInProfileUrl(lead.profileUrl);
-        leadByUrl.set(n, { _id: lead._id });
+        const normalized = this.normalizeLinkedInProfileUrl(lead.profileUrl);
+        leadByNormalizedUrl.set(normalized, lead);
+        const pathname = this.getLinkedInPathname(lead.profileUrl);
+        if (pathname) leadByPathname.set(pathname, lead);
       }
     }
+    let updatedCount = 0;
     for (const profile of enrichedProfiles) {
       const profileUrl = profile.linkedin_url;
       if (!profileUrl) continue;
       const normalized = this.normalizeLinkedInProfileUrl(profileUrl);
-      const match = leadByUrl.get(normalized);
-      if (!match) continue;
-      const lead = leads.find(
-        (l) => l._id.toString() === (match as { _id: unknown })._id?.toString(),
-      );
+      const pathname = this.getLinkedInPathname(profileUrl);
+      const lead =
+        leadByNormalizedUrl.get(normalized) ??
+        (pathname ? leadByPathname.get(pathname) : null);
       if (!lead) continue;
       const updates: Record<string, unknown> = {};
-      if (profile.email != null && profile.email !== '') {
+      if (
+        !this.isPlaceholderValue(profile.email) &&
+        profile.email != null &&
+        profile.email !== ''
+      ) {
         updates['contactInfo.email'] = profile.email;
-        if (!lead.guessedEmail) updates['guessedEmail'] = profile.email;
+        updates['guessedEmail'] = profile.email;
       }
-      if (profile.education != null && lead.education?.length === 0) {
+      const hasNoEducation =
+        !lead.education || !Array.isArray(lead.education) || lead.education.length === 0;
+      if (
+        !this.isPlaceholderValue(profile.education) &&
+        profile.education != null &&
+        profile.education !== '' &&
+        hasNoEducation
+      ) {
         updates['education'] = [
-          { institution: profile.education, degree: '', fieldOfStudy: '', startYear: undefined, endYear: undefined },
+          {
+            institution: profile.education,
+            degree: '',
+            fieldOfStudy: '',
+            startYear: undefined,
+            endYear: undefined,
+          },
         ];
       }
-      if (profile.country != null && !lead.location?.country) {
+      if (
+        !this.isPlaceholderValue(profile.country) &&
+        profile.country != null &&
+        !lead.location?.country
+      ) {
         updates['location'] = {
           country: profile.country,
           city: lead.location?.city ?? '',
@@ -335,7 +402,13 @@ export class ScrapingService {
       }
       if (Object.keys(updates).length > 0) {
         await this.leadModel.findByIdAndUpdate(lead._id, { $set: updates });
+        updatedCount++;
       }
+    }
+    if (updatedCount > 0) {
+      this.logger.log(
+        `Enrichment applied: updated ${updatedCount} lead(s) for post ${postId}`,
+      );
     }
   }
 
