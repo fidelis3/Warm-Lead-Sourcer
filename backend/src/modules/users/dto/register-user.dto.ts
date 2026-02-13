@@ -11,9 +11,9 @@ export class RegisterUserDto {
   @IsString()
   firstName!: string;
 
-  @IsNotEmpty({ message: 'Last name is required' })
+  
   @IsString()
-  lastName!: string;
+  lastName?: string;
 
   @IsNotEmpty({ message: 'Email is required' })
   @IsEmail({}, { message: 'Please provide a valid email address' })
