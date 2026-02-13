@@ -185,11 +185,16 @@ export class ScrapingService {
     await lead.save();
   }
 
+  /**
+   * Sends LinkedIn profile URLs from scraped engagements to the GenAI enrich API.
+   * GenAI expects: POST body { links: string[] } (array of LinkedIn profile URLs).
+   * Enriched response can be used to update leads with missing fields (email, education, etc.).
+   */
   private async sendToEnrichApi(
     postId: string,
-    postUrl: string,
-    platform: string,
-    postData: PostData,
+    _postUrl: string,
+    _platform: string,
+    _postData: PostData,
     engagements: EngagementData[],
   ): Promise<void> {
     const baseUrl = this.configService.get<string>('GENAI_SERVICE_URL');
@@ -199,34 +204,138 @@ export class ScrapingService {
       );
       return;
     }
+
+    const links = this.collectLinkedInProfileUrls(engagements);
+    if (links.length === 0) {
+      this.logger.debug('No LinkedIn profile URLs to send to enrich API');
+      return;
+    }
+
     const enrichUrl = `${baseUrl.replace(/\/$/, '')}/api/enrich`;
     try {
-      await axios.post(
+      const response = await axios.post<{
+        count?: number;
+        data?: Array<{
+          name?: string;
+          linkedin_url?: string;
+          current_role?: string;
+          education?: string;
+          country?: string;
+          email?: string;
+          score?: number;
+        }>;
+      }>(
         enrichUrl,
+        { links },
         {
-          postId,
-          postUrl,
-          platform,
-          post: {
-            id: postData.id,
-            url: postData.url,
-            content: postData.content,
-            author: postData.author,
-            metrics: postData.metrics,
-            createdAt: postData.createdAt,
-          },
-          engagements,
-        },
-        {
-          timeout: 30000,
+          timeout: 60000,
           headers: { 'Content-Type': 'application/json' },
         },
       );
-      this.logger.log(`Sent scraped data to ${enrichUrl} for post ${postId}`);
+      this.logger.log(
+        `Sent ${links.length} profile URL(s) to ${enrichUrl} for post ${postId}`,
+      );
+      if (response.data?.data?.length) {
+        await this.applyEnrichmentToLeads(postId, response.data.data);
+      }
     } catch (error: unknown) {
       this.logger.warn(
-        `Failed to send scraped data to enrich API for post ${postId}: ${(error as any)?.message ?? error}`,
+        `Failed to send to enrich API for post ${postId}: ${(error as any)?.message ?? error}`,
       );
+    }
+  }
+
+  /**
+   * Collects unique LinkedIn profile URLs from engagements (format expected by GenAI).
+   */
+  private collectLinkedInProfileUrls(
+    engagements: EngagementData[],
+  ): string[] {
+    const seen = new Set<string>();
+    const urls: string[] = [];
+    for (const e of engagements) {
+      const raw = e.user?.profileUrl?.trim();
+      if (!raw) continue;
+      const normalized = this.normalizeLinkedInProfileUrl(raw);
+      if (normalized && !seen.has(normalized)) {
+        seen.add(normalized);
+        urls.push(normalized);
+      }
+    }
+    return urls;
+  }
+
+  private normalizeLinkedInProfileUrl(url: string): string {
+    try {
+      const u = url.startsWith('http') ? url : `https://${url}`;
+      const parsed = new URL(u);
+      if (
+        parsed.hostname?.replace(/^www\./, '') === 'linkedin.com' &&
+        parsed.pathname?.startsWith('/in/')
+      ) {
+        return `https://www.linkedin.com${parsed.pathname.replace(/\/$/, '')}`;
+      }
+      return u;
+    } catch {
+      return url;
+    }
+  }
+
+  /**
+   * Updates leads for this post with enriched data (email, education, score, etc.) by matching profile URL.
+   */
+  private async applyEnrichmentToLeads(
+    postId: string,
+    enrichedProfiles: Array<{
+      name?: string;
+      linkedin_url?: string;
+      current_role?: string;
+      education?: string;
+      country?: string;
+      email?: string;
+      score?: number;
+    }>,
+  ): Promise<void> {
+    const leads = await this.leadModel.find({ postId }).lean();
+    const leadByUrl = new Map<string, { _id: unknown }>();
+    for (const lead of leads) {
+      if (lead.profileUrl) {
+        const n = this.normalizeLinkedInProfileUrl(lead.profileUrl);
+        leadByUrl.set(n, { _id: lead._id });
+      }
+    }
+    for (const profile of enrichedProfiles) {
+      const profileUrl = profile.linkedin_url;
+      if (!profileUrl) continue;
+      const normalized = this.normalizeLinkedInProfileUrl(profileUrl);
+      const match = leadByUrl.get(normalized);
+      if (!match) continue;
+      const lead = leads.find(
+        (l) => l._id.toString() === (match as { _id: unknown })._id?.toString(),
+      );
+      if (!lead) continue;
+      const updates: Record<string, unknown> = {};
+      if (profile.email != null && profile.email !== '') {
+        updates['contactInfo.email'] = profile.email;
+        if (!lead.guessedEmail) updates['guessedEmail'] = profile.email;
+      }
+      if (profile.education != null && lead.education?.length === 0) {
+        updates['education'] = [
+          { institution: profile.education, degree: '', fieldOfStudy: '', startYear: undefined, endYear: undefined },
+        ];
+      }
+      if (profile.country != null && !lead.location?.country) {
+        updates['location'] = {
+          country: profile.country,
+          city: lead.location?.city ?? '',
+        };
+      }
+      if (typeof profile.score === 'number' && profile.score >= 0) {
+        updates['matchScore'] = Math.min(100, Math.max(0, profile.score));
+      }
+      if (Object.keys(updates).length > 0) {
+        await this.leadModel.findByIdAndUpdate(lead._id, { $set: updates });
+      }
     }
   }
 
