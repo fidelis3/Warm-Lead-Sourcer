@@ -181,8 +181,8 @@ export class UsersService {
       expiresAt.setDate(expiresAt.getDate() + 30); // 30 days from now
 
       user = new this.userModel({
-        firstName,
-        lastName: lastName || '',
+        firstName: firstName || 'User',
+        lastName: typeof lastName === 'string' ? lastName : '',
         email: normalizedEmail,
         password: '', // Google OAuth users don't need a password
         expiresAt,
@@ -191,8 +191,8 @@ export class UsersService {
       await user.save();
     } else {
       // Update user info in case it changed in Google
-      user.firstName = firstName;
-      user.lastName = lastName || '';
+      user.firstName = firstName || user.firstName;
+      user.lastName = typeof lastName === 'string' ? lastName : user.lastName;
       user.provider = 'google';
       await user.save();
     }
