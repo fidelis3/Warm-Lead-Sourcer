@@ -9,7 +9,7 @@ export class User {
   firstName!: string;
 
   @Prop({ required: false, default: '' })
-  lastName!: string;
+  lastName?: string;
 
   @Prop({ required: true, unique: true, lowercase: true })
   email!: string;
